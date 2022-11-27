@@ -1,2 +1,2 @@
 # Koller
-Kolesz dolgok
+API és adatbázis a Koller-hez. 
