@@ -26,8 +26,8 @@ app.use('/api', api);
 api.use('/user', user);
 
 const pool = mariadb.createPool({
-  user: 'root',
-  password: '',
+  user: options.databaseLoginData.user,
+  password: options.databaseLoginData.password,
   database: 'kollegium'
 });
 

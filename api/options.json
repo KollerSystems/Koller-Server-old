@@ -6,5 +6,9 @@
       "accessToken": 86400,
       "refreshToken": 8640000
     }
+  },
+  "databaseLoginData": {
+    "user": "root",
+    "password": ""
   }
 }
