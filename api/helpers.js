@@ -5,6 +5,20 @@ function classicErrorSend(res, code, text) {
   res.header('Content-Type', 'text/plain').status(code).send(text).end();
 }
 
+function lowerCaseObjKeys(obj) {
+  for (let key in obj) {
+    const val = obj[key];
+    delete obj[key];
+    obj[key.toLowerCase()] = val;
+  }
+  return obj;
+}
+function toLowerKeys(req, res, next) {
+  req.query = lowerCaseObjKeys(req.query);
+  req.body = lowerCaseObjKeys(req.body);
+  next();
+}
+
 async function verify(authField) {
   let result = { 'ID': undefined, 'issue': "", 'code': 0 }
   result.code = 400;
@@ -69,4 +83,4 @@ async function generateUniqueToken() {
   return { 'access_token': accessToken, 'refresh_token': refreshToken };
 }
 
-export { checkToken, classicErrorSend, generateUniqueToken }
+export { checkToken, toLowerKeys, classicErrorSend, generateUniqueToken }

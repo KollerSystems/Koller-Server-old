@@ -3,7 +3,7 @@ import mariadb from 'mariadb';
 
 import { oauth } from './routes/oauth.js';
 import { user } from './routes/user.js';
-import { checkToken } from './helpers.js';
+import { checkToken, toLowerKeys } from './helpers.js';
 
 import { readFile } from 'fs/promises';
 const options = JSON.parse(
@@ -16,9 +16,10 @@ const options = JSON.parse(
 const app = express();
 const api = express.Router();
 
-api.use(express.json());
-api.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+if (options.ignoreParameterCase) app.use(toLowerKeys);
 api.use(checkToken);
 
 app.use('/oauth', oauth);

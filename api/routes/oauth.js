@@ -3,13 +3,12 @@ import { conn, options } from '../index.js';
 import { generateUniqueToken, classicErrorSend } from '../helpers.js';
 
 const oauth = Router();
-oauth.use(json());
-oauth.use(urlencoded({ extended: true }));
 
 
 function standardResultObj() {
   return { 'credentialsOK': false, 'data': undefined, 'issue': "" };
 }
+
 async function passwordGrant(body) {
   const response = standardResultObj();
 
@@ -60,6 +59,7 @@ const handleGrant = {
   'password': passwordGrant,
   'refresh_token': refreshGrant
 }
+
 
 oauth.post('/token', async (req, res) => {
   if (!("grant_type" in req.body)) {

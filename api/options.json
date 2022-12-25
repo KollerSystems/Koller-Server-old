@@ -10,5 +10,6 @@
   "databaseLoginData": {
     "user": "root",
     "password": ""
-  }
+  },
+  "ignoreParameterCase": false
 }
