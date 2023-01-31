@@ -16,14 +16,32 @@ async function passwordGrant(body) {
   else if (body.password == undefined) response.issue = "Password parameter missing!";
   if (response.issue != "") return response;
 
-  const userCredentials = await conn.query(`SELECT * FROM login_data WHERE Username="${body.username}" OR ID="s${body.username}" OR ID="t${body.username}" OR ID="${body.username}"`); // kell elegánsabb megoldás
+  let userCredentials;
+  if (/^\d+$/.test(body.username)) {
+    let student = true;
+    userCredentials = await conn.query(`SELECT ID FROM student WHERE OM="${body.username}"`);
+    if (userCredentials.length < 1) {
+      userCredentials = await conn.query(`SELECT ID FROM teacher WHERE OM="${body.username}"`);
+      student = false;
+    } // összevonni
+
+    if (userCredentials.length < 1) {
+      response.issue = `No user with OM: "${body.username}"!`;
+      return response;
+    }
+
+    userCredentials = await conn.query(`SELECT GID FROM user WHERE ID="${userCredentials[0].ID}" AND Role=${student ? 1 : 2}`); // ha nem találja meg nem kell hiba, akkora a baj
+    userCredentials = await conn.query(`SELECT * FROM login_data WHERE GID=${userCredentials[0].GID}`);
+  } else {
+    userCredentials = await conn.query(`SELECT * FROM login_data WHERE Username="${body.username}"`);
+  }
 
   if (userCredentials.length < 1) {
     response.issue = `No user with username: "${body.username}"!`;
     return response;
   }
 
-  response.data = userCredentials[0].ID;
+  response.data = userCredentials[0].GID;
   response.credentialsOK = userCredentials[0].Password == body.password;
 
   if (!response.credentialsOK) response.issue = "Incorrect password!";

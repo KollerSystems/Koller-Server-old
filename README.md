@@ -21,12 +21,12 @@ CREATE DATABASE IF NOT EXISTS kollegium;
 
 Majd kilépve a MariaDB monitorból importáljuk a táblákat a `kollegium.sql` fájl segítségével (a database mappából):
 ```
-mariadb-dump kollegium < kollegium.sql
+mariadb kollegium < kollegium.sql
 ```
 
 Ha más felhasználónak hoztuk létre az adatbázist, akkor annak a felhasználónak az adatbázisába "dump"-oljuk.
 
-Az adatbázisba való "dump"-olásról a [MariaDB weboldalán olvashatunk](https://mariadb.com/kb/en/mariadb-dumpmysqldump/).
+Az adatbázisból való "dump"-olásról, és az sql fájl betöltéséről a [MariaDB weboldalán olvashatunk](https://mariadb.com/kb/en/mariadb-dumpmysqldump/).
 
 Nyissuk meg az api mappán belül található `options.json` fájlt egy szövegszerkesztő programmal, és írjuk át a `user` értékét a felhasználónevünkre (ha más felhasználónak hoztuk létre az adatbázist akkor annak a nevére), illetve a `password` értékét a jelszóra, ha be lett állítva, egyébként maradjon üresen.
 
