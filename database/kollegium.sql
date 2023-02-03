@@ -115,14 +115,6 @@ CREATE TABLE IF NOT EXISTS `user` (
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 
 
-INSERT INTO `student` (`ID`, `OM`, `Name`, `Picture`, `Group`, `Class`, `School`, `Birthplace`, `Birthdate`, `GuardiaName`, `GuardianPhone`, `Address`, `RoomNumber`) VALUES
-	(32, '72136781423', 'Pista', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO `user` (`ID`, `Role`) VALUES
-  (32,1);
-INSERT INTO `login_data` (`GID`, `Username`, `Password`) VALUES
-  (1, 'Xx_Pistike_xX', 'GoofyEmber');
-
-
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

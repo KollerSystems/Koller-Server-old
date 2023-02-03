@@ -1,5 +1,5 @@
 import express from 'express';
-import mariadb from 'mariadb';
+import knex from 'knex';
 
 import { oauth } from './routes/oauth.js';
 import { user } from './routes/user.js';
@@ -26,17 +26,18 @@ app.use('/oauth', oauth);
 app.use('/api', api);
 api.use('/user', user);
 
-const pool = mariadb.createPool({
-  user: options.databaseLoginData.user,
-  password: options.databaseLoginData.password,
-  database: 'kollegium'
+
+const knx = knex({
+  client: "mysql",
+  connection: {
+    user: options.databaseLoginData.user,
+    password: options.databaseLoginData.password,
+    database: 'kollegium'
+  }
 });
 
-let conn;
-pool.getConnection().then(res => {
-  conn = res;
-  app.listen(80);
-  if (conn) conn.release();
-});
+app.listen(80);
+// knx.destroy();
 
-export { conn, options }
+let a = null;
+export { a as conn, knx, options }

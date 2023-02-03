@@ -12,7 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.0",
-    "mariadb": "^3.0.0"
+    "mysql": "^2.18.0",
+    "knex": "^2.4.0"
   },
   "type": "module"
 }

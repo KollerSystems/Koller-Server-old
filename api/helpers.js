@@ -1,4 +1,4 @@
-import { conn, options } from './index.js';
+import { knx, options } from './index.js';
 import { generateToken } from './misc.js';
 
 function classicErrorSend(res, code, text) {
@@ -33,22 +33,22 @@ async function verify(authField) {
 
   const bearer = authField.slice(7); // "Bearer " utáni karakterek
   result.code = 401;
-  let authEntries = await conn.query(`SELECT * FROM auth WHERE access_token="${bearer}"`);
-  if (authEntries.length < 1) {
+  let authEntry = await knx.first('*').from('auth').where('access_token', bearer);
+  if (!authEntry) {
     result.issue = "Invalid access token!"
     return result;
   }
 
   result.issue = "Access token expired.";
-  if (authEntries[0].expired) return result;
-  if (authEntries[0].issued.getTime() + (authEntries[0].expires * 1000) < Date.now()) {
-    conn.execute(`UPDATE auth SET expired=1 WHERE access_token="${bearer}" LIMIT 1"`);
+  if (authEntry.expired[0]) return result; // ?
+  if (authEntry.issued.getTime() + (authEntry.expires * 1000) < Date.now()) {
+    knx('auth').where('access_token', bearer).limit(1).update('expired', 1);
     return result;
   }
 
   result.code = 0;
   result.issue = "";
-  result.ID = authEntries[0].ID;
+  result.ID = authEntry.ID;
   return result;
 }
 async function checkToken(req, res, next) {
@@ -66,18 +66,16 @@ async function generateUniqueToken() {
   let refreshToken = generateToken(options.authorization.tokenlength);
 
   // tokenek véletlenszerű újragenerálása amíg nem egyedi
-  let tokens = await conn.query(`SELECT * FROM auth WHERE access_token="${accessToken}" or refresh_token="${refreshToken}"`);
-  while (tokens.length >= 1) {
-    if (tokens[0]['access_token'] == accessToken) accessToken = generateToken(options.authorization.tokenlength);
-    if (tokens[0]['refresh_token'] == refreshToken) refreshToken = generateToken(options.authorization.tokenlength);
+  while (true) {
+    let tokenEntry = await knx('auth').first('*').where('access_token', accessToken).orWhere('refresh_token', refreshToken);
+    if (!tokenEntry) break;
 
-    // ha lejárt és 100 napja nem volt megújítva, bejegyzés törlése és tokenek elfogadása egyediként
-    if (tokens[0]['expired'] && ((tokens[0]['issued'].getTime() + options.authorization.expiry.refreshToken * 1000) < Date.now())) {
-      await conn.execute(`DELETE FROM auth WHERE access_token="${tokens[0]['access_token']}"`);
+    if (tokenEntry['access_token'] == accessToken) accessToken = generateToken(options.authorization.tokenlength);
+    if (tokenEntry['refresh_token'] == refreshToken) refreshToken = generateToken(options.authorization.tokenlength);
+    if (tokenEntry['expired'] && ((tokenEntry['issued'].getTime() + options.authorization.expiry.refreshToken * 1000) < Date.now())) {
+      await knx('auth').where('access_token', tokenEntry['access_token']).delete();
       return { 'access_token': accessToken, 'refresh_token': refreshToken };
     }
-
-    tokens = await conn.query(`SELECT * FROM auth WHERE access_token="${accessToken}" or refresh_token="${refreshToken}"`);
   }
 
   return { 'access_token': accessToken, 'refresh_token': refreshToken };

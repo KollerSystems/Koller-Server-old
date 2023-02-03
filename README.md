@@ -21,10 +21,10 @@ CREATE DATABASE IF NOT EXISTS kollegium;
 
 Majd kilépve a MariaDB monitorból importáljuk a táblákat a `kollegium.sql` fájl segítségével (a database mappából):
 ```
-mariadb kollegium < kollegium.sql
+mariadb < kollegium.sql
 ```
 
-Ha más felhasználónak hoztuk létre az adatbázist, akkor annak a felhasználónak az adatbázisába "dump"-oljuk.
+Ha más felhasználónak hoztuk létre az adatbázist, akkor annak a felhasználónak az adatbázisába töltsük be.
 
 Az adatbázisból való "dump"-olásról, és az sql fájl betöltéséről a [MariaDB weboldalán olvashatunk](https://mariadb.com/kb/en/mariadb-dumpmysqldump/).
 
