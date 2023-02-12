@@ -10,7 +10,7 @@ API forráskódja és az adatbázis a Koller-hez.
 
 ### Adatbázis beállítása
 
-A fejlesztés során a **MariaDB Community 10.9.4**-es verziójával dolgozunk, ami letölthető manuálisan a [MariaDB hivatalos oldaláról](https://mariadb.com/downloads/community/), vagy a használt diszribúció csomagkezelőjének segítségével.
+A fejlesztés során a **MariaDB Community 10.10.3**-as verziójával dolgozunk, ami letölthető manuálisan a [MariaDB hivatalos oldaláról](https://mariadb.com/downloads/community/), vagy a használt diszribúció csomagkezelőjének segítségével.
 
 MariaDB szerver futtatásához fordulj a hivatalos oldalukhoz, illetve a diszribúció wiki-jéhez!
 
