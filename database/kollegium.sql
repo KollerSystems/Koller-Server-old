@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS `login_data` (
   PRIMARY KEY (`GID`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
+/*!40000 ALTER TABLE `login_data` DISABLE KEYS */;
+/*!40000 ALTER TABLE `login_data` ENABLE KEYS */;
+
 CREATE TABLE IF NOT EXISTS `auth` (
   `ID` varchar(12) DEFAULT NULL,
   `access_token` varchar(32) DEFAULT NULL,
@@ -35,8 +38,6 @@ CREATE TABLE IF NOT EXISTS `auth` (
   `expired` bit(1) NOT NULL DEFAULT b'0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-/*!40000 ALTER TABLE `login_data` DISABLE KEYS */;
-/*!40000 ALTER TABLE `login_data` ENABLE KEYS */;
 
 CREATE TABLE IF NOT EXISTS `peroutgoing` (
   `SID` int(10) unsigned NOT NULL DEFAULT 0,
@@ -110,10 +111,32 @@ CREATE TABLE IF NOT EXISTS `user` (
   KEY `ID` (`ID`,`Role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
-
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 
+CREATE TABLE IF NOT EXISTS `role_name` (
+  `Role` tinyint(1) unsigned DEFAULT 0,
+  `Table` varchar(64) NOT NULL,
+  `FullName` text DEFAULT NULL,
+  PRIMARY KEY (`Role`),
+  KEY (`Table`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+INSERT INTO `role_name` (`Role`, `Table`, `FullName`) VALUES
+  (1, 'student', 'kollégiumi diák');
+INSERT INTO `role_name` (`Role`, `Table`, `FullName`) VALUES
+  (2, 'teacher', 'nevelőtanár');
+
+/*!40000 ALTER TABLE `role_name` DISABLE KEYS */;
+/*!40000 ALTER TABLE `role_name` ENABLE KEYS */;
+
+
+INSERT INTO `student` (`ID`, `OM`, `Name`, `Picture`, `Group`, `Class`, `School`, `Birthplace`, `Birthdate`, `GuardiaName`, `GuardianPhone`, `Address`, `RoomNumber`) VALUES
+	(32, '72136781423', 'Pista', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `user` (`ID`, `Role`) VALUES
+  (32,1);
+INSERT INTO `login_data` (`GID`, `Username`, `Password`) VALUES
+  (1, 'Xx_Pistike_xX', 'GoofyEmber');
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;

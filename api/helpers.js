@@ -2,7 +2,7 @@ import { knx, options } from './index.js';
 import { generateToken } from './misc.js';
 
 function classicErrorSend(res, code, text) {
-  res.header('Content-Type', 'text/plain').status(code).send(text).end();
+  res.header('Content-Type', 'application/json').status(code).send({'error': text}).end();
 }
 
 function lowerCaseObjKeys(obj) {
@@ -20,7 +20,7 @@ function toLowerKeys(req, res, next) {
 }
 
 async function verify(authField) {
-  let result = { 'ID': undefined, 'issue': "", 'code': 0 }
+  let result = { 'ID': undefined, 'roleID': -1, 'issue': "", 'code': 0 }
   result.code = 400;
   if (authField == undefined) {
     result.issue = "Authorization header field not present!";
@@ -46,9 +46,12 @@ async function verify(authField) {
     return result;
   }
 
+  let userEntry = await knx('user').first('ID', 'Role').where('GID', authEntry.ID);
+
   result.code = 0;
   result.issue = "";
-  result.ID = authEntry.ID;
+  result.ID = userEntry.ID;
+  result.roleID = userEntry.Role;
   return result;
 }
 async function checkToken(req, res, next) {
@@ -57,7 +60,9 @@ async function checkToken(req, res, next) {
     classicErrorSend(res, verRes.code, verRes.issue);
     return;
   }
+  res.set('Cache-Control', 'no-store');
   req.ID = verRes.ID;
+  req.roleID = verRes.roleID
   next();
 }
 

@@ -1,7 +1,7 @@
 {
   "authorization": {
     "tokenlength": 32,
-    "allowedCharacters": "0123456789abcdefghijklmnpqrstuvwxyz-._~+/",
+    "allowedCharacters": "0123456789abcdefghijklmnpqrstuvwxyz-._~/",
     "expiry": {
       "accessToken": 86400,
       "refreshToken": 8640000

@@ -36,8 +36,10 @@ const knx = knex({
   }
 });
 
+const roleMappings = (await knx('role_name').select('Role', 'Table')).reduce((map, entry) => {map[entry.Role] = entry.Table; return map}, {});
+
 app.listen(80);
 // knx.destroy();
 
 let a = null;
-export { a as conn, knx, options }
+export { knx, options, roleMappings }
