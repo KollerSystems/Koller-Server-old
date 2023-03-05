@@ -153,13 +153,26 @@ CREATE TABLE IF NOT EXISTS `user` (
   KEY `ID` (`ID`,`Role`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
+CREATE TABLE IF NOT EXISTS `role_name` (
+  `Role` tinyint(1) unsigned DEFAULT 0,
+  `Table` varchar(64) NOT NULL,
+  `FullName` text DEFAULT NULL,
+  PRIMARY KEY (`Role`),
+  KEY (`Table`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+INSERT INTO `role_name` (`Role`, `Table`, `FullName`) VALUES
+  (1, 'student', 'kollégiumi diák');
+INSERT INTO `role_name` (`Role`, `Table`, `FullName`) VALUES
+  (2, 'teacher', 'nevelőtanár');
+
 -- Tábla adatainak mentése kollegium.user: ~0 rows (hozzávetőleg)
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
 INSERT INTO `user` (`GID`, `ID`, `Role`) VALUES
-	(1, 1, 0),
-	(2, 2, 0),
-	(3, 3, 0),
-	(4, 4, 0);
+	(1, 1, 1),
+	(2, 2, 1),
+	(3, 3, 1),
+	(4, 4, 1);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
