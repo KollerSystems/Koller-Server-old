@@ -19,7 +19,7 @@ const api = express.Router();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-if (options.ignoreParameterCase) app.use(toLowerKeys);
+if (options.api.ignoreParameterCase) app.use(toLowerKeys);
 api.use(checkToken);
 
 app.use('/oauth', oauth);
@@ -38,7 +38,10 @@ const knx = knex({
 
 const roleMappings = (await knx('role_name').select('Role', 'Table')).reduce((map, entry) => {map[entry.Role] = entry.Table; return map}, {});
 
-app.listen(80);
+app.listen(80, err => {
+  if (err) console.error("Server could not start listening!"); // throw error => kapcsolatok lezárása
+  console.log(`Server started listening on port ${options.api.port}!`);
+});
 // knx.destroy();
 
 let a = null;
