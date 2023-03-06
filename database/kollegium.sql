@@ -128,8 +128,8 @@ CREATE TABLE IF NOT EXISTS `student` (
 INSERT INTO `student` (`ID`, `OM`, `Name`, `Picture`, `Group`, `Class`, `School`, `Birthplace`, `Birthdate`, `GuardianName`, `GuardianPhone`, `RoomNumber`, `Country`, `City`, `Street`, `PostCode`, `Address`, `Floor`, `Door`) VALUES
 	(1, '73454685362', 'Várnagy Miklós', NULL, 'F8', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2023-02-26', 'Papp Lajos', '36 64 865 3423', 126, 'Új-Zéland', 'Hamilton', 'Clarkin Road', 3214, 2, NULL, NULL),
 	(2, '72745678344', 'Katona Márton Barnabás', NULL, 'F10', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-07-22', 'Kis Gazsiné', '213 676 33 87 93', 32, 'Afganistan', 'Kabul', 'Asmayi Road', 553, 8, 3, NULL),
-	(3, '72345456668', 'Bencsik Gergely', NULL, 'F3', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-02-28', 'Tóth András', '36 90 343 5454', 535, 'Uganda', 'Kampala', 'Kabalega Close', NULL, 16, NULL, NULL),
-	(4, '74583725375', 'Bende Ákos György', NULL, 'L1', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-08-15', 'Kalapos József', '43 673 527890180', 264, 'Austria', 'Graz', 'Plüddemanngasse', 8010, 62, 32, 3);
+	(3, '74583725375', 'Bende Ákos György', NULL, 'L1', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-08-15', 'Kalapos József', '43 673 527890180', 264, 'Austria', 'Graz', 'Plüddemanngasse', 8010, 62, 32, 3);
+	(4, '72345456668', 'Bencsik Gergely', NULL, 'F3', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-02-28', 'Tóth András', '36 90 343 5454', 535, 'Uganda', 'Kampala', 'Kabalega Close', NULL, 16, NULL, NULL),
 /*!40000 ALTER TABLE `student` ENABLE KEYS */;
 
 -- Struktúra mentése tábla kollegium. teacher
