@@ -72,7 +72,7 @@ const handleGrant = {
 }
 
 
-oauth.post('/token', async (req, res) => {
+oauth.post('/token', async (req, res, next) => {
   if (!("grant_type" in req.body)) {
     classicErrorSend(res, 400, "Grant type parameter missing or type not allowed!");
     return;
@@ -103,6 +103,7 @@ oauth.post('/token', async (req, res) => {
       'refresh_token': refresh_token
     }).end();
   }
+  next()
 });
 
 export { oauth };

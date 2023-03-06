@@ -1,5 +1,14 @@
-import { knx, options } from './index.js';
-import { generateToken } from './misc.js';
+import { knx, logFileStream, options } from './index.js';
+import { intoTimestamp, generateToken } from './misc.js';
+
+function logRequest(req, res, next) {
+  if (options.logging.logUnsuccessful || (res.statusCode >= 200 && res.statusCode < 300)) {
+    let logLine = intoTimestamp(res.locals.incomingTime) + (options.logging.logIP ? " {"+req.ip+"} " : " ") + `${req.method} ${req.path} (${res.statusCode})`;
+    if (options.logging.logConsole) console.log(logLine);
+    if (options.logging.logFile != "") logFileStream.write(logLine + "\n");
+  }
+  next();
+}
 
 function classicErrorSend(res, code, text) {
   res.header('Content-Type', 'application/json').status(code).send({'error': text}).end();
@@ -86,4 +95,4 @@ async function generateUniqueToken() {
   return { 'access_token': accessToken, 'refresh_token': refreshToken };
 }
 
-export { checkToken, toLowerKeys, classicErrorSend, generateUniqueToken }
+export { logRequest, checkToken, toLowerKeys, classicErrorSend, generateUniqueToken }

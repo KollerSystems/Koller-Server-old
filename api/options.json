@@ -14,5 +14,12 @@
   "api": {
     "ignoreParameterCase": false,
     "port": 80
+  },
+  "logging": {
+    "logAsISOString": false,
+    "logIP": false,
+    "logUnsuccessful": true,
+    "logConsole": true,
+    "logFile": ""
   }
 }
