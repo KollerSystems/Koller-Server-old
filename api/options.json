@@ -12,14 +12,16 @@
     "password": ""
   },
   "api": {
-    "ignoreParameterCase": false,
-    "port": 80
+    "port": 80,
+    "exitTimeout": 2000
   },
   "logging": {
     "logAsISOString": false,
     "logIP": false,
     "logUnsuccessful": true,
+    "logNotFound": false,
     "logConsole": true,
-    "logFile": ""
+    "logFile": "",
+    "overwriteLog": false
   }
 }

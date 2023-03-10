@@ -1,7 +1,7 @@
 {
   "name": "koller-api",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.2.0",
+  "description": "API szerver a Kollerhez",
   "main": "index.js",
   "scripts": {
     "test": "npm start",

@@ -1,18 +1,8 @@
 import { knx, logFileStream, options } from './index.js';
 import { intoTimestamp, generateToken } from './misc.js';
 
-function logRequest(req, res, next) {
-  if (options.logging.logUnsuccessful || (res.statusCode >= 200 && res.statusCode < 300)) {
-    let logLine = intoTimestamp(res.locals.incomingTime) + (options.logging.logIP ? " {"+req.ip+"} " : " ") + `${req.method} ${req.path} (${res.statusCode})`;
-    if (options.logging.logConsole) console.log(logLine);
-    if (options.logging.logFile != "") logFileStream.write(logLine + "\n");
-  }
-  next();
-}
-
-function classicErrorSend(res, code, text) {
-  res.header('Content-Type', 'application/json').status(code).send({'error': text}).end();
-}
+/*
+ * OAUTH case sensitivity ignorálása
 
 function lowerCaseObjKeys(obj) {
   for (let key in obj) {
@@ -27,6 +17,7 @@ function toLowerKeys(req, res, next) {
   req.body = lowerCaseObjKeys(req.body);
   next();
 }
+*/
 
 async function verify(authField) {
   let result = { 'ID': undefined, 'roleID': -1, 'issue': "", 'code': 0 }
@@ -49,7 +40,7 @@ async function verify(authField) {
   }
 
   result.issue = "Access token expired.";
-  if (authEntry.expired[0]) return result; // ?
+  if (authEntry.expired[0]) return result; // ? // ?
   if (authEntry.issued.getTime() + (authEntry.expires * 1000) < Date.now()) {
     knx('auth').where('access_token', bearer).limit(1).update('expired', 1);
     return result;
@@ -75,6 +66,25 @@ async function checkToken(req, res, next) {
   next();
 }
 
+function handleNotFound(req, res, next) {
+  res.header('Content-Type', 'application/json').status(404).send({ 'error': "Page not found!" });
+  next();
+}
+
+function logRequest(req, res, next = () => { }) {
+  if (
+    (res.statusCode >= 200 && res.statusCode < 300) ||
+    (res.statusCode == 404 && options.logging.logNotFound) ||
+    (options.logging.logUnsuccessful)
+  ) {
+    let logLine = intoTimestamp(res.locals.incomingTime) + (options.logging.logIP ? " {" + req.ip + "} " : " ") + `${req.method} ${req.originalUrl} (${res.statusCode})`;
+    if (options.logging.logConsole) console.log(logLine);
+    if (options.logging.logFile != "") logFileStream.write(logLine + "\n");
+  }
+  next();
+}
+
+
 async function generateUniqueToken() {
   let accessToken = generateToken(options.authorization.tokenlength);
   let refreshToken = generateToken(options.authorization.tokenlength);
@@ -95,4 +105,9 @@ async function generateUniqueToken() {
   return { 'access_token': accessToken, 'refresh_token': refreshToken };
 }
 
-export { logRequest, checkToken, toLowerKeys, classicErrorSend, generateUniqueToken }
+function classicErrorSend(res, code, text) {
+  res.header('Content-Type', 'application/json').status(code).send({ 'error': text }).end();
+  logRequest(res.req, res);
+}
+
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend }
