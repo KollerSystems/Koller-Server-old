@@ -5,7 +5,7 @@ import process from 'node:process';
 
 import { oauth } from './routes/oauth.js';
 import { user } from './routes/user.js';
-import { checkToken, handleNotFound, logRequest } from './helpers.js';
+import { checkToken, handleNotFound, logRequest, treeifyPerms, extendMissingPermissions } from './helpers.js';
 
 import { readFile } from 'fs/promises';
 const options = JSON.parse(
@@ -43,6 +43,8 @@ const knx = knex({
 });
 
 const roleMappings = (await knx('role_name').select('Role', 'Table')).reduce((map, entry) => { map[entry.Role] = entry.Table; return map }, {});
+const permMappings = treeifyPerms(await knx('permissions').select('*'));
+if (options.api.extendPermissions) await extendMissingPermissions(permMappings);
 
 let server = app.listen(80, err => {
   if (err) server.close(() => console.error("Server could not start listening!"));

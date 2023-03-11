@@ -110,4 +110,31 @@ function classicErrorSend(res, code, text) {
   logRequest(res.req, res);
 }
 
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend }
+function treeifyPerms(arr) { // TODO: hiányzó mezők kipótlása az alap értékkel
+  const tree = {};
+  arr.forEach(rowData => {
+    if (!(rowData.Table in tree)) tree[rowData.Table] = {};
+    tree[rowData.Table][rowData.Field] = { read: {}, write: {} };
+    Object.keys(rowData).slice(2).forEach(groupPermKey => { // slice(2): Table & Field kihagyása
+      tree[rowData.Table][rowData.Field][groupPermKey.endsWith("Read") ? "read" : "write"][groupPermKey.match(/.+(?=Read|Write)/g)[0]] = Boolean(rowData[groupPermKey][0]);
+    });
+  });
+  return tree;
+}
+async function extendMissingPermissions(permTree) {
+  const columnInfo = await knx('permissions').columnInfo();
+  const { Table, Field, ...permInfos } = columnInfo; // Table & Field kihagyása
+  const defaultValues = { read: {}, write: {} };
+  for (let permInfo in permInfos)
+    defaultValues[permInfo.endsWith("Read") ? "read" : "write"][permInfo.match(/.+(?=Read|Write)/g)[0]] = (permInfos[permInfo].defaultValue == "b\'0\'" ? false : true);
+
+  for (let table in permTree) {
+    let columns = await knx(table).columnInfo();
+    for (let column in columns) {
+      if (column in permTree[table]) continue;
+      permTree[table][column] = { ...defaultValues }
+    }
+  }
+}
+
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, treeifyPerms, extendMissingPermissions }

@@ -121,15 +121,15 @@ CREATE TABLE IF NOT EXISTS `student` (
   `Floor` int(11) unsigned DEFAULT NULL,
   `Door` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`ID`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4294967296 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 -- Tábla adatainak mentése kollegium.student: ~4 rows (hozzávetőleg)
 /*!40000 ALTER TABLE `student` DISABLE KEYS */;
 INSERT INTO `student` (`ID`, `OM`, `Name`, `Picture`, `Group`, `Class`, `School`, `Birthplace`, `Birthdate`, `GuardianName`, `GuardianPhone`, `RoomNumber`, `Country`, `City`, `Street`, `PostCode`, `Address`, `Floor`, `Door`) VALUES
-	(1, '73454685362', 'Várnagy Miklós', NULL, 'F8', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2023-02-26', 'Papp Lajos', '36 64 865 3423', 126, 'Új-Zéland', 'Hamilton', 'Clarkin Road', 3214, 2, NULL, NULL),
+	(1, '73454685362', 'Várnagy Miklós Tamás', NULL, 'F8', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2023-02-26', 'Papp Lajos', '36 64 865 3423', 126, 'Új-Zéland', 'Hamilton', 'Clarkin Road', 3214, 2, NULL, NULL),
 	(2, '72745678344', 'Katona Márton Barnabás', NULL, 'F10', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-07-22', 'Kis Gazsiné', '213 676 33 87 93', 32, 'Afganistan', 'Kabul', 'Asmayi Road', 553, 8, 3, NULL),
 	(3, '74583725375', 'Bende Ákos György', NULL, 'L1', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-08-15', 'Kalapos József', '43 673 527890180', 264, 'Austria', 'Graz', 'Plüddemanngasse', 8010, 62, 32, 3),
-	(4, '72345456668', 'Bencsik Gergely', NULL, 'F3', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-02-28', 'Tóth András', '36 90 343 5454', 535, 'Uganda', 'Kampala', 'Kabalega Close', NULL, 16, NULL, NULL);
+	(4, '72345456668', 'Bencsik Gergő', NULL, 'F3', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-02-28', 'Tóth András', '36 90 343 5454', 535, 'Uganda', 'Kampala', 'Kabalega Close', NULL, 16, NULL, NULL);
 /*!40000 ALTER TABLE `student` ENABLE KEYS */;
 
 -- Struktúra mentése tábla kollegium. teacher
@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `Role` tinyint(1) unsigned DEFAULT 0,
   PRIMARY KEY (`GID`),
   KEY `ID` (`ID`,`Role`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE IF NOT EXISTS `role_name` (
   `Role` tinyint(1) unsigned DEFAULT 0,
@@ -160,6 +160,28 @@ CREATE TABLE IF NOT EXISTS `role_name` (
   PRIMARY KEY (`Role`),
   KEY (`Table`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+CREATE TABLE IF NOT EXISTS `permissions` (
+  `Table` varchar(64) NOT NULL,
+  `Field` varchar(64) NOT NULL,
+  `studentRead` bit(1) NOT NULL DEFAULT b'0',
+  `teacherRead` bit(1) NOT NULL DEFAULT b'0',
+  KEY (`Table`, `Field`)
+);
+
+INSERT INTO `permissions` VALUES ('student', 'Name', b'1', b'1');
+INSERT INTO `permissions` VALUES ('student', 'Picture', b'1', b'1');
+INSERT INTO `permissions` VALUES ('student', 'Group', b'1', b'1');
+INSERT INTO `permissions` VALUES ('student', 'Class', b'1', b'1');
+INSERT INTO `permissions` VALUES ('student', 'School', b'1', b'1');
+INSERT INTO `permissions` VALUES ('student', 'RoomNumber', b'1', b'1');
+
+INSERT INTO `permissions` VALUES ('student', 'Birthdate', b'0', b'1');
+INSERT INTO `permissions` VALUES ('student', 'GuardianName', b'0', b'1');
+INSERT INTO `permissions` VALUES ('student', 'GuardianPhone', b'0', b'1');
+INSERT INTO `permissions` VALUES ('student', 'Country', b'0', b'1');
+INSERT INTO `permissions` VALUES ('student', 'City', b'0', b'1');
+
 
 INSERT INTO `role_name` (`Role`, `Table`, `FullName`) VALUES
   (1, 'student', 'kollégiumi diák');

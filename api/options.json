@@ -13,7 +13,8 @@
   },
   "api": {
     "port": 80,
-    "exitTimeout": 2000
+    "exitTimeout": 2000,
+    "extendPermissions": true
   },
   "logging": {
     "logAsISOString": false,
