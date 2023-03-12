@@ -46,26 +46,30 @@ const roleMappings = (await knx('role_name').select('Role', 'Table')).reduce((ma
 const permMappings = treeifyPerms(await knx('permissions').select('*'));
 if (options.api.extendPermissions) await extendMissingPermissions(permMappings);
 
-let server = app.listen(80, err => {
-  if (err) server.close(() => console.error("Server could not start listening!"));
+let server = app.listen(80, async err => {
+  if (err) {
+    await server.close(() => console.error("Server terminated - unable to start listening due to error:"));
+    console.error(err);
+    process.exit(1)
+  }
   console.log(`Server started listening on port ${options.api.port}!`);
 });
 
 
 server.on('close', () => {
   setTimeout(() => {
-    console.log("Exit timed out!")
-    process.exit(0);
+    console.log("Server terminated - timeout!")
+    process.exit(1);
   }, options.api.exitTimeout);
 
+  server.closeAllConnections();
   if (logFileStream ?? "") logFileStream.destroy();
   knx.destroy();
-
-  process.exit(1);
 });
 
-process.on('SIGINT', () => {
-  server.close(() => console.log("Server terminated from console!"));
+process.on('SIGINT', async () => {
+  await server.close(() => console.log("Server terminated - SIGINT!"));
+  process.exit(0);
 });
 
 export { knx, options, roleMappings, logFileStream }

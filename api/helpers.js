@@ -61,13 +61,14 @@ async function checkToken(req, res, next) {
     return;
   }
   res.set('Cache-Control', 'no-store');
-  req.ID = verRes.ID;
-  req.roleID = verRes.roleID
+  res.locals.ID = verRes.ID;
+  res.locals.roleID = verRes.roleID
   next();
 }
 
 function handleNotFound(req, res, next) {
-  res.header('Content-Type', 'application/json').status(404).send({ 'error': "Page not found!" });
+  if (!res.headersSent)
+    res.header('Content-Type', 'application/json').status(404).send({ 'error': "Page not found!" });
   next();
 }
 
@@ -110,7 +111,7 @@ function classicErrorSend(res, code, text) {
   logRequest(res.req, res);
 }
 
-function treeifyPerms(arr) { // TODO: hiányzó mezők kipótlása az alap értékkel
+function treeifyPerms(arr) {
   const tree = {};
   arr.forEach(rowData => {
     if (!(rowData.Table in tree)) tree[rowData.Table] = {};
