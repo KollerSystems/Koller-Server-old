@@ -28,4 +28,8 @@ function generateToken(len) {
   return token;
 }
 
-export { intoTimestamp, generateToken }
+function isEmptyObject(obj) {
+  return (Object.keys(obj).length == 0);
+}
+
+export { intoTimestamp, generateToken, isEmptyObject }

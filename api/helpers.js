@@ -138,4 +138,11 @@ async function extendMissingPermissions(permTree) {
   }
 }
 
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, treeifyPerms, extendMissingPermissions }
+function getPermitted(data, tablePerms, role, permType = "read") { // perftest: adat törlése vs új obj létrehozása
+  let permittedData = {};
+  for (let key in data)
+    if ( tablePerms[key][permType][role] ) permittedData[key] = data[key];
+  return permittedData;
+}
+
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, treeifyPerms, extendMissingPermissions, getPermitted }

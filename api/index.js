@@ -72,4 +72,4 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-export { knx, options, roleMappings, logFileStream }
+export { knx, options, roleMappings, permMappings, logFileStream }
