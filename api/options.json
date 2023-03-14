@@ -14,7 +14,8 @@
   "api": {
     "port": 80,
     "exitTimeout": 2000,
-    "extendPermissions": true
+    "extendPermissions": true,
+    "checkDatabase": true
   },
   "logging": {
     "logAsISOString": false,
