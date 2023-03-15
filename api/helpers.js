@@ -1,4 +1,4 @@
-import { knx, logFileStream, options, permMappings, roleMappings } from './index.js';
+import { knx, logFileStream, options } from './index.js';
 import { intoTimestamp, generateToken } from './misc.js';
 
 /*
@@ -111,33 +111,6 @@ function classicErrorSend(res, code, text) {
   logRequest(res.req, res);
 }
 
-function treeifyPerms(arr) {
-  const tree = {};
-  arr.forEach(rowData => {
-    if (!(rowData.Table in tree)) tree[rowData.Table] = {};
-    tree[rowData.Table][rowData.Field] = { read: {}, write: {} };
-    Object.keys(rowData).slice(2).forEach(groupPermKey => { // slice(2): Table & Field kihagyása
-      tree[rowData.Table][rowData.Field][groupPermKey.endsWith("Read") ? "read" : "write"][groupPermKey.match(/.+(?=Read|Write)/g)[0]] = Boolean(rowData[groupPermKey][0]);
-    });
-  });
-  return tree;
-}
-async function extendMissingPermissions(permTree) {
-  const columnInfo = await knx('permissions').columnInfo();
-  const { Table, Field, ...permInfos } = columnInfo; // Table & Field kihagyása
-  const defaultValues = { read: {}, write: {} };
-  for (let permInfo in permInfos)
-    defaultValues[permInfo.endsWith("Read") ? "read" : "write"][permInfo.match(/.+(?=Read|Write)/g)[0]] = (permInfos[permInfo].defaultValue == "b\'0\'" ? false : true);
-
-  for (let table in permTree) {
-    let columns = await knx(table).columnInfo();
-    for (let column in columns) {
-      if (column in permTree[table]) continue;
-      permTree[table][column] = { ...defaultValues }
-    }
-  }
-}
-
 function getPermitted(data, tablePerms, role, permType = "read") { // perftest: adat törlése vs új obj létrehozása
   let permittedData = {};
   for (let key in data)
@@ -145,19 +118,4 @@ function getPermitted(data, tablePerms, role, permType = "read") { // perftest: 
   return permittedData;
 }
 
-async function checkDatabase() { // TODO: hiányzó field permission mezők check
-  const problems = { missingUsers: [], undeclaredPermTables: [] }
-
-  for (let roleID in roleMappings) {
-    const roleName = roleMappings[roleID];
-    const missingIDs = await knx('user').select('*').whereNotExists(knx(roleName).select('*').whereRaw(`user.ID = ${roleName}.ID`)).andWhere('Role', roleID); // whereRaw-on kívül hibásan adnak vissza adatot
-    missingIDs.forEach(missingID => problems.missingUsers.push(missingID));
-
-    if (permMappings[roleMappings[roleID]] == undefined) problems.undeclaredPermTables.push(roleMappings[roleID]);
-  }
-
-  problems.missingUsers.forEach(missingUser => console.warn(`Missing ${roleMappings[missingUser.Role]}: global ${missingUser.GID}!`));
-  problems.undeclaredPermTables.forEach(permTable => console.warn(`Missing permission definition for ${permTable}!`));
-}
-
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, treeifyPerms, extendMissingPermissions, getPermitted, checkDatabase }
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, getPermitted }
