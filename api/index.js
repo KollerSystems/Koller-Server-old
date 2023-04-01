@@ -4,9 +4,9 @@ import { createWriteStream } from 'fs';
 import process from 'node:process';
 
 import { oauth } from './routes/oauth.js';
-import { user } from './routes/user.js';
+import { users } from './routes/users.js';
 import { checkToken, handleNotFound, logRequest } from './helpers.js';
-import { treeifyPerms, extendMissingPermissions, checkDatabase } from './startup.js';
+import { treeifyPerms, extendMissingPermissions, checkDatabase, checkOptions } from './startup.js';
 
 import { readFile } from 'fs/promises';
 const options = JSON.parse(
@@ -30,7 +30,7 @@ api.use(checkToken);
 
 app.use('/oauth', oauth);
 app.use('/api', api);
-api.use('/user', user);
+api.use('/users', users);
 
 app.use('/', handleNotFound);
 app.use('/', logRequest);
@@ -48,8 +48,9 @@ const knx = knex({
 
 const roleMappings = (await knx('role_name').select('Role', 'Table')).reduce((map, entry) => { map[entry.Role] = entry.Table; return map }, {});
 const permMappings = treeifyPerms(await knx('permissions').select('*'));
-if (options.api.extendPermissions) await extendMissingPermissions();
-if (options.api.checkDatabase) await checkDatabase();
+if (options.errorChecking.extendPermissions) await extendMissingPermissions();
+if (options.errorChecking.database) await checkDatabase();
+if (options.errorChecking.options) checkOptions();
 
 
 let server = app.listen(80, async err => {

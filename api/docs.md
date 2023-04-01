@@ -5,7 +5,7 @@ Felépítése:
 - [`/oauth`](#oauth):
 	- `/token`
 - [`/api`](#api):
-	- `/user`
+	- `/users`
 		- `/me`
 
 *POST* kérések esetén a válasz egy *JSON* objektum formájában érkezik.
@@ -67,14 +67,14 @@ Content-Type: application/json
 
 ## `/api`
 
-### `GET /user/me`
+### `GET /users/me`
 
 Semmilyen paramétert sem fogad el, a használt *access token* alapján visszaküldi a felhasználó adatait.
 
 #### Példa:
 
 ```
-GET /api/user/me HTTP/1.1
+GET /api/users/me HTTP/1.1
 Authorization: Bearer fM0~58_cAbiNT7BFE370RM5rVg/43ay~
 ```
 

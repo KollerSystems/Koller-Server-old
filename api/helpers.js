@@ -78,7 +78,7 @@ function logRequest(req, res, next = () => { }) {
     (res.statusCode == 404 && options.logging.logNotFound) ||
     (options.logging.logUnsuccessful)
   ) {
-    let logLine = intoTimestamp(res.locals.incomingTime) + (options.logging.logIP ? " {" + req.ip + "} " : " ") + `${req.method} ${req.originalUrl} (${res.statusCode})`;
+    let logLine = intoTimestamp(res.locals.incomingTime) + ` <${res.locals.ID}>` + (options.logging.logIP ? " {" + req.ip + "}" : "") + ` ${req.method} ${req.originalUrl} (${res.statusCode})`;
     if (options.logging.logConsole) console.log(logLine);
     if (options.logging.logFile != "") logFileStream.write(logLine + "\n");
   }
@@ -87,16 +87,16 @@ function logRequest(req, res, next = () => { }) {
 
 
 async function generateUniqueToken() {
-  let accessToken = generateToken(options.authorization.tokenlength);
-  let refreshToken = generateToken(options.authorization.tokenlength);
+  let accessToken = generateToken(options.authorization.tokenLength);
+  let refreshToken = generateToken(options.authorization.tokenLength);
 
   // tokenek véletlenszerű újragenerálása amíg nem egyedi
   while (true) {
     let tokenEntry = await knx('auth').first('*').where('access_token', accessToken).orWhere('refresh_token', refreshToken);
     if (!tokenEntry) break;
 
-    if (tokenEntry['access_token'] == accessToken) accessToken = generateToken(options.authorization.tokenlength);
-    if (tokenEntry['refresh_token'] == refreshToken) refreshToken = generateToken(options.authorization.tokenlength);
+    if (tokenEntry['access_token'] == accessToken) accessToken = generateToken(options.authorization.tokenLength);
+    if (tokenEntry['refresh_token'] == refreshToken) refreshToken = generateToken(options.authorization.tokenLength);
     if (tokenEntry['expired'] && ((tokenEntry['issued'].getTime() + options.authorization.expiry.refreshToken * 1000) < Date.now())) {
       await knx('auth').where('access_token', tokenEntry['access_token']).delete();
       return { 'access_token': accessToken, 'refresh_token': refreshToken };
@@ -111,11 +111,18 @@ function classicErrorSend(res, code, text) {
   logRequest(res.req, res);
 }
 
-function getPermitted(data, tablePerms, role, permType = "read") { // perftest: adat törlése vs új obj létrehozása
+function filterByPermission(data, tablePerms, role, permType = "read") { // perftest: adat törlése vs új obj létrehozása
   let permittedData = {};
   for (let key in data)
     if ( tablePerms[key][permType][role] ) permittedData[key] = data[key];
   return permittedData;
 }
+function getPermittedFields(tablePerms, table,  role, permType = "read") {
+  let allowedFields = [];
+  for (let field in tablePerms[table]) {
+    if (tablePerms[table][field][permType][role]) allowedFields.push(field);
+  }
+  return allowedFields;
+}
 
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, getPermitted }
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields }

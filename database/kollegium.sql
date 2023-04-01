@@ -169,6 +169,7 @@ CREATE TABLE IF NOT EXISTS `permissions` (
   KEY (`Table`, `Field`)
 );
 
+INSERT INTO `permissions` VALUES ('student', 'ID', b'1', b'1');
 INSERT INTO `permissions` VALUES ('student', 'Name', b'1', b'1');
 INSERT INTO `permissions` VALUES ('student', 'Picture', b'1', b'1');
 INSERT INTO `permissions` VALUES ('student', 'Group', b'1', b'1');
@@ -182,6 +183,8 @@ INSERT INTO `permissions` VALUES ('student', 'GuardianPhone', b'0', b'1');
 INSERT INTO `permissions` VALUES ('student', 'Country', b'0', b'1');
 INSERT INTO `permissions` VALUES ('student', 'City', b'0', b'1');
 
+INSERT INTO `permissions` VALUES ('teacher', 'ID', b'1', b'1');
+INSERT INTO `permissions` VALUES ('teacher', 'Name', b'1', b'1');
 
 INSERT INTO `role_name` (`Role`, `Table`, `FullName`) VALUES
   (1, 'student', 'kollégiumi diák');

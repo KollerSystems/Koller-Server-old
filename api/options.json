@@ -1,6 +1,6 @@
 {
   "authorization": {
-    "tokenlength": 32,
+    "tokenLength": 32,
     "allowedCharacters": "0123456789abcdefghijklmnpqrstuvwxyz-._~/",
     "expiry": {
       "accessToken": 86400,
@@ -14,8 +14,11 @@
   "api": {
     "port": 80,
     "exitTimeout": 2000,
-    "extendPermissions": true,
-    "checkDatabase": true
+    "batchRequests": {
+      "defaultLimit": 25,
+      "maxLimit": 50,
+      "allowedRoles": ["student", "teacher"]
+    }
   },
   "logging": {
     "logAsISOString": false,
@@ -25,5 +28,10 @@
     "logConsole": true,
     "logFile": "",
     "overwriteLog": false
+  },
+  "errorChecking": {
+    "extendPermissions": true,
+    "database": true,
+    "options": true
   }
 }
