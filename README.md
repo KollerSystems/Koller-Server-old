@@ -7,7 +7,9 @@
 [![Google Code Style](https://img.shields.io/badge/Code%20Style-Google-4086f4)](https://google.github.io/styleguide/jsguide.html)
 -->
 
-API forráskódja és az adatbázis a Koller-hez.
+API forráskódja és adatbázis séma a Koller-hez.
+
+Az API dokumentálását az [API.md](docs/API.md) fájlban lehet megtalálni.
 
 ### Adatbázis beállítása
 
@@ -15,12 +17,7 @@ A fejlesztés során a **MariaDB Community 10.10.3**-as verziójával dolgozunk,
 
 MariaDB szerver futtatásához fordulj a hivatalos oldalukhoz, illetve a diszribúció wiki-jéhez!
 
-Az installációt és sikeres futtatást követően hozzuk létre a `kollegium` adatbázist MariaDB monitorban (mariadb parancssorban való futtatása után):
-```sql
-CREATE DATABASE IF NOT EXISTS kollegium;
-```
-
-Majd kilépve a MariaDB monitorból importáljuk a táblákat a `kollegium.sql` fájl segítségével (a database mappából):
+Parancssorból importáljuk a táblákat a `kollegium.sql` fájl segítségével (a database mappából):
 ```
 mariadb < kollegium.sql
 ```
