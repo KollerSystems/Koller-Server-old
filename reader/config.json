@@ -1,0 +1,11 @@
+{
+  "connection": {
+    "ws": {
+      "host": "ws.postman-echo.com",
+      "path": "raw",
+      "port": 443,
+      "encrypt": true
+    },
+    "prefer": "ws"
+  }
+}
