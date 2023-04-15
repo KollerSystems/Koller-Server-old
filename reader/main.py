@@ -1,4 +1,4 @@
-from json import loads
+from json import (loads, dumps)
 import RPi.GPIO as GPIO
 
 import pn532.pn532 as mifare
@@ -17,6 +17,10 @@ reader.SAM_configuration()
 
 comm = Comms(config["connection"])
 
+comm.send(dumps({"cmd": 0, "key": config["keys"]["A"]}))
+resp = loads(comm.read())
+if resp["status"] != 0:
+  raise Exception("Invalid key provided, cannot connect to server!")
 
 while True:
   while True:
@@ -36,7 +40,6 @@ while True:
 
     for i in range(0,4):
       print(' '.join(['%02X' % x for x in reader.mifare_classic_read_block(i)]))
-      # print(reader.mifare_classic_read_block(i))
     break
   except mifare.PN532Error as e:
     print(e.errmsg)

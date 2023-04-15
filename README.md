@@ -17,10 +17,12 @@ A fejlesztés során a **MariaDB Community 10.10.3**-as verziójával dolgozunk,
 
 MariaDB szerver futtatásához fordulj a hivatalos oldalukhoz, illetve a diszribúció wiki-jéhez!
 
-Parancssorból importáljuk a táblákat a `kollegium.sql` fájl segítségével (a database mappából):
+Parancssorból importáljuk a táblákat a `schema.sql` fájl segítségével (a database mappából):
 ```
-mariadb < kollegium.sql
+mariadb < schema.sql
 ```
+
+Ez a fájl tartalmazza az adatbázis sémáját, de fel szükséges tölteni alapvető információkkal, mint például engedélyekkel.
 
 Ha más felhasználónak hoztuk létre az adatbázist, akkor annak a felhasználónak az adatbázisába töltsük be.
 
