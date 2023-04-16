@@ -23,7 +23,8 @@ let logFileStream = (options.logging.logFile != "") ? createWriteStream(options.
 const app = express();
 const api = express.Router();
 
-app.use(express.json());
+app.use(express.raw());
+app.use(express.json({ 'type': "application/json" }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/', (req, res, next) => { res.locals.incomingTime = new Date(); next() });

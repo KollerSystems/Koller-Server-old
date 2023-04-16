@@ -34,10 +34,18 @@ CREATE TABLE IF NOT EXISTS `auth` (
 -- Struktúra mentése tábla kollegium. crossings
 CREATE TABLE IF NOT EXISTS `crossings` (
   `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
-  `SID` int(15) unsigned DEFAULT NULL,
-  `Time` datetime DEFAULT NULL,
-  `Direction` binary(2) DEFAULT NULL,
+  `PID` int(15) unsigned NOT NULL,
+  `Time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `Direction` binary(2) NOT NULL DEFAULT b'0',
   PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+
+CREATE TABLE IF NOT EXISTS `mifare_tags` (
+  `PID` int(15) unsigned NOT NULL,
+  `Issued` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `Bytes` tinyblob NOT NULL,
+  PRIMARY KEY (Bytes(32))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 -- Tábla adatainak mentése kollegium.crossings: ~0 rows (hozzávetőleg)

@@ -4,8 +4,11 @@ INSERT INTO `login_data` (`GID`, `Username`, `Password`) VALUES
 	(1, 'Miki', 'almafa1234'),
 	(2, 'Barnabás', 'almafa1234'),
 	(3, 'Gyuri', 'almafa1234'),
-	(4, 'Gergő', 'almafa1234');
+	(4, 'Gergő', 'almafa1234'),
+  (5, 'DJ', 'almafa1234');
 
+
+INSERT INTO `teacher` VALUES (1, 'Dobos József', '72237485955');
 
 -- Tábla adatainak mentése kollegium.student: ~4 rows (hozzávetőleg)
 /*!40000 ALTER TABLE `student` DISABLE KEYS */;
@@ -84,6 +87,10 @@ INSERT INTO `permissions` VALUES ('student', 'City', b'0', b'1');
 INSERT INTO `permissions` VALUES ('teacher', 'ID', b'1', b'1');
 INSERT INTO `permissions` VALUES ('teacher', 'Name', b'1', b'1');
 
+INSERT INTO `permissions` VALUES ('mifare_tags', 'PID', b'0', b'1');
+INSERT INTO `permissions` VALUES ('mifare_tags', 'Issued', b'0', b'1');
+INSERT INTO `permissions` VALUES ('mifare_tags', 'Bytes', b'0', b'1');
+
 
 INSERT INTO `role_name` (`Role`, `Table`, `FullName`) VALUES
   (1, 'student', 'kollégiumi diák');
@@ -97,5 +104,8 @@ INSERT INTO `user` (`GID`, `ID`, `Role`) VALUES
 	(1, 1, 1),
 	(2, 2, 1),
 	(3, 3, 1),
-	(4, 4, 1);
+	(4, 4, 1),
+  (5, 1, 2);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
+
+INSERT INTO `mifare_tags` (PID, Bytes) VALUES (1, x'b69f6669d72c5ce0f0c4bac027cd961c9c9ad06fdaf5e93244297a64fc555a7a');
