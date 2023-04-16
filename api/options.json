@@ -20,6 +20,14 @@
       "allowedRoles": ["student", "teacher"]
     }
   },
+  "readerConnection": {
+    "websocket": {
+      "port": 1224,
+      "path": "",
+      "secret": "pokjihgvfcdrxdctfzgv",
+      "authenticationTimeout": 3000
+    }
+  },
   "logging": {
     "logAsISOString": false,
     "logIP": false,

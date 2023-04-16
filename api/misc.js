@@ -32,4 +32,12 @@ function isEmptyObject(obj) {
   return (Object.keys(obj).length == 0);
 }
 
-export { intoTimestamp, generateToken, isEmptyObject }
+function parseJSON(json) {
+  try {
+    return JSON.parse(json);
+  } catch {
+    return {};
+  }
+}
+
+export { intoTimestamp, generateToken, isEmptyObject, parseJSON }

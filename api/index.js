@@ -1,12 +1,14 @@
 import express from 'express';
 import knex from 'knex';
 import { createWriteStream } from 'fs';
+import { WebSocketServer } from 'ws';
 import process from 'node:process';
 
 import { oauth } from './routes/oauth.js';
 import { users } from './routes/users.js';
 import { checkToken, handleNotFound, logRequest } from './helpers.js';
 import { treeifyPerms, extendMissingPermissions, checkDatabase, checkOptions } from './startup.js';
+import { handleWebsocket } from './reader.js';
 
 import { readFile } from 'fs/promises';
 const options = JSON.parse(
@@ -63,6 +65,10 @@ let server = app.listen(80, async err => {
 });
 
 
+const websocketServer = new WebSocketServer({ 'port': options.readerConnection.websocket.port, 'path': options.readerConnection.websocket.path });
+websocketServer.on('connection', handleWebsocket);
+
+
 server.on('close', () => {
   setTimeout(() => {
     console.log("Server terminated - timeout!")
@@ -70,6 +76,9 @@ server.on('close', () => {
   }, options.api.exitTimeout);
 
   server.closeAllConnections();
+  for (const client of websocketServer.clients) {
+    client.close(1012);
+  }
   if (logFileStream ?? "") logFileStream.destroy();
   knx.destroy();
 });

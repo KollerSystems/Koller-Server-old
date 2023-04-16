@@ -1,13 +1,15 @@
 {
   "connection": {
     "ws": {
-      "host": "ws.postman-echo.com",
-      "path": "raw",
-      "port": 443,
-      "encrypt": true
+      "host": "",
+      "path": "",
+      "port": 1224,
+      "encrypt": false,
+      "secret": "pokjihgvfcdrxdctfzgv"
     },
     "prefer": "ws"
   },
+  "ID": 0,
   "keys": {
     "A": "ÿÿÿÿÿÿ",
     "B": "ÿÿÿÿÿÿ"

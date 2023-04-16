@@ -17,7 +17,7 @@ reader.SAM_configuration()
 
 comm = Comms(config["connection"])
 
-comm.send(dumps({"cmd": 0, "key": config["keys"]["A"]}))
+comm.send(dumps({"cmd": 0, "secret": config["connection"]["ws"]["secret"], "ID": config["ID"]}))
 resp = loads(comm.read())
 if resp["status"] != 0:
   raise Exception("Invalid key provided, cannot connect to server!")
