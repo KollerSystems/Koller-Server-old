@@ -27,30 +27,30 @@ CREATE TABLE IF NOT EXISTS `auth` (
   `expired` bit(1) NOT NULL DEFAULT b'0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
--- Tábla adatainak mentése kollegium.auth: ~0 rows (hozzávetőleg)
-/*!40000 ALTER TABLE `auth` DISABLE KEYS */;
-/*!40000 ALTER TABLE `auth` ENABLE KEYS */;
+-- Az adatok exportálása nem lett kiválasztva.
 
 -- Struktúra mentése tábla kollegium. crossings
 CREATE TABLE IF NOT EXISTS `crossings` (
   `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
   `PID` int(15) unsigned NOT NULL,
   `Time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `Direction` binary(2) NOT NULL DEFAULT b'0',
+  `Direction` binary(2) NOT NULL DEFAULT '\0\0',
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
+-- Az adatok exportálása nem lett kiválasztva.
 
-CREATE TABLE IF NOT EXISTS `mifare_tags` (
-  `PID` int(15) unsigned NOT NULL,
-  `Issued` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `Bytes` tinyblob NOT NULL,
-  PRIMARY KEY (Bytes(32))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+-- Struktúra mentése tábla kollegium. def_times
+CREATE TABLE IF NOT EXISTS `def_times` (
+  `dayTimeStart` int(10) unsigned DEFAULT NULL,
+  `dayTimeGoInside` int(10) unsigned DEFAULT NULL,
+  `nightTimeGoInside1` int(10) unsigned DEFAULT NULL,
+  `nightTimeGoInside2` int(10) unsigned DEFAULT NULL,
+  `nightTimeGoInside3` int(10) unsigned DEFAULT NULL,
+  `nightTimeEnd` int(10) unsigned DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Tábla adatainak mentése kollegium.crossings: ~0 rows (hozzávetőleg)
-/*!40000 ALTER TABLE `crossings` DISABLE KEYS */;
-/*!40000 ALTER TABLE `crossings` ENABLE KEYS */;
+-- Az adatok exportálása nem lett kiválasztva.
 
 -- Struktúra mentése tábla kollegium. login_data
 CREATE TABLE IF NOT EXISTS `login_data` (
@@ -60,7 +60,51 @@ CREATE TABLE IF NOT EXISTS `login_data` (
   PRIMARY KEY (`GID`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-/*!40000 ALTER TABLE `login_data` ENABLE KEYS */;
+-- Az adatok exportálása nem lett kiválasztva.
+
+-- Struktúra mentése tábla kollegium. mifare_tags
+CREATE TABLE IF NOT EXISTS `mifare_tags` (
+  `PID` int(15) unsigned NOT NULL,
+  `Issued` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `Bytes` tinyblob NOT NULL,
+  PRIMARY KEY (`Bytes`(32))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- Az adatok exportálása nem lett kiválasztva.
+
+-- Struktúra mentése tábla kollegium. notes
+CREATE TABLE IF NOT EXISTS `notes` (
+  `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `TID` int(11) unsigned DEFAULT NULL,
+  `SID` int(11) unsigned DEFAULT NULL,
+  `Category` tinyint(3) unsigned DEFAULT NULL,
+  `Type` tinyint(3) unsigned DEFAULT NULL,
+  `Title` tinytext DEFAULT NULL,
+  `Description` text DEFAULT NULL,
+  `Time` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Az adatok exportálása nem lett kiválasztva.
+
+-- Struktúra mentése tábla kollegium. notes_types
+CREATE TABLE IF NOT EXISTS `notes_types` (
+  `Category` tinyint(3) unsigned DEFAULT NULL,
+  `Name` tinytext DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Az adatok exportálása nem lett kiválasztva.
+
+-- Struktúra mentése tábla kollegium. permissions
+CREATE TABLE IF NOT EXISTS `permissions` (
+  `Table` varchar(64) NOT NULL,
+  `Field` varchar(64) NOT NULL,
+  `studentRead` bit(1) NOT NULL DEFAULT b'0',
+  `teacherRead` bit(1) NOT NULL DEFAULT b'0',
+  KEY `Table` (`Table`,`Field`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- Az adatok exportálása nem lett kiválasztva.
 
 -- Struktúra mentése tábla kollegium. peroutgoing
 CREATE TABLE IF NOT EXISTS `peroutgoing` (
@@ -72,9 +116,27 @@ CREATE TABLE IF NOT EXISTS `peroutgoing` (
   KEY `Index 1` (`SID`,`StartTime`,`EndTime`,`Day`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
--- Tábla adatainak mentése kollegium.peroutgoing: ~0 rows (hozzávetőleg)
-/*!40000 ALTER TABLE `peroutgoing` DISABLE KEYS */;
-/*!40000 ALTER TABLE `peroutgoing` ENABLE KEYS */;
+-- Az adatok exportálása nem lett kiválasztva.
+
+-- Struktúra mentése tábla kollegium. praises
+CREATE TABLE IF NOT EXISTS `praises` (
+  `ID` int(11) NOT NULL,
+  `Type` tinytext NOT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Az adatok exportálása nem lett kiválasztva.
+
+-- Struktúra mentése tábla kollegium. role_name
+CREATE TABLE IF NOT EXISTS `role_name` (
+  `Role` tinyint(1) unsigned NOT NULL DEFAULT 0,
+  `Table` varchar(64) NOT NULL,
+  `FullName` text DEFAULT NULL,
+  PRIMARY KEY (`Role`),
+  KEY `Table` (`Table`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- Az adatok exportálása nem lett kiválasztva.
 
 -- Struktúra mentése tábla kollegium. roomorder
 CREATE TABLE IF NOT EXISTS `roomorder` (
@@ -96,9 +158,7 @@ CREATE TABLE IF NOT EXISTS `roomorder` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
--- Tábla adatainak mentése kollegium.roomorder: ~0 rows (hozzávetőleg)
-/*!40000 ALTER TABLE `roomorder` DISABLE KEYS */;
-/*!40000 ALTER TABLE `roomorder` ENABLE KEYS */;
+-- Az adatok exportálása nem lett kiválasztva.
 
 -- Struktúra mentése tábla kollegium. student
 CREATE TABLE IF NOT EXISTS `student` (
@@ -121,8 +181,14 @@ CREATE TABLE IF NOT EXISTS `student` (
   `Address` int(10) unsigned DEFAULT NULL,
   `Floor` int(11) unsigned DEFAULT NULL,
   `Door` int(11) unsigned DEFAULT NULL,
+  `Discord` tinytext DEFAULT NULL,
+  `Facebook` tinytext DEFAULT NULL,
+  `Instagram` tinytext DEFAULT NULL,
+  `Email` tinytext DEFAULT NULL,
   PRIMARY KEY (`ID`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- Az adatok exportálása nem lett kiválasztva.
 
 -- Struktúra mentése tábla kollegium. teacher
 CREATE TABLE IF NOT EXISTS `teacher` (
@@ -132,9 +198,7 @@ CREATE TABLE IF NOT EXISTS `teacher` (
   PRIMARY KEY (`ID`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
--- Tábla adatainak mentése kollegium.teacher: ~0 rows (hozzávetőleg)
-/*!40000 ALTER TABLE `teacher` DISABLE KEYS */;
-/*!40000 ALTER TABLE `teacher` ENABLE KEYS */;
+-- Az adatok exportálása nem lett kiválasztva.
 
 -- Struktúra mentése tábla kollegium. user
 CREATE TABLE IF NOT EXISTS `user` (
@@ -143,23 +207,18 @@ CREATE TABLE IF NOT EXISTS `user` (
   `Role` tinyint(1) unsigned DEFAULT 0,
   PRIMARY KEY (`GID`),
   KEY `ID` (`ID`,`Role`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `role_name` (
-  `Role` tinyint(1) unsigned DEFAULT 0,
-  `Table` varchar(64) NOT NULL,
-  `FullName` text DEFAULT NULL,
-  PRIMARY KEY (`Role`),
-  KEY (`Table`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+-- Az adatok exportálása nem lett kiválasztva.
 
-CREATE TABLE IF NOT EXISTS `permissions` (
-  `Table` varchar(64) NOT NULL,
-  `Field` varchar(64) NOT NULL,
-  `studentRead` bit(1) NOT NULL DEFAULT b'0',
-  `teacherRead` bit(1) NOT NULL DEFAULT b'0',
-  KEY (`Table`, `Field`)
-);
+-- Struktúra mentése tábla kollegium. warnings
+CREATE TABLE IF NOT EXISTS `warnings` (
+  `ID` int(11) NOT NULL,
+  `Type` tinytext NOT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Az adatok exportálása nem lett kiválasztva.
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
