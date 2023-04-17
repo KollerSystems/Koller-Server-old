@@ -49,8 +49,11 @@ const knx = knex({
 });
 
 
-const roleMappings = (await knx('role_name').select('Role', 'Table')).reduce((map, entry) => { map[entry.Role] = entry.Table; return map }, {});
+const roleMappings = {};
+roleMappings.byID = (await knx('role_name').select('Role', 'Table')).reduce((map, entry) => { map[entry.Role] = entry.Table; return map }, {});
+roleMappings.byRole = Object.fromEntries(Object.entries(roleMappings.byID).map(([k, v]) => [v, k]));
 const permMappings = treeifyPerms(await knx('permissions').select('*'));
+
 if (options.errorChecking.extendPermissions) await extendMissingPermissions();
 if (options.errorChecking.database) await checkDatabase();
 if (options.errorChecking.options) checkOptions();

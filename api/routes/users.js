@@ -8,7 +8,7 @@ const users = Router({ mergeParams: false });
 
 users.post('/mifare', async (req, res, next) => { // TODO: normálisabb név a pathnak
   // 1 - b69f6669d72c5ce0f0c4bac027cd961c9c9ad06fdaf5e93244297a64fc555a7a
-  const permittedFields = getPermittedFields(permMappings, "mifare_tags", roleMappings[res.locals.roleID]);
+  const permittedFields = getPermittedFields(permMappings, "mifare_tags", roleMappings.byID[res.locals.roleID]);
   if (permittedFields.length == 0) return classicErrorSend(res, 403, "Forbidden!");
   if (isEmptyObject(req.body)) return classicErrorSend(res, 400, "No tag data provided!");
 
@@ -23,8 +23,13 @@ users.post('/mifare', async (req, res, next) => { // TODO: normálisabb név a p
 });
 
 
+const renameID = fields => {
+  fields[fields.indexOf("ID")] = knx.ref('GID').as('ID'); // vagy nem is kell alias?
+  return fields;
+};
+
 users.get('/me', async (req, res, next) => {
-  res.header('Content-Type', 'application/json').status(200).send(await knx(roleMappings[res.locals.roleID]).first('*').where('ID', res.locals.ID)).end();
+  res.header('Content-Type', 'application/json').status(200).send(await knx(roleMappings.byID[res.locals.roleID]).first('*').where('ID', res.locals.ID)).end();
   next();
 });
 
@@ -32,8 +37,8 @@ users.get('/:id(\\d+)', async (req, res, next) => { // regexp: /\d+/
   const user = await knx('user').first('*').where('GID', req.params.id);
   if (user == undefined) return classicErrorSend(res, 404, "There is no user with specified ID!");
 
-  const userData = await knx(roleMappings[user.Role]).first('*').where('ID', user.ID);
-  const filteredData = filterByPermission(userData, permMappings[roleMappings[user.Role]], roleMappings[res.locals.roleID]);
+  const userData = await knx(roleMappings.byID[user.Role]).first('*').where('ID', user.ID);
+  const filteredData = filterByPermission(userData, permMappings[roleMappings.byID[user.Role]], roleMappings.byID[res.locals.roleID]);
 
   if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, "Forbidden!");
   res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
@@ -41,7 +46,7 @@ users.get('/:id(\\d+)', async (req, res, next) => { // regexp: /\d+/
   next();
 });
 
-users.get('/', async (req, res, next) => { // TODO: nem GIDt ad vissza hanem SID-t
+users.get('/', async (req, res, next) => {
   const allowedUsersRegexp = new RegExp(options.api.batchRequests.allowedRoles.reduce((str, role) => { str += (role + "|"); return str })); // regexp: /student|teacher|.../
 
   const limit = (()=>{
@@ -52,14 +57,19 @@ users.get('/', async (req, res, next) => { // TODO: nem GIDt ad vissza hanem SID
 
   let users = [];
   if ((req.query.role ?? "") && (req.query.role.match(allowedUsersRegexp)))
-    users = await knx(req.query.role).select(getPermittedFields(permMappings, req.query.role, roleMappings[res.locals.roleID])).limit(limit).offset(offset);
+    users = await knx(req.query.role).select(renameID(getPermittedFields(permMappings, req.query.role, roleMappings.byID[res.locals.roleID])))
+    .joinRaw("natural join user")
+    .where('role', roleMappings.byRole[req.query.role])
+    .limit(limit).offset(offset);
   else {
     let limitUsage = limit;
     let prevOffset = offset;
-    for (let role of options.api.batchRequests.allowedRoles) { // TODO: teszt 2+ felhasználó típussal // lehet hogy semmit nem ad vissza engedett mezőkre getpermittedfields?
+    for (let role of options.api.batchRequests.allowedRoles) { // lehet hogy semmit nem ad vissza engedett mezőkre getpermittedfields?
       if (limitUsage <= 0) break;
-
-      users = users.concat(await knx(role).select(getPermittedFields(permMappings, role, roleMappings[res.locals.roleID])).limit(limitUsage).offset(prevOffset));
+      users = users.concat(await knx(role).select(renameID(getPermittedFields(permMappings, role, roleMappings.byID[res.locals.roleID])))
+      .joinRaw("natural join user")
+      .where('role', roleMappings.byRole[role])
+      .limit(limitUsage).offset(prevOffset));
 
       const currentCapacity = (await knx(role).select(knx.count('ID').as("rows")))[0].rows;
       const delta = (currentCapacity - prevOffset);

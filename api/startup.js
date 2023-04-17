@@ -31,8 +31,8 @@ async function checkDatabase() { // TODO: nem linkelt user típus
   const problems = { missingUsers: {}, undeclaredPermTables: [], partialPermTables: {} };
 
   // meghatározatlan összeköttetések user és az adott felhasználó altábla közt
-  for (let roleID in roleMappings) {
-    const roleName = roleMappings[roleID];
+  for (let roleID in roleMappings.byID) {
+    const roleName = roleMappings.byID[roleID];
     const missingIDs = await knx('user').select('*').whereNotExists(knx(roleName).select('*').whereRaw(`user.ID = ${roleName}.ID`)).andWhere('Role', roleID); // whereRaw-on kívül hibásan adnak vissza adatot
 
     if (missingIDs.length > 0) problems.missingUsers[roleName] = missingIDs.reduce((_, cur, i) => { missingIDs[i] = cur.GID; return missingIDs }, 0);
@@ -70,7 +70,7 @@ function checkOptions() {
 
   // nem létező (elírt) role-ok keresése
   for (let role of options.api.batchRequests.allowedRoles)
-    if (!Object.values(roleMappings).includes(role)) problems.nonexistantRolesAllowed.push(role);
+    if (!Object.values(roleMappings.byID).includes(role)) problems.nonexistantRolesAllowed.push(role);
 
   // alapértelmezett limit nagyobb mint a maximális
   problems.defaultOutOfRange = options.api.batchRequests.defaultLimit > options.api.batchRequests.maxLimit;

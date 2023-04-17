@@ -20,7 +20,7 @@ function toLowerKeys(req, res, next) {
 */
 
 async function verify(authField) {
-  let result = { 'ID': undefined, 'roleID': -1, 'issue': "", 'code': 0 }
+  let result = { 'GID': undefined, 'ID': undefined, 'roleID': -1, 'issue': "", 'code': 0 }
   result.code = 400;
   if (authField == undefined) {
     result.issue = "Authorization header field not present!";
@@ -46,10 +46,11 @@ async function verify(authField) {
     return result;
   }
 
-  let userEntry = await knx('user').first('ID', 'Role').where('GID', authEntry.ID);
+  let userEntry = await knx('user').first('ID','Role').where('GID', authEntry.ID);
 
   result.code = 0;
   result.issue = "";
+  result.GID = authEntry.ID;
   result.ID = userEntry.ID;
   result.roleID = userEntry.Role;
   return result;
@@ -62,6 +63,7 @@ async function checkToken(req, res, next) {
   }
   res.set('Cache-Control', 'no-store');
   res.locals.ID = verRes.ID;
+  res.locals.GID = verRes.GID;
   res.locals.roleID = verRes.roleID
   next();
 }
@@ -78,7 +80,7 @@ function logRequest(req, res, next = () => { }) {
     (res.statusCode == 404 && options.logging.logNotFound) ||
     (options.logging.logUnsuccessful)
   ) {
-    let logLine = intoTimestamp(res.locals.incomingTime) + ` <${res.locals.ID == undefined ? "no logon" : res.locals.ID}>` + (options.logging.logIP ? " {" + req.ip + "}" : "") + ` ${req.method} ${req.originalUrl} (${res.statusCode})`;
+    let logLine = intoTimestamp(res.locals.incomingTime) + ` <${res.locals.GID == undefined ? "no logon" : res.locals.GID}>` + (options.logging.logIP ? " {" + req.ip + "}" : "") + ` ${req.method} ${req.originalUrl} (${res.statusCode})`;
     if (options.logging.logConsole) console.log(logLine);
     if (options.logging.logFile != "") logFileStream.write(logLine + "\n");
   }
