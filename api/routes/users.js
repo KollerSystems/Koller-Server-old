@@ -29,7 +29,9 @@ const renameID = fields => {
 };
 
 users.get('/me', async (req, res, next) => {
-  res.header('Content-Type', 'application/json').status(200).send(await knx(roleMappings.byID[res.locals.roleID]).first('*').where('ID', res.locals.ID)).end();
+  const userdata = await knx(roleMappings.byID[res.locals.roleID]).first('*').where('ID', res.locals.ID);
+  userdata.ID = res.locals.GID;
+  res.header('Content-Type', 'application/json').status(200).send(userdata).end();
   next();
 });
 

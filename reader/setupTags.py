@@ -1,9 +1,15 @@
 from json import loads
+from os.path import exists
+import csv
 
 import RPi.GPIO as GPIO
 import pn532.pn532 as mifare
 from pn532 import PN532_SPI
 from helpers import getAccessBits
+
+path = input("Path to CSV file containing keys: ")
+if not exists(path):
+  raise Exception("Specified file does not exist!")
 
 with open("./config.json") as f:
   config = loads(f.read())
@@ -24,7 +30,9 @@ KEY = b'\xFF\xFF\xFF\xFF\xFF\xFF'
 
 lastUID = -1
 try:
-  while True:
+  f = open(path, 'r')
+  rdr = csv.reader(f)
+  for tag in rdr:
     while True:
       uid = reader.read_passive_target(timeout=0.5)
       if (uid is not None) and uid != lastUID:
@@ -37,7 +45,9 @@ try:
     # első, a belépési információt tartalmazó szektor beállítása
     block = KEY_A + bytearray(getAccessBits([4,4,4,3])) + b'\x69' + KEY_B
     try:
-      reader.mifare_classic_authenticate_block(uid, block_number=3, key_number=mifare.MIFARE_CMD_AUTH_A, key=KEY)
+      reader.mifare_classic_authenticate_block(uid, block_number=1, key_number=mifare.MIFARE_CMD_AUTH_A, key=KEY)
+      reader.mifare_classic_write_block(1, [int(t) for t in tag[:16]])
+      reader.mifare_classic_write_block(2, [int(t) for t in tag[16:]])
       reader.mifare_classic_write_block(3, block)
     except:
       raise Exception("Card is not in transport configuration!")

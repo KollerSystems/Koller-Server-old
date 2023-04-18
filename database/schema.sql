@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `crossings` (
   `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
   `PID` int(15) unsigned NOT NULL,
   `Time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `Direction` binary(2) NOT NULL DEFAULT '\0\0',
+  `Direction` bit(1) NOT NULL,
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 

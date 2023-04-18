@@ -1,7 +1,7 @@
 {
   "connection": {
     "ws": {
-      "host": "",
+      "host": "10.12.100.161",
       "path": "",
       "port": 1224,
       "encrypt": false,
@@ -9,7 +9,6 @@
     },
     "prefer": "ws"
   },
-  "ID": 0,
   "keys": {
     "A": "ÿÿÿÿÿÿ",
     "B": "ÿÿÿÿÿÿ"

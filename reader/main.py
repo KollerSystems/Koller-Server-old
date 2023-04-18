@@ -1,11 +1,12 @@
 from json import (loads, dumps)
 import RPi.GPIO as GPIO
+from time import sleep
 
 import pn532.pn532 as mifare
 from pn532 import PN532_SPI
 from helpers import getAccessBits
 
-from helpers import Comms
+from websocket import create_connection
 
 with open("./config.json") as f:
   config = loads(f.read())
@@ -15,16 +16,23 @@ ic, ver, rev, support = reader.get_firmware_version()
 print('PN532 reader connected with firmware version: {0}.{1}'.format(ver, rev))
 reader.SAM_configuration()
 
-comm = Comms(config["connection"])
+wsParams = config["connection"]["ws"]
+connstring = "ws{}://{}:{}/{}".format("s" if wsParams["encrypt"] else "", wsParams["host"], wsParams["port"], wsParams["path"])
+ws = create_connection(connstring, timeout=1)
 
-comm.send(dumps({"cmd": 0, "secret": config["connection"]["ws"]["secret"], "ID": config["ID"]}))
-resp = loads(comm.read())
-if resp["status"] != 0:
-  raise Exception("Invalid key provided, cannot connect to server!")
+ws.send(dumps({"cmd": 0, "secret": wsParams["secret"], "ID": 0}))
+
+try:
+  ws.recv()
+except:
+  pass
+
+if not ws.connected:
+  raise Exception("Invalid secret provided, cannot connect to server!")
 
 while True:
   while True:
-    uid = reader.read_passive_target(timeout=0.5)
+    uid = reader.read_passive_target(timeout=1)
     if uid is not None:
       break
   print('Found card with UID:', [hex(i) for i in uid])
@@ -34,16 +42,22 @@ while True:
     BLOCKNUM = 1
     reader.mifare_classic_authenticate_block(uid, block_number=BLOCKNUM, key_number=mifare.MIFARE_CMD_AUTH_A, key=KEY)
 
-    # block = bytearray("".ljust(16, chr(0)), encoding="ASCII")
-    # block = b'\xFF\xFF\xFF\xFF\xFF\xFF' + bytearray(getAccessBits([4,4,4,3])) + b'\x69' + b'\xFF\xFF\xFF\xFF\xFF\xFF'
-    # reader.mifare_classic_write_block(BLOCKNUM, block)
+    tag = bytearray()
+    tag += reader.mifare_classic_read_block(1)
+    tag += reader.mifare_classic_read_block(2)
 
-    for i in range(0,4):
-      print(' '.join(['%02X' % x for x in reader.mifare_classic_read_block(i)]))
-    break
+    tagInts = [v for v in tag]
+
+    ws.send(dumps({"cmd": 1, "tag": tagInts}))
+
+    resp = loads(ws.recv())
+    if resp["tag"] == tagInts:
+      print(resp["correct"])
+    sleep(2)
+
   except mifare.PN532Error as e:
     print(e.errmsg)
 
 
-comm.close()
+ws.close()
 GPIO.cleanup()
