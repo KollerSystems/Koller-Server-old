@@ -40,4 +40,8 @@ function parseJSON(json) {
   }
 }
 
-export { intoTimestamp, generateToken, isEmptyObject, parseJSON }
+function has(obj, value) {
+  return (value in obj);
+}
+
+export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has }

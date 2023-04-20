@@ -97,11 +97,18 @@ CREATE TABLE IF NOT EXISTS `notes_types` (
 
 -- Struktúra mentése tábla kollegium. permissions
 CREATE TABLE IF NOT EXISTS `permissions` (
+  `Role` tinyint(1) NOT NULL,
   `Table` varchar(64) NOT NULL,
   `Field` varchar(64) NOT NULL,
-  `studentRead` bit(1) NOT NULL DEFAULT b'0',
-  `teacherRead` bit(1) NOT NULL DEFAULT b'0',
+  `Read` bit(1) NOT NULL DEFAULT b'0',
+  `Write` bit(1) NOT NULL DEFAULT b'0',
   KEY `Table` (`Table`,`Field`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+CREATE TABLE IF NOT EXISTS `route_access` (
+  `Role` tinyint(1) NOT NULL,
+  `Route` varchar(128),
+  KEY `Access` (`Role`,`Route`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 -- Az adatok exportálása nem lett kiválasztva.

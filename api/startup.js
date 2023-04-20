@@ -1,30 +1,72 @@
 import { knx, options, permMappings, roleMappings } from './index.js'
+import { has } from './misc.js'
+const perms = ["Read", "Write"];
+let tables = [];
+
+function setIfMissingKey(obj, key, defaultValue = {}) {
+  if (!has(obj, key)) obj[key] = defaultValue;
+}
 
 function treeifyPerms(arr) {
   const tree = {};
-  arr.forEach(rowData => {
-    if (!(rowData.Table in tree)) tree[rowData.Table] = {};
-    tree[rowData.Table][rowData.Field] = { read: {}, write: {} };
-    Object.keys(rowData).slice(2).forEach(groupPermKey => { // slice(2): Table & Field kihagyása
-      tree[rowData.Table][rowData.Field][groupPermKey.endsWith("Read") ? "read" : "write"][groupPermKey.match(/.+(?=Read|Write)/g)[0]] = Boolean(rowData[groupPermKey][0]);
-    });
-  });
+
+  for (let row of arr) {
+    row.Role = roleMappings.byID[row.Role];
+    setIfMissingKey(tree, row.Table);
+    setIfMissingKey(tree[row.Table], row.Field);
+    setIfMissingKey(tree[row.Table][row.Field], row.Role);
+    for (let perm of perms)
+      tree[row.Table][row.Field][row.Role][perm.toLowerCase()] = Boolean(row[perm][0]);
+  }
+
+  /* User központú mapping
+  for (let row of arr) {
+    if (!tables.includes(row.Table)) tables.push(row.Table);
+
+    row.Role = roleMappings.byID[row.Role];
+    setIfMissingKey(tree, row.Role);
+
+    for (let perm of perms) {
+      const keyname = perm.toLowerCase();
+      setIfMissingKey(tree[row.Role], keyname);
+      setIfMissingKey(tree[row.Role][keyname], row.Table);
+      tree[row.Role][keyname][row.Table][row.Field] = Boolean(row[perm][0]);
+    }
+  }*/
+
   return tree;
 }
 async function extendMissingPermissions() {
-  const columnInfo = await knx('permissions').columnInfo();
-  const { Table, Field, ...permInfos } = columnInfo; // Table & Field kihagyása
-  const defaultValues = { read: {}, write: {} };
-  for (let permInfo in permInfos)
-    defaultValues[permInfo.endsWith("Read") ? "read" : "write"][permInfo.match(/.+(?=Read|Write)/g)[0]] = (permInfos[permInfo].defaultValue == "b\'0\'" ? false : true);
+  const permColumnInfo = await knx('permissions').columnInfo();
+
+  const defaults = {};
+  for (let perm of perms)
+    defaults[perm] = (permColumnInfo[perm].defaultValue == "b'0'" ? false : true);
 
   for (let table in permMappings) {
     let columns = await knx(table).columnInfo();
     for (let column in columns) {
       if (column in permMappings[table]) continue;
-      permMappings[table][column] = { ...defaultValues }
+      setIfMissingKey(permMappings[table], column);
+      for (let role in roleMappings.byRole) {
+        setIfMissingKey(permMappings[table][column], role);
+        for (let perm of perms)
+          permMappings[table][column][role][perm.toLowerCase()] = defaults[perm];
+      }
     }
   }
+
+  /* User központú mapping
+  for (let user in permMappings) {
+    for (let access in permMappings[user]) {
+      for (let table in permMappings[user][access]) {
+        for (let field in tableInfos[table]) {
+          if (!has(permMappings[user][access][table], field))
+            permMappings[user][access][table][field] = defaults[access];
+        }
+      }
+    }
+  }*/
 }
 
 async function checkDatabase() { // TODO: nem linkelt user típus
@@ -40,7 +82,7 @@ async function checkDatabase() { // TODO: nem linkelt user típus
 
   // definiálatlan permissziók keresése a használt táblákon
   // definiálatlan mezők keresése definiált permisszió táblákon
-  const usedTables = [ 'student', 'teacher' ];
+  const usedTables = [ 'student', 'teacher', 'mifare_tags' ]; // TODO: lekérhető táblák meghatározása adatbázisban
   for (let table of usedTables) {
     if (permMappings[table] == undefined) {
       problems.undeclaredPermTables.push(table);
@@ -56,7 +98,7 @@ async function checkDatabase() { // TODO: nem linkelt user típus
     if (problems.partialPermTables[table].length == 0) delete problems.partialPermTables[table];
   }
 
-  
+
   for (let userType in problems.missingUsers)
     console.warn(`Missing ${userType} defined in user: ${problems.missingUsers[userType].join(", ")}`);
   if (problems.undeclaredPermTables.length > 0) console.warn(`Missing permission definition for: ${problems.undeclaredPermTables.join(", ")}`);

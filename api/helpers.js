@@ -1,4 +1,4 @@
-import { knx, logFileStream, options } from './index.js';
+import { knx, logFileStream, options, permMappings } from './index.js';
 import { intoTimestamp, generateToken } from './misc.js';
 
 /*
@@ -113,16 +113,16 @@ function classicErrorSend(res, code, text) {
   logRequest(res.req, res);
 }
 
-function filterByPermission(data, tablePerms, role, permType = "read") { // perftest: adat törlése vs új obj létrehozása
+function filterByPermission(data, table, role, permType = "read") { // perftest: adat törlése vs új obj létrehozása
   let permittedData = {};
   for (let key in data)
-    if ( tablePerms[key][permType][role] ) permittedData[key] = data[key];
+    if ( permMappings[table][key][role][permType] ) permittedData[key] = data[key];
   return permittedData;
 }
-function getPermittedFields(tablePerms, table,  role, permType = "read") {
+function getPermittedFields(table, role, permType = "read") {
   let allowedFields = [];
-  for (let field in tablePerms[table]) {
-    if (tablePerms[table][field][permType][role]) allowedFields.push(field);
+  for (let field in permMappings[table]) {
+    if (permMappings[table][field][role][permType]) allowedFields.push(field);
   }
   return allowedFields;
 }
