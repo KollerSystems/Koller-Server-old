@@ -3,6 +3,7 @@ import knex from 'knex';
 import { createWriteStream } from 'fs';
 import { WebSocketServer } from 'ws';
 import process from 'node:process';
+import Event from 'node:events';
 
 import { oauth } from './routes/oauth.js';
 import { users } from './routes/users.js';

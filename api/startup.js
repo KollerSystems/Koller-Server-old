@@ -1,7 +1,6 @@
 import { knx, options, permMappings, roleMappings } from './index.js'
 import { has } from './misc.js'
 const perms = ["Read", "Write"];
-let tables = [];
 
 function setIfMissingKey(obj, key, defaultValue = {}) {
   if (!has(obj, key)) obj[key] = defaultValue;
