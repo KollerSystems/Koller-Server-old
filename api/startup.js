@@ -6,32 +6,41 @@ function setIfMissingKey(obj, key, defaultValue = {}) {
   if (!has(obj, key)) obj[key] = defaultValue;
 }
 
-function treeifyPerms(arr) {
+function treeifyMaps(arr, mapType = "perms") {
   const tree = {};
+  if (mapType == "perms") {
+    for (let row of arr) {
+      row.Role = roleMappings.byID[row.Role];
+      setIfMissingKey(tree, row.Table);
+      setIfMissingKey(tree[row.Table], row.Field);
+      setIfMissingKey(tree[row.Table][row.Field], row.Role);
+      for (let perm of perms)
+        tree[row.Table][row.Field][row.Role][perm.toLowerCase()] = Boolean(row[perm][0]);
+    }
 
-  for (let row of arr) {
-    row.Role = roleMappings.byID[row.Role];
-    setIfMissingKey(tree, row.Table);
-    setIfMissingKey(tree[row.Table], row.Field);
-    setIfMissingKey(tree[row.Table][row.Field], row.Role);
-    for (let perm of perms)
-      tree[row.Table][row.Field][row.Role][perm.toLowerCase()] = Boolean(row[perm][0]);
+    /* User központú mapping
+    for (let row of arr) {
+      if (!tables.includes(row.Table)) tables.push(row.Table);
+
+      row.Role = roleMappings.byID[row.Role];
+      setIfMissingKey(tree, row.Role);
+
+      for (let perm of perms) {
+        const keyname = perm.toLowerCase();
+        setIfMissingKey(tree[row.Role], keyname);
+        setIfMissingKey(tree[row.Role][keyname], row.Table);
+        tree[row.Role][keyname][row.Table][row.Field] = Boolean(row[perm][0]);
+      }
+    }*/
+  } else if (mapType == "routes") {
+    for (let row of arr) {
+      setIfMissingKey(tree, row.Route);
+      setIfMissingKey(tree[row.Route], row.Role);
+      tree[row.Route][row.Role].accessible = Boolean(row.Accessible[0]);
+      tree[row.Route][row.Role].hide = Boolean(row.Hide[0]);
+    }
   }
 
-  /* User központú mapping
-  for (let row of arr) {
-    if (!tables.includes(row.Table)) tables.push(row.Table);
-
-    row.Role = roleMappings.byID[row.Role];
-    setIfMissingKey(tree, row.Role);
-
-    for (let perm of perms) {
-      const keyname = perm.toLowerCase();
-      setIfMissingKey(tree[row.Role], keyname);
-      setIfMissingKey(tree[row.Role][keyname], row.Table);
-      tree[row.Role][keyname][row.Table][row.Field] = Boolean(row[perm][0]);
-    }
-  }*/
 
   return tree;
 }
@@ -68,7 +77,7 @@ async function extendMissingPermissions() {
   }*/
 }
 
-async function checkDatabase() { // TODO: nem linkelt user típus
+async function checkDatabase() { // TODO: nem linkelt user típus && route access check
   const problems = { missingUsers: {}, undeclaredPermTables: [], partialPermTables: {} };
 
   // meghatározatlan összeköttetések user és az adott felhasználó altábla közt
@@ -81,7 +90,7 @@ async function checkDatabase() { // TODO: nem linkelt user típus
 
   // definiálatlan permissziók keresése a használt táblákon
   // definiálatlan mezők keresése definiált permisszió táblákon
-  const usedTables = [ 'student', 'teacher', 'mifare_tags' ]; // TODO: lekérhető táblák meghatározása adatbázisban
+  const usedTables = ['student', 'teacher', 'mifare_tags']; // TODO: lekérhető táblák meghatározása adatbázisban
   for (let table of usedTables) {
     if (permMappings[table] == undefined) {
       problems.undeclaredPermTables.push(table);
@@ -120,4 +129,4 @@ function checkOptions() {
   if (problems.defaultOutOfRange) console.warn("The default batch request limit is bigger than the set max limit!");
 }
 
-export { treeifyPerms, extendMissingPermissions, checkDatabase, checkOptions }
+export { treeifyMaps, extendMissingPermissions, checkDatabase, checkOptions }

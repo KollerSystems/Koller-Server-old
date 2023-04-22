@@ -1,4 +1,4 @@
-import { knx, logFileStream, options, permMappings } from './index.js';
+import { knx, logFileStream, options, permMappings, routeAccess } from './index.js';
 import { intoTimestamp, generateToken } from './misc.js';
 
 /*
@@ -46,7 +46,7 @@ async function verify(authField) {
     return result;
   }
 
-  let userEntry = await knx('user').first('ID','Role').where('GID', authEntry.ID);
+  let userEntry = await knx('user').first('ID', 'Role').where('GID', authEntry.ID);
 
   result.code = 0;
   result.issue = "";
@@ -116,7 +116,7 @@ function classicErrorSend(res, code, text) {
 function filterByPermission(data, table, role, permType = "read") { // perftest: adat törlése vs új obj létrehozása
   let permittedData = {};
   for (let key in data)
-    if ( permMappings[table][key][role][permType] ) permittedData[key] = data[key];
+    if (permMappings[table][key][role][permType]) permittedData[key] = data[key];
   return permittedData;
 }
 function getPermittedFields(table, role, permType = "read") {
@@ -127,4 +127,12 @@ function getPermittedFields(table, role, permType = "read") {
   return allowedFields;
 }
 
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields }
+function handleRouteAccess(req, res, next) {
+  let url = req.originalUrl.match(/.+((?=\?)|\/.+)/)[0];
+  url = url.replace(/(?<=\/)\d+(?=\/)?/, ":id");
+  if (routeAccess[url][res.locals.roleID].accessible) next();
+  else if (routeAccess[req.originalUrl][res.locals.roleID].hide) classicErrorSend(res, 404, "Page not found!");
+  else classicErrorSend(res, 403, "Not permitted!");
+}
+
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess }

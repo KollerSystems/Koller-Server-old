@@ -3,12 +3,13 @@ import knex from 'knex';
 import { createWriteStream } from 'fs';
 import { WebSocketServer } from 'ws';
 import process from 'node:process';
-import Event from 'node:events';
+import EventEmitter from 'node:events';
 
 import { oauth } from './routes/oauth.js';
 import { users } from './routes/users.js';
-import { checkToken, handleNotFound, logRequest } from './helpers.js';
-import { treeifyPerms, extendMissingPermissions, checkDatabase, checkOptions } from './startup.js';
+import { crossings } from './routes/crossings.js';
+import { checkToken, handleNotFound, logRequest, handleRouteAccess } from './helpers.js';
+import { treeifyMaps, extendMissingPermissions, checkDatabase, checkOptions } from './startup.js';
 import { handleWebsocket } from './reader.js';
 
 import { readFile } from 'fs/promises';
@@ -31,10 +32,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/', (req, res, next) => { res.locals.incomingTime = new Date(); next() });
 
 api.use(checkToken);
+api.use(handleRouteAccess);
 
 app.use('/oauth', oauth);
 app.use('/api', api);
 api.use('/users', users);
+api.use('/crossings', crossings);
 
 app.use('/', handleNotFound);
 app.use('/', logRequest);
@@ -53,7 +56,8 @@ const knx = knex({
 const roleMappings = {};
 roleMappings.byID = (await knx('role_name').select('Role', 'Table')).reduce((map, entry) => { map[entry.Role] = entry.Table; return map }, {});
 roleMappings.byRole = Object.fromEntries(Object.entries(roleMappings.byID).map(([k, v]) => [v, k]));
-const permMappings = treeifyPerms(await knx('permissions').select('*'));
+const permMappings = treeifyMaps(await knx('permissions').select('*'), 'perms');
+const routeAccess = treeifyMaps(await knx('route_access').select('*'), 'routes');
 
 if (options.errorChecking.extendPermissions) await extendMissingPermissions();
 if (options.errorChecking.database) await checkDatabase();
@@ -73,6 +77,7 @@ let server = app.listen(80, async err => {
 const websocketServer = new WebSocketServer({ 'port': options.readerConnection.websocket.port, 'path': options.readerConnection.websocket.path });
 websocketServer.on('connection', handleWebsocket);
 
+const crossEvent = new EventEmitter();
 
 server.on('close', () => {
   setTimeout(() => {
@@ -93,4 +98,4 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-export { knx, options, roleMappings, permMappings, logFileStream }
+export { knx, options, roleMappings, permMappings, routeAccess, logFileStream, crossEvent }

@@ -1,4 +1,4 @@
-import { knx, options } from './index.js';
+import { knx, options, crossEvent } from './index.js';
 import { parseJSON, isEmptyObject } from './misc.js';
 // import { Buffer } from 'node:Buffer';
 
@@ -32,12 +32,13 @@ function handleWebsocket(ws) {
     if (recieved.cmd == 1) {
       const fetched = await knx('mifare_tags').first('*').where('Bytes', Buffer.from(recieved.tag));
       if (fetched == undefined)
-        ws.send(JSON.stringify({'cmd': 1, 'correct': false, 'tag': recieved.tag}));
+        ws.send(JSON.stringify({ 'cmd': 1, 'correct': false, 'tag': recieved.tag }));
       else {
-        ws.send(JSON.stringify({'cmd': 1, 'correct': true, 'tag': recieved.tag}));
+        ws.send(JSON.stringify({ 'cmd': 1, 'correct': true, 'tag': recieved.tag }));
         const lastCrossing = await knx('crossings').first('Direction', 'Time').where('PID', fetched.PID).orderBy('Time', 'desc');
         const isInside = lastCrossing?.Direction[0] || "" ? 0 : 1; // bent van-e? alapból bent van -- bement/bent van 0 - kiment/kint van 1
-        await knx('crossings').insert({'PID': fetched.PID, 'Direction': isInside});
+        crossEvent.emit('cross', { 'PID': fetched.PID, 'direction': isInside });
+        await knx('crossings').insert({ 'PID': fetched.PID, 'direction': isInside });
       }
     }
   });

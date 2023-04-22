@@ -107,7 +107,9 @@ CREATE TABLE IF NOT EXISTS `permissions` (
 
 CREATE TABLE IF NOT EXISTS `route_access` (
   `Role` tinyint(1) NOT NULL,
-  `Route` varchar(128),
+  `Route` varchar(128) NOT NULL,
+  `Accessible` bit(1) NOT NULL DEFAULT b'0',
+  `Hide` bit(1) NOT NULL DEFAULT b'0',
   KEY `Access` (`Role`,`Route`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 

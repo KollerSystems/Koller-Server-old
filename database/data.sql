@@ -64,6 +64,18 @@ INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'mifare_
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'mifare_tags', 'Bytes', b'1');
 
 
+INSERT INTO `route_access` VALUES (1, '/api/crossings/events', b'0', b'1');
+INSERT INTO `route_access` VALUES (2, '/api/crossings/events', b'1', b'0');
+INSERT INTO `route_access` VALUES (1, '/api/users', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/users', b'1', b'0');
+INSERT INTO `route_access` VALUES (1, '/api/users/me', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/users/me', b'1', b'0');
+INSERT INTO `route_access` VALUES (1, '/api/users/:id', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/users/:id', b'1', b'0');
+INSERT INTO `route_access` VALUES (1, '/api/users/mifare', b'0', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/users/mifare', b'1', b'0');
+
+
 INSERT INTO `role_name` (`Role`, `Table`, `FullName`) VALUES
   (1, 'student', 'kollégiumi diák');
 INSERT INTO `role_name` (`Role`, `Table`, `FullName`) VALUES

@@ -18,6 +18,9 @@
       "defaultLimit": 25,
       "maxLimit": 50,
       "allowedRoles": ["student", "teacher"]
+    },
+    "SSE": {
+      "clientRetryInterval": 10000
     }
   },
   "readerConnection": {
