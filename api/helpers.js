@@ -135,4 +135,13 @@ function handleRouteAccess(req, res, next) {
   else classicErrorSend(res, 403, "Not permitted!");
 }
 
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess }
+async function getBatchRequestData(query, table, fields, where) {
+  const limit = (()=>{
+    let l = Math.abs(parseInt(query.limit)) || options.api.batchRequests.defaultLimit;
+    return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
+  })();
+  const offset = Math.abs(parseInt(query.offset)) || 0;
+  return await knx(table).select(fields).where(where).offset(offset).limit(limit);
+}
+
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess, getBatchRequestData }

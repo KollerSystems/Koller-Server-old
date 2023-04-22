@@ -66,6 +66,11 @@ INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'mifare_
 
 INSERT INTO `route_access` VALUES (1, '/api/crossings/events', b'0', b'1');
 INSERT INTO `route_access` VALUES (2, '/api/crossings/events', b'1', b'0');
+INSERT INTO `route_access` VALUES (1, '/api/crossings/me', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/crossings/me', b'1', b'0');
+INSERT INTO `route_access` VALUES (1, '/api/crossings/:id', b'0', b'1');
+INSERT INTO `route_access` VALUES (2, '/api/crossings/:id', b'1', b'0');
+
 INSERT INTO `route_access` VALUES (1, '/api/users', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/users', b'1', b'0');
 INSERT INTO `route_access` VALUES (1, '/api/users/me', b'1', b'0');
