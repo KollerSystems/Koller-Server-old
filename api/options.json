@@ -20,7 +20,7 @@
       "allowedRoles": ["student", "teacher"]
     },
     "SSE": {
-      "clientRetryInterval": 10000
+      "clientRetryInterval": 500
     }
   },
   "readerConnection": {

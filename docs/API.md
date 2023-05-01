@@ -57,6 +57,11 @@ Felépítése:
 		- `/`
 		- `/me`
 		- `/:id`
+		- `/mifare`
+	- `/crossings`
+		- `/me`
+		- `/:id`
+		- `events`
 
 *POST* kérések esetén a válasz egy *JSON* objektum formájában érkezik. Ez a legtöbb *GET* kérésre is igaz.
 
@@ -141,6 +146,22 @@ Semmilyen paramétert sem fogad el, a használt *access token* alapján visszak�
 
 Megadott ID-jú felhasználó lekérése.
 
+### `POST /users/mifare`
+
+A kérést `application/octet-stream` *Content Type* headerrel el kell látni, a kérés *body*-jába kell a lekérdezendő mifare bilétáról megszerzett kulcs adatait rakni. Ha a kulcs létezik visszakapjuk a kulcsról az információkat, ha nem akkor egy *404*-es hibakódot.
+
+### `GET /crossings/me?limit={limit}&offset={offset}`
+
+A lekérdező felhasználó portai ki- és belépései lekérdezése visszamenőleg.
+
+### `GET /crossings/{id}?limit={limit}&offset={offset}`
+
+A megadott ID-jú felhasználó kapu átlépéseinek történelmének lekérdezése.
+
+### `GET /crossings/events`
+
+Belsőleges kérésként használandó. A kérésre válasz headernek a szerver `text/event-stream` formátumot fog visszaküldeni, azaz [Server Sent Events](https://en.wikipedia.org/wiki/Server-sent_events) technológiát használ. Ezek után a szerver a kaput átlépő felhasználó adatait küldi JSON formában. Belépéskor a kimenés idejét és a belépés idejét is elküldi, de kilépéskor nem.
+
 #### Példák kérésekre:
 
 ```
@@ -181,6 +202,8 @@ Az *API* szerverhez kapcsolódó opciók.
 	- `defaultLimit`: Alapértelmezett max érték amit a szerver visszaadhat, olyan esetben ha kérésben nincs meghatározva `limit` érték.
 	- `maxLimit`: A maximum megadható `limit`. Túllépése esetén ezen értékként értelmezi a szerver.
 	- `allowedRoles`: Lista az összes olyan felhasználó típussal, amit le lehet kérni *"batch request"*-ben.
+- `SSE`: *Server Sent Events*-el kapcsolatos beállítások.
+	- `clientRetryInterval`: Milliszekundumban meghatározott idő, mely megadja a kliensnek mennyit várjon újrakapcsolódás előtt ha megszakad a kapcsolat.
 
 ## `logging`
 
