@@ -205,6 +205,12 @@ Az *API* szerverhez kapcsolódó opciók.
 - `SSE`: *Server Sent Events*-el kapcsolatos beállítások.
 	- `clientRetryInterval`: Milliszekundumban meghatározott idő, mely megadja a kliensnek mennyit várjon újrakapcsolódás előtt ha megszakad a kapcsolat.
 
+## `readerConnection`
+
+Az mifare olvasóhoz való kapcsolódás konfigurációi.
+
+Ezek a [reader.md](./reader.md) fájlban vannak leírva.
+
 ## `logging`
 
 Naplózással kapcsolatos konfigurációk.
