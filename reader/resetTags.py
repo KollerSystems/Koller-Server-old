@@ -39,7 +39,9 @@ try:
           reader.mifare_classic_write_block(block, transportKey + bytearray(getAccessBits([0,0,0,1])) + b'\x69' + transportKey)
         else:
           reader.mifare_classic_write_block(block, zeroed)
-      except:
+      except mifare.PN532Error:
+        pass
+      except TypeError:
         print(f"Invalid key provided for writing block {block}")
 
     lastUID = uid

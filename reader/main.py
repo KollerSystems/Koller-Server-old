@@ -1,12 +1,15 @@
 from json import (loads, dumps)
 import RPi.GPIO as GPIO
 from time import sleep
+from sys import exit
+from signal import (signal, SIGINT)
 
 import pn532.pn532 as mifare
 from pn532 import PN532_SPI
 from helpers import getAccessBits
 
 from websocket import create_connection
+
 
 with open("./config.json") as f:
   config = loads(f.read())
@@ -30,6 +33,13 @@ except:
 if not ws.connected:
   raise Exception("Invalid secret provided, cannot connect to server!")
 
+def shutdown(signal, frame):
+  print("\nExiting program!")
+  ws.close()
+  GPIO.cleanup()
+  exit(0)
+signal(SIGINT, shutdown)
+
 while True:
   while True:
     uid = reader.read_passive_target(timeout=1)
@@ -52,12 +62,10 @@ while True:
 
     resp = loads(ws.recv())
     if resp["tag"] == tagInts:
-      print(resp["correct"])
+      print(resp["correct"]) # kinyitni / nem
     sleep(2)
 
   except mifare.PN532Error as e:
     print(e.errmsg)
-
-
-ws.close()
-GPIO.cleanup()
+  except TypeError:
+    print("Card removed too quickly, could not read!") # hibát visszajelezni

@@ -49,6 +49,8 @@ try:
       reader.mifare_classic_write_block(1, [int(t) for t in tag[:16]])
       reader.mifare_classic_write_block(2, [int(t) for t in tag[16:]])
       reader.mifare_classic_write_block(3, block)
+    except TypeError:
+      raise Exception("Card was removed from the reader!")
     except:
       raise Exception("Card is not in transport configuration!")
 
