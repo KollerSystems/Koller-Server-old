@@ -73,12 +73,12 @@ const handleGrant = {
 
 
 oauth.post('/token', async (req, res, next) => {
-  if (!("grant_type" in req.body)) {
+  if (!("grant_type" in req.body) || !(req.body?.grant_type in handleGrant)) {
     classicErrorSend(res, 400, "Grant type parameter missing or type not allowed!");
     return;
   };
 
-  const grantResult = await handleGrant[req.body['grant_type']](req.body);
+  const grantResult = await handleGrant[req.body.grant_type](req.body);
 
   if (grantResult.issue != "") {
     classicErrorSend(res, 400, grantResult.issue);

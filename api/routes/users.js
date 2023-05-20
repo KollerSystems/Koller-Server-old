@@ -40,7 +40,6 @@ users.get('/:id(\\d+)', async (req, res, next) => { // regexp: /\d+/
   if (user == undefined) return classicErrorSend(res, 404, "There is no user with specified ID!");
 
   const userData = await knx(roleMappings.byID[user.Role]).first('*').where('ID', user.ID);
-  console.log(userData)
   const filteredData = filterByPermission(userData, roleMappings.byID[user.Role], roleMappings.byID[res.locals.roleID]);
 
   if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, "Forbidden!");
