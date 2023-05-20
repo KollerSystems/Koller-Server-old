@@ -30,7 +30,7 @@ const renameID = fields => {
 
 users.get('/me', async (req, res, next) => {
   const userdata = await knx(roleMappings.byID[res.locals.roleID]).first('*').where('ID', res.locals.ID);
-  userdata.ID = res.locals.GID;
+  userdata.ID = parseInt(res.locals.GID);
   res.header('Content-Type', 'application/json').status(200).send(userdata).end();
   next();
 });
