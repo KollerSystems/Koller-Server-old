@@ -35,7 +35,7 @@ users.get('/me', async (req, res, next) => {
   next();
 });
 
-users.get('/:id(\\d+)', async (req, res, next) => { // regexp: /\d+/
+users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
   const user = await knx('user').first('*').where('GID', req.params.id);
   if (user == undefined) return classicErrorSend(res, 404, "There is no user with specified ID!");
 

@@ -128,10 +128,14 @@ function getPermittedFields(table, role, permType = "read") {
 }
 
 function handleRouteAccess(req, res, next) {
-  let url = req.originalUrl.match(/.+((?=\?)|\/.+)/)[0];
-  url = url.replace(/(?<=\/)\d+(?=\/)?/, ":id");
+  let url = (new URL(req.originalUrl, `http://${req.headers.host}`)).pathname;
+  url = url.endsWith("/") ? url.slice(0,-1) : url;
+  url = url.replace(/(?<=\/)-?\d+(?=\/)?/, ":id");
+
+  if (!(url in routeAccess)) return classicErrorSend(res, 404, "Page not found!");
+
   if (routeAccess[url][res.locals.roleID].accessible) next();
-  else if (routeAccess[req.originalUrl][res.locals.roleID].hide) classicErrorSend(res, 404, "Page not found!");
+  else if (routeAccess[url][res.locals.roleID].hide) classicErrorSend(res, 404, "Page not found!");
   else classicErrorSend(res, 403, "Not permitted!");
 }
 
