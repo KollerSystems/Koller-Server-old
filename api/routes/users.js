@@ -49,7 +49,7 @@ users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
 });
 
 users.get('/', async (req, res, next) => {
-  const allowedUsersRegexp = new RegExp(options.api.batchRequests.allowedRoles.reduce((str, role) => { str += (role + "|"); return str })); // regexp: /student|teacher|.../
+  const allowedUsersRegexp = new RegExp(options.api.batchRequests.allowedRoles.join("|")); // regexp: /student|teacher|.../
 
   const limit = (()=>{
     let l = Math.abs(parseInt(req.query.limit)) || options.api.batchRequests.defaultLimit;

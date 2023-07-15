@@ -132,7 +132,7 @@ function handleRouteAccess(req, res, next) {
   url = url.endsWith("/") ? url.slice(0,-1) : url;
   url = url.replace(/(?<=\/)-?\d+(?=\/)?/, ":id");
 
-  if (!(url in routeAccess)) return classicErrorSend(res, 404, "Page not found!");
+  if (!(url in routeAccess)) return next();
 
   if (routeAccess[url][res.locals.roleID].accessible) next();
   else if (routeAccess[url][res.locals.roleID].hide) classicErrorSend(res, 404, "Page not found!");

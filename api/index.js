@@ -8,7 +8,7 @@ import EventEmitter from 'node:events';
 import { oauth } from './routes/oauth.js';
 import { users } from './routes/users.js';
 import { crossings } from './routes/crossings.js';
-import { checkToken, handleNotFound, logRequest, handleRouteAccess } from './helpers.js';
+import { checkToken, handleNotFound, logRequest, handleRouteAccess, classicErrorSend } from './helpers.js';
 import { treeifyMaps, extendMissingPermissions, checkDatabase, checkOptions } from './startup.js';
 import { handleWebsocket } from './reader.js';
 
@@ -25,11 +25,15 @@ let logFileStream = (options.logging.logFile != "") ? createWriteStream(options.
 const app = express();
 const api = express.Router();
 
+app.use('/', (req, res, next) => { res.locals.incomingTime = new Date(); next() });
+
 app.use(express.raw());
 app.use(express.json({ 'type': "application/json" }));
+app.use((err, req, res, next) => {
+  classicErrorSend(res, 400, "Invalid data in body!");
+});
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/', (req, res, next) => { res.locals.incomingTime = new Date(); next() });
 
 api.use(checkToken);
 api.use(handleRouteAccess);
