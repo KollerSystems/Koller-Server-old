@@ -6,8 +6,9 @@ import { isEmptyObject } from '../misc.js';
 const users = Router({ mergeParams: false });
 
 
-users.post('/mifare', async (req, res, next) => { // TODO: normálisabb név a pathnak
-  // 1 - b69f6669d72c5ce0f0c4bac027cd961c9c9ad06fdaf5e93244297a64fc555a7a
+users.post('/mifare', async (req, res, next) => {
+  if (req.get('Content-Type') != "application/octet-stream") return classicErrorSend(res, 400, "Invalid Content-Type used on resource!");
+
   const permittedFields = getPermittedFields("mifare_tags", roleMappings.byID[res.locals.roleID]);
   if (permittedFields.length == 0) return classicErrorSend(res, 403, "Forbidden!");
   if (isEmptyObject(req.body)) return classicErrorSend(res, 400, "No tag data provided!");

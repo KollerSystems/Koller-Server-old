@@ -25,7 +25,12 @@ let logFileStream = (options.logging.logFile != "") ? createWriteStream(options.
 const app = express();
 const api = express.Router();
 
-app.use('/', (req, res, next) => { res.locals.incomingTime = new Date(); next() });
+app.use('/', (req, res, next) => {
+  res.locals.incomingTime = new Date();
+  if (["POST", "PUT", "PATCH"].includes(req.method) && req.get('Content-Type') == undefined)
+    return classicErrorSend(res, 400, "Invalid Content-Type value or header missing!");
+  next()
+});
 
 app.use(express.raw());
 app.use(express.json({ 'type': "application/json" }));

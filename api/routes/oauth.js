@@ -73,11 +73,6 @@ const handleGrant = {
 
 
 oauth.post('/token', async (req, res, next) => {
-  if (!["application/x-www-form-urlencoded", "application/json"].includes(req.header('Content-Type'))) {
-    classicErrorSend(res, 400, "Invalid Content-Type value or header missing!");
-    return;
-  }
-
   if (!("grant_type" in req.body) || !(req.body?.grant_type in handleGrant)) {
     classicErrorSend(res, 400, "Grant type parameter missing or type not allowed!");
     return;
