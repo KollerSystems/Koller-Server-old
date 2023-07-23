@@ -59,25 +59,28 @@ users.get('/', async (req, res, next) => {
   const offset = Math.abs(parseInt(req.query.offset)) || 0;
 
   let users = [];
-  if ((req.query.role ?? "") && (req.query.role.match(allowedUsersRegexp)))
+  if (req.query.role?.match(allowedUsersRegexp))
     users = await knx(req.query.role).select(renameID(getPermittedFields(req.query.role, roleMappings.byID[res.locals.roleID])))
     .joinRaw("natural join user")
     .where('role', roleMappings.byRole[req.query.role])
     .limit(limit).offset(offset);
   else {
-    let limitUsage = limit;
-    let prevOffset = offset;
-    for (let role of options.api.batchRequests.allowedRoles) { // lehet hogy semmit nem ad vissza engedett mezőkre getpermittedfields?
-      if (limitUsage <= 0) break;
-      users = users.concat(await knx(role).select(renameID(getPermittedFields(role, roleMappings.byID[res.locals.roleID])))
-      .joinRaw("natural join user")
-      .where('role', roleMappings.byRole[role])
-      .limit(limitUsage).offset(prevOffset));
+    let limitRemains = limit;
+    let offsetRemains = offset
+    for (let role of options.api.batchRequests.allowedRoles) {
+      if (limitRemains <= 0) break;
+
+      const queried = await knx(role).select(renameID(getPermittedFields(role, roleMappings.byID[res.locals.roleID])))
+        .joinRaw("natural join user")
+        .where('role', roleMappings.byRole[role])
+        .limit(limitRemains).offset(offsetRemains);
+      users = users.concat(queried);
 
       const currentCapacity = (await knx(role).select(knx.count('ID').as("rows")))[0].rows;
-      const delta = (currentCapacity - prevOffset);
-      limitUsage -= (limit >= delta) ? delta : limit;
-      prevOffset = 0;
+
+      limitRemains -= queried.length;
+      offsetRemains -= (currentCapacity - queried.length)
+      if (offsetRemains < 0) offsetRemains = 0
     }
   }
 
