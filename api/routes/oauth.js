@@ -18,13 +18,12 @@ async function passwordGrant(body) {
 
   let userCredentials;
   if (/^\d+$/.test(body.username)) {
-    userCredentials = await knx('student').first('ID', { 'isStudent': 1 }).union(knx('teacher').select('ID', 0)).where('OM', body.username);
+    userCredentials = await knx.union([knx('student').first('UID', { 'isStudent': 1 }).where('OM', body.username), knx('teacher').first('UID', 0).where('OM', body.username)], true);
     if (!userCredentials) {
       response.issue = `No user with OM: "${body.username}"!`;
       return response;
     }
-
-    userCredentials = await knx('login_data').first('*').where('GID', knx('user').first('GID').where('ID', entry.ID).andWhere('Role', entry.isStudent ? 1 : 2)); // ha nem találja nem is kell hiba, akkora a baj
+    console.log(userCredentials)
   } else {
     userCredentials = await knx('login_data').first('*').where('Username', body.username);
   }
@@ -34,7 +33,7 @@ async function passwordGrant(body) {
     return response;
   }
 
-  response.data = userCredentials.GID;
+  response.data = userCredentials.UID;
   response.credentialsOK = userCredentials.Password == body.password;
 
   if (!response.credentialsOK) response.issue = "Incorrect password!";

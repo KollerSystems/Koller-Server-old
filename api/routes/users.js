@@ -9,7 +9,7 @@ const users = Router({ mergeParams: false });
 users.post('/mifare', async (req, res, next) => {
   if (req.get('Content-Type') != "application/octet-stream") return classicErrorSend(res, 400, "Invalid Content-Type used on resource!");
 
-  const permittedFields = getPermittedFields("mifare_tags", roleMappings.byID[res.locals.roleID]);
+  const permittedFields = renameID(getPermittedFields("mifare_tags", roleMappings.byID[res.locals.roleID]));
   if (permittedFields.length == 0) return classicErrorSend(res, 403, "Forbidden!");
   if (isEmptyObject(req.body)) return classicErrorSend(res, 400, "No tag data provided!");
 
@@ -25,23 +25,26 @@ users.post('/mifare', async (req, res, next) => {
 
 
 const renameID = fields => {
-  fields[fields.indexOf("ID")] = knx.ref('GID').as('ID'); // vagy nem is kell alias?
+  fields[fields.indexOf("UID")] = knx.ref('UID').as('ID');
   return fields;
 };
 
 users.get('/me', async (req, res, next) => {
-  const userdata = await knx(roleMappings.byID[res.locals.roleID]).first('*').where('ID', res.locals.ID);
-  userdata.ID = parseInt(res.locals.GID);
+  const userdata = await knx(roleMappings.byID[res.locals.roleID]).first('*').where('ID', res.locals.UID);
+  userdata.ID = parseInt(res.locals.UID);
   res.header('Content-Type', 'application/json').status(200).send(userdata).end();
   next();
 });
 
 users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
-  const user = await knx('user').first('*').where('GID', req.params.id);
+  const user = await knx('user').first('*').where('UID', req.params.id);
   if (user == undefined) return classicErrorSend(res, 404, "There is no user with specified ID!");
 
-  const userData = await knx(roleMappings.byID[user.Role]).first('*').where('ID', user.ID);
+  const userData = await knx(roleMappings.byID[user.Role]).first('*').where('UID', user.UID);
   const filteredData = filterByPermission(userData, roleMappings.byID[user.Role], roleMappings.byID[res.locals.roleID]);
+
+  filteredData.ID = filteredData.UID;
+  delete filteredData.UID;
 
   if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, "Forbidden!");
   res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
@@ -76,7 +79,7 @@ users.get('/', async (req, res, next) => {
         .limit(limitRemains).offset(offsetRemains);
       users = users.concat(queried);
 
-      const currentCapacity = (await knx(role).select(knx.count('ID').as("rows")))[0].rows;
+      const currentCapacity = (await knx(role).select(knx.count('UID').as("rows")))[0].rows;
 
       limitRemains -= queried.length;
       offsetRemains -= (currentCapacity - queried.length)

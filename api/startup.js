@@ -83,9 +83,9 @@ async function checkDatabase() { // TODO: nem linkelt user típus && route acces
   // meghatározatlan összeköttetések user és az adott felhasználó altábla közt
   for (let roleID in roleMappings.byID) {
     const roleName = roleMappings.byID[roleID];
-    const missingIDs = await knx('user').select('*').whereNotExists(knx(roleName).select('*').whereRaw(`user.ID = ${roleName}.ID`)).andWhere('Role', roleID); // whereRaw-on kívül hibásan adnak vissza adatot
+    const missingIDs = await knx('user').select('*').whereNotExists(knx(roleName).select('*').whereRaw(`user.UID = ${roleName}.UID`)).andWhere('Role', roleID); // whereRaw-on kívül hibásan adnak vissza adatot
 
-    if (missingIDs.length > 0) problems.missingUsers[roleName] = missingIDs.reduce((_, cur, i) => { missingIDs[i] = cur.GID; return missingIDs }, 0);
+    if (missingIDs.length > 0) problems.missingUsers[roleName] = missingIDs.reduce((_, cur, i) => { missingIDs[i] = cur.UID; return missingIDs }, 0);
   }
 
   // definiálatlan permissziók keresése a használt táblákon

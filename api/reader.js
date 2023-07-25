@@ -35,10 +35,10 @@ function handleWebsocket(ws) {
         ws.send(JSON.stringify({ 'cmd': 1, 'correct': false, 'tag': recieved.tag }));
       else {
         ws.send(JSON.stringify({ 'cmd': 1, 'correct': true, 'tag': recieved.tag }));
-        const lastCrossing = await knx('crossings').first('Direction', 'Time').where('PID', fetched.PID).orderBy('Time', 'desc');
+        const lastCrossing = await knx('crossings').first('Direction', 'Time').where('UID', fetched.UID).orderBy('Time', 'desc');
         const isInside = lastCrossing?.Direction[0] || "" ? 0 : 1; // bent van-e? alapból bent van -- bement/bent van 0 - kiment/kint van 1
-        crossEvent.emit('cross', { 'PID': fetched.PID, 'direction': isInside });
-        await knx('crossings').insert({ 'PID': fetched.PID, 'direction': isInside });
+        crossEvent.emit('cross', { 'UID': fetched.UID, 'direction': isInside });
+        await knx('crossings').insert({ 'UID': fetched.UID, 'direction': isInside });
       }
     }
   });
