@@ -8,6 +8,8 @@ import EventEmitter from 'node:events';
 import { oauth } from './routes/oauth.js';
 import { users } from './routes/users.js';
 import { crossings } from './routes/crossings.js';
+import { rooms } from './routes/rooms.js';
+
 import { checkToken, handleNotFound, logRequest, handleRouteAccess, classicErrorSend } from './helpers.js';
 import { treeifyMaps, extendMissingPermissions, checkDatabase, checkOptions } from './startup.js';
 import { handleWebsocket } from './reader.js';
@@ -47,6 +49,7 @@ app.use('/oauth', oauth);
 app.use('/api', api);
 api.use('/users', users);
 api.use('/crossings', crossings);
+api.use('/rooms', rooms);
 
 app.use('/', handleNotFound);
 app.use('/', logRequest);
