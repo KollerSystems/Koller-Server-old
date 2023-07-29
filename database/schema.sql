@@ -66,18 +66,18 @@ CREATE TABLE IF NOT EXISTS `route_access` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE IF NOT EXISTS `dormroom` (
-  `RoomID` smallint(5) unsigned NOT NULL,
+  `RID` smallint(5) unsigned NOT NULL,
   `Gender` tinyint(1) unsigned DEFAULT NULL,
   `Group` varchar(4) DEFAULT NULL,
-  PRIMARY KEY (`RoomID`)
+  PRIMARY KEY (`RID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE IF NOT EXISTS `resident` (
   `UID` int(15) unsigned NOT NULL,
-  `RoomID` smallint(5) unsigned NOT NULL,
+  `RID` smallint(5) unsigned NOT NULL,
   `BedNum` tinyint(1) unsigned DEFAULT NULL,
   PRIMARY KEY (`UID`),
-  UNIQUE KEY RoomPosition (`RoomID`, `BedNum`),
+  UNIQUE KEY RoomPosition (`RID`, `BedNum`),
   FOREIGN KEY (`UID`) REFERENCES user(`UID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `role_name` (
 CREATE TABLE IF NOT EXISTS `roomorder` (
   `ID` int(15) NOT NULL AUTO_INCREMENT,
   `RatingTUID` int(15) unsigned DEFAULT NULL,
-  `RoomID` smallint(5) unsigned NOT NULL,
+  `RID` smallint(5) unsigned NOT NULL,
   `Time` datetime DEFAULT NULL,
   `Floor` tinyint(4) DEFAULT NULL,
   `Windows` binary(2) DEFAULT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS `student` (
   `Birthdate` date DEFAULT NULL,
   `GuardianName` text DEFAULT NULL,
   `GuardianPhone` varchar(50) DEFAULT NULL,
-  `RoomID` smallint(5) unsigned NOT NULL,
+  `RID` smallint(5) unsigned NOT NULL,
   `Country` text DEFAULT NULL,
   `City` text DEFAULT NULL,
   `Street` text DEFAULT NULL,

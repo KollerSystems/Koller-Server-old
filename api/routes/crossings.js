@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getBatchRequestData } from '../helpers.js';
+import { setupBatchRequest } from '../helpers.js';
 import { knx, options, crossEvent, roleMappings } from '../index.js';
 import { isEmptyObject } from '../misc.js';
 
@@ -19,6 +19,10 @@ function filterAndSend(res, data) {
       data[i].Direction = data[i].Direction[0];
     res.status(200).send(data).end();
   }
+}
+
+async function getBatchRequestData(query, table, fields, where) {
+  return setupBatchRequest(knx(table).select(fields).where(where), query);
 }
 
 crossings.get('/me', async (req,res,next) => {

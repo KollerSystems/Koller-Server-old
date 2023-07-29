@@ -89,7 +89,7 @@ function logRequest(req, res, next = () => { }) {
 async function generateUniqueToken() {
   let accessToken = generateToken(options.authorization.tokenLength);
   let refreshToken = generateToken(options.authorization.tokenLength);
-
+  
   // tokenek véletlenszerű újragenerálása amíg nem egyedi
   while (true) {
     let tokenEntry = await knx('auth').first('*').where('access_token', accessToken).orWhere('refresh_token', refreshToken);
@@ -137,13 +137,46 @@ function handleRouteAccess(req, res, next) {
   else classicErrorSend(res, 403, "Not permitted!");
 }
 
-async function getBatchRequestData(query, table, fields, where) {
+async function setupBatchRequest(query, urlparams) {
   const limit = (()=>{
-    let l = Math.abs(parseInt(query.limit)) || options.api.batchRequests.defaultLimit;
+    let l = Math.abs(parseInt(urlparams.limit)) || options.api.batchRequests.defaultLimit;
     return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
   })();
-  const offset = Math.abs(parseInt(query.offset)) || 0;
-  return await knx(table).select(fields).where(where).offset(offset).limit(limit);
+  const offset = Math.abs(parseInt(urlparams.offset)) || 0;
+  return query.offset(offset).limit(limit);
 }
 
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess, getBatchRequestData }
+async function boilerplateRequestID (req, res, next, suboptions) {
+  const data = await knx(suboptions.table).first('*').where(suboptions.searchID, suboptions.IDval);
+  if (data == undefined) return classicErrorSend(res, 404, suboptions.errormsg);
+
+  const filteredData = filterByPermission(data, suboptions.table, roleMappings.byID[res.locals.roleID]);
+
+  if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, "Forbidden!");
+  res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
+
+  next();
+}
+
+async function boilerplateRequestBatch (req, res, next, suboptions) {
+  let data = knx(suboptions.table).select(getPermittedFields(suboptions.table, roleMappings.byID[res.locals.roleID]));
+  data = setupBatchRequest(data, req.query);
+
+  for (filter of suboptions.filters) {
+    if (req.query[filter.name]?.match(filter.regexp))
+      data.where(filter.field, req.query[filter.name]);
+  }
+  data = await data;
+
+  res.header('Content-Type', 'application/json').status(200).send(data).end();
+
+  next();
+}
+
+function attachBoilerplate(method, path, callback, suboptions) {
+  method(path, async (req, res, next) => {
+    await callback(req, res, next, suboptions);
+  });
+}
+
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess, setupBatchRequest/*, boilerplateRequestBatch, boilerplateRequestID, attachBoilerplate*/ }
