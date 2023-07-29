@@ -14,6 +14,12 @@ Először a *HTTP method*, majd utána az elérési útvonal, melyben csak eggye
 
 *GET* kérések esetén a *query string*-ek elhagyhatóak, hacsak nincs külön kiemelve.
 
+A dokumentum elején található fán az olyan értékek, melyek nem konkrétumok "`:`"-al kezdődnek. A részletesebb leírásában kapcsos zárójelek között van feltüntetve. Ilyen érték lehet példaként egy ID. Ezek névvel vannak ellátva, könnyebb referálás érdekében.
+
+Az ID-k közül is többféle van: 
+- *UID*: **U**ser **Id**entifier - Két ugyanilyen IDjú felhasználó nem lehet, legyen akár két különböző típusú.
+- *RID*: **R**oom **Id**entifier - Szobák azonosítására használt.
+
 Paraméterek értékei kapcsos zárójelben vannak feltüntetve, abban az esetben ha **egzakt** értékeket vár el a szerver akkor `|` karakter választja el a lehetséges értékeket.
 
 **Példák esetén:**
@@ -56,11 +62,17 @@ Felépítése:
 	- `/users`
 		- `/`
 		- `/me`
-		- `/:id`
+		- `/:uid`
 		- `/mifare`
+	- `/rooms`
+		- `/`
+		- `/me`
+		- `/:rid`
+			- `/residents`
+				- `/:uid`
 	- `/crossings`
 		- `/me`
-		- `/:id`
+		- `/:uid`
 		- `events`
 
 *POST* kérések esetén a válasz egy *JSON* objektum formájában érkezik. Ez a legtöbb *GET* kérésre is igaz.
@@ -142,21 +154,45 @@ Három paramétert lehet megadni, egyik sem kötelező:
 
 Semmilyen paramétert sem fogad el, a használt *access token* alapján visszaküldi a felhasználó adatait.
 
-### `GET /users/{id}`
+### `GET /users/{uid}`
 
-Megadott ID-jú felhasználó lekérése.
+Megadott UID-jú felhasználó lekérése.
 
 ### `POST /users/mifare`
 
 A kérést `application/octet-stream` *Content Type* headerrel el kell látni, a kérés *body*-jába kell a lekérdezendő mifare bilétáról megszerzett kulcs adatait rakni. Ha a kulcs létezik visszakapjuk a kulcsról az információkat, ha nem akkor egy *404*-es hibakódot.
 
+---
+
+### `GET /rooms?limit={limit}&offset={offset}`
+
+Több, az összes szoba lekérése.
+
+### `GET /rooms/me`
+
+A bejelentkezett felhasználó szobájának lekérése, amihez társulnak még a szobával kapcsolatos adatai, illetve a lakótársainak ugyanilyen adatai.
+
+### `GET /rooms/{rid}`
+
+A megadott RID-jú szoba lekérése.
+
+### `GET /rooms/{rid}/residents`
+
+A megadott RID-jú szoba lakosainak való lekérése; a lakosok szobával kapcsolatos információik megszerzése.
+
+### `GET /rooms/{rid}/residents/{uid}`
+
+Egy megadott RIDjú szobában lakó, úgyszínt megadott UIDjú felhasználó lekérése.
+
+---
+
 ### `GET /crossings/me?limit={limit}&offset={offset}`
 
 A lekérdező felhasználó portai ki- és belépései lekérdezése visszamenőleg.
 
-### `GET /crossings/{id}?limit={limit}&offset={offset}`
+### `GET /crossings/{uid}?limit={limit}&offset={offset}`
 
-A megadott ID-jú felhasználó kapu átlépéseinek történelmének lekérdezése.
+A megadott UID-jú felhasználó kapu átlépéseinek történelmének lekérdezése.
 
 ### `GET /crossings/events`
 

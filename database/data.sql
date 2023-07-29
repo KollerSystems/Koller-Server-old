@@ -121,8 +121,8 @@ INSERT INTO `route_access` VALUES (2, '/api/users/:id', b'1', b'0');
 INSERT INTO `route_access` VALUES (1, '/api/users/mifare', b'0', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/users/mifare', b'1', b'0');
 
-INSERT INTO `route_access` VALUES (1, '/api/rooms/', b'1', b'0');
-INSERT INTO `route_access` VALUES (2, '/api/rooms/', b'1', b'0');
+INSERT INTO `route_access` VALUES (1, '/api/rooms', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/rooms', b'1', b'0');
 INSERT INTO `route_access` VALUES (1, '/api/rooms/me', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/rooms/me', b'0', b'1');
 INSERT INTO `route_access` VALUES (1, '/api/rooms/:id', b'1', b'0');
