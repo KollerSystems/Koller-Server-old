@@ -127,10 +127,6 @@ INSERT INTO `route_access` VALUES (1, '/api/rooms/me', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/rooms/me', b'0', b'1');
 INSERT INTO `route_access` VALUES (1, '/api/rooms/:id', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/rooms/:id', b'1', b'0');
-INSERT INTO `route_access` VALUES (1, '/api/rooms/:id/residents', b'1', b'0');
-INSERT INTO `route_access` VALUES (2, '/api/rooms/:id/residents', b'1', b'0');
-INSERT INTO `route_access` VALUES (1, '/api/rooms/:id/residents/:uid', b'1', b'0');
-INSERT INTO `route_access` VALUES (2, '/api/rooms/:id/residents/:uid', b'1', b'0');
 
 
 INSERT INTO `mifare_tags` (UID, Bytes) VALUES (1, x'b69f6669d72c5ce0f0c4bac027cd961c9c9ad06fdaf5e93244297a64fc555a7a');

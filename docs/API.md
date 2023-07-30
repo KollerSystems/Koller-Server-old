@@ -68,8 +68,6 @@ Felépítése:
 		- `/`
 		- `/me`
 		- `/:rid`
-			- `/residents`
-				- `/:uid`
 	- `/crossings`
 		- `/me`
 		- `/:uid`
@@ -164,29 +162,21 @@ A kérést `application/octet-stream` *Content Type* headerrel el kell látni, a
 
 ---
 
-### `GET /rooms?gender={0|1|female|male}&group={/[A-Z]\d+/}limit={limit}&offset={offset}`
+### `GET /rooms?Gender={0|1|female|male}&Group={/(L|F)\d+/}limit={limit}&offset={offset}`
 
 Több, az összes szoba lekérése.
 
 Két paraméterrel lehetséges a szűrés:
-- `gender`: (0-nő, 1-férfi): Egy szobában csak egy nem lakhat. Ezért lehet szűrni a "szoba nemére".
-- `group`: A szobában lakó csoportra lehet szűrni.
+- `Gender`: (0-nő, 1-férfi): Egy szobában csak azonos neműek lakhatnak. Így lehet szűrni a "szoba nemére".
+- `Group`: A szobában lakó csoportra lehet szűrni.
 
 ### `GET /rooms/me`
 
-A bejelentkezett felhasználó szobájának lekérése, amihez társulnak még a szobával kapcsolatos adatai, illetve a lakótársainak ugyanilyen adatai.
+A bejelentkezett felhasználó szobájának lekérése, amihez társulnak még a szobájában lakókról információk. Saját magát ki lehet keresni ebből a tömbből, ugyanis a kérés megadja a lekérdező `UID`-ját.
 
 ### `GET /rooms/{rid}`
 
-A megadott RID-jú szoba lekérése.
-
-### `GET /rooms/{rid}/residents`
-
-A megadott RID-jú szoba lakosainak való lekérése; a lakosok szobával kapcsolatos információik megszerzése.
-
-### `GET /rooms/{rid}/residents/{uid}`
-
-Egy megadott RIDjú szobában lakó, úgyszínt megadott UIDjú felhasználó lekérése.
+A megadott RID-jú szoba, és benne lakók lekérése. Több információt ad a lakosokról, mint amikor egyszerre több szoba kerül lekérdezésre
 
 ---
 

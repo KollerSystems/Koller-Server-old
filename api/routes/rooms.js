@@ -12,11 +12,15 @@ rooms.get('/', async (req, res, next) => {
   if (['0', '1', 'female', 'male'].includes(req.query.Gender)) {
     data.where('Gender', (req.query.Gender.match(/\d/g)) ? req.query.Gender : req.query.Gender == 'female' ? 0 : 1);
   }
-  if (req.query.Group?.match(/[A-Z]\d+/g)) {
+  if (req.query.Group?.match(/(L|F)\d+/g)) {
     data.where('Group', req.query.Group);
   }
 
   data = await setupBatchRequest(data, req.query);
+  const fieldsPermitted = getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat('Name');
+  for (let i = 0; i < data.length; i++) {
+    data[i].residents = await knx('resident').select(fieldsPermitted).joinRaw('natural join student').where('RID', data[i].RID);
+  }
   res.header('Content-Type', 'application/json').status(200).send(data).end();
 
   next();
@@ -26,11 +30,9 @@ rooms.get('/me', async (req, res, next) => {
   const prequery = await knx('student').first('RID').where('UID', res.locals.UID); // kell lennie UIDnak, nem kell check
   let data = await knx('dormroom').first(getPermittedFields('dormroom', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
   const postquery = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
-  
-  data.Coresidents = postquery.filter(v => v.UID != res.locals.UID);
-  const meResident = postquery.filter(v => v.UID == res.locals.UID)[0];
-  for (let key in meResident)
-    data[key] = meResident[key];
+
+  data.residents = postquery;
+  data.UID = parseInt(res.locals.UID);
 
   res.header('Content-Type', 'application/json').status(200).send(data).end();
   next();
@@ -40,32 +42,11 @@ rooms.get('/:id(-?\\d+)', async (req, res, next) => {
   const data = await knx('dormroom').first('*').where('RID', req.params.id);
   if (data == undefined) return classicErrorSend(res, 404, `There is no room with the specified ID!`);
 
+
   const filteredData = filterByPermission(data, 'dormroom', roleMappings.byID[res.locals.roleID]);
-
   if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, "Forbidden!");
-  res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
 
-  next();
-});
-
-rooms.get('/:id(-?\\d+)/residents', async (req, res, next) => {
-  const permittedFields = getPermittedFields('resident', roleMappings.byID[res.locals.roleID]);
-
-  let data = knx('resident').select(permittedFields).where('RID', req.params.id);
-  // data = setupBatchRequest(data, req.query);
-
-  res.header('Content-Type', 'application/json').status(200).send(await data).end();
-
-  next();
-});
-
-rooms.get('/:id(-?\\d+)/residents/:uid(-?\\d+)', async (req, res, next) => {
-  const data = await knx('resident').first('*').where('UID', req.params.uid).where('RID', req.params.id);
-  if (data == undefined) return classicErrorSend(res, 404, `There is no resident with the specified UID in the room!`);
-
-  const filteredData = filterByPermission(data, 'resident', roleMappings.byID[res.locals.roleID]);
-
-  if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, "Forbidden!");
+  filteredData.residents = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat(['Name', 'Picture'])).joinRaw('natural join student').where('RID', req.params.id);
   res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
 
   next();
