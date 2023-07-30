@@ -164,9 +164,13 @@ A kérést `application/octet-stream` *Content Type* headerrel el kell látni, a
 
 ---
 
-### `GET /rooms?limit={limit}&offset={offset}`
+### `GET /rooms?gender={0|1|female|male}&group={/[A-Z]\d+/}limit={limit}&offset={offset}`
 
 Több, az összes szoba lekérése.
+
+Két paraméterrel lehetséges a szűrés:
+- `gender`: (0-nő, 1-férfi): Egy szobában csak egy nem lakhat. Ezért lehet szűrni a "szoba nemére".
+- `group`: A szobában lakó csoportra lehet szűrni.
 
 ### `GET /rooms/me`
 

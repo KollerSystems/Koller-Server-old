@@ -44,4 +44,15 @@ function has(obj, value) {
   return (value in obj);
 }
 
-export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has }
+function cmp(a, b, inv, undefinedLast=true, comparator) {
+  if (a == undefined) return undefinedLast ? 1 : -1;
+  if (b == undefined) return undefinedLast ? -1 : 1;
+
+  if (typeof a == "string") {
+    return inv ? comparator(b,a) : comparator(a,b);
+  }
+
+  return inv ? (b-a) : (a-b);
+}
+
+export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, cmp }

@@ -8,11 +8,12 @@ const rooms = Router({ mergeParams: false });
 rooms.get('/', async (req, res, next) => {
   let data = knx('dormroom').select(getPermittedFields('dormroom', roleMappings.byID[res.locals.roleID]));
 
-  if (['0', '1', 'female', 'male'].includes(req.query.gender)) {
-    data.where('Gender', (req.query.gender.match(/\d/g)) ? req.query.gender : req.query.gender == 'female' ? 0 : 1);
+  // TODO: setupBatchRequestben megoldani a filteringet
+  if (['0', '1', 'female', 'male'].includes(req.query.Gender)) {
+    data.where('Gender', (req.query.Gender.match(/\d/g)) ? req.query.Gender : req.query.Gender == 'female' ? 0 : 1);
   }
-  if (req.query.group?.match(/[A-Z]\d+/g)) {
-    data.where('Group', req.query.group);
+  if (req.query.Group?.match(/[A-Z]\d+/g)) {
+    data.where('Group', req.query.Group);
   }
 
   data = await setupBatchRequest(data, req.query);

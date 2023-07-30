@@ -137,13 +137,70 @@ function handleRouteAccess(req, res, next) {
   else classicErrorSend(res, 403, "Not permitted!");
 }
 
+function handleSortParams(urlparams, query) {
+  if (!(urlparams.sort ?? "")) return [];
+
+  let nullsPlace = "last";
+  if (urlparams.nulls == "first") nullsPlace = "first";
+
+  let sortparams = urlparams.sort.replace(' ', '').split(',');
+  let orderparams = urlparams.order?.replace(' ', '').split(',');
+
+  let sort = [];
+  if (!(orderparams ?? "")) {
+    for (let param of sortparams) {
+      let obj = {nulls: nullsPlace};
+
+      obj.column = param.match(/(?<=-?|\+?)([A-z]+)(?=:?)/);
+      obj.column = obj.column == null ? undefined : obj.column[0];
+
+      obj.order = param.match(/(\+|-)(?=([A-z]+)\:?)/g);
+      if (obj.order == null) {
+        obj.order = param.match(/(?<=[A-z]+:)(asc|desc)/g);
+        obj.order = obj.order == null ? 'asc' : obj.order[0];
+      } else
+        obj.order = (obj.order[0] == '+' ? 'asc' : 'desc');
+
+      if (obj.column != undefined) sort.push(obj);
+    }
+  } else {
+    for (let i = 0; i < sortparams.length; i++) {
+      let obj = {nulls: nullsPlace};
+
+      obj.column = sortparams[i].match(/(?<=-?|\+?)([A-z]+)(?=:?)/);
+      obj.column = obj.column == null ? undefined : obj.column[0];
+
+      obj.order = orderparams[i] == undefined ? 'asc' : orderparams[i];
+
+      if (obj.column != undefined) sort.push(obj);
+    }
+  }
+
+  if (!(query ?? "")) return sort;
+
+  let selectParams = query.toSQL().sql.match(/(?<=select ).+(?= from)/g);
+  if (selectParams == null) {
+    sort = [];
+  } else {
+    selectParams = selectParams[0].match(/(?<=\`)[A-z]+(?=\`)/g);
+    for (let i = 0; i < sort.length; i++){
+      if (!selectParams.includes(sort[i].column)) {
+        sort.splice(i);
+      }
+    }
+  }
+
+  return sort;
+}
+
 async function setupBatchRequest(query, urlparams) {
   const limit = (()=>{
     let l = Math.abs(parseInt(urlparams.limit)) || options.api.batchRequests.defaultLimit;
     return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
   })();
   const offset = Math.abs(parseInt(urlparams.offset)) || 0;
-  return query.offset(offset).limit(limit);
+
+  return query.offset(offset).limit(limit).orderBy(handleSortParams(urlparams, query));
 }
 
 async function boilerplateRequestID (req, res, next, suboptions) {
@@ -179,4 +236,4 @@ function attachBoilerplate(method, path, callback, suboptions) {
   });
 }
 
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess, setupBatchRequest/*, boilerplateRequestBatch, boilerplateRequestID, attachBoilerplate*/ }
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess, handleSortParams, setupBatchRequest/*, boilerplateRequestBatch, boilerplateRequestID, attachBoilerplate*/ }
