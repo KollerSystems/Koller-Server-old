@@ -33,6 +33,7 @@
   },
   "logging": {
     "logAsISOString": false,
+    "logResponseTime": true,
     "logIP": false,
     "logUnsuccessful": true,
     "logNotFound": false,

@@ -78,7 +78,7 @@ function logRequest(req, res, next = () => { }) {
     (res.statusCode == 404 && options.logging.logNotFound) ||
     (options.logging.logUnsuccessful)
   ) {
-    let logLine = intoTimestamp(res.locals.incomingTime) + ` <${res.locals.UID == undefined ? "no logon" : res.locals.UID}>` + (options.logging.logIP ? " {" + req.ip + "}" : "") + ` ${req.method} ${req.originalUrl} (${res.statusCode})`;
+    let logLine = '[' + intoTimestamp(res.locals.incomingTime) + (options.logging.logResponseTime ? ` + ${Date.now()-res.locals.incomingTime}ms` : '') + ']' + ` <${res.locals.UID == undefined ? "no logon" : res.locals.UID}>` + (options.logging.logIP ? " {" + req.ip + "}" : "") + ` ${req.method} ${req.originalUrl} (${res.statusCode})`;
     if (options.logging.logConsole) console.log(logLine);
     if (options.logging.logFile != "") logFileStream.write(logLine + "\n");
   }
