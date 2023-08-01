@@ -192,14 +192,12 @@ function handleSortParams(urlparams, query) {
 
 function setupBatchRequest(query, urlparams) {
   const limit = (()=>{
-    let l = Math.abs(parseInt(urlparams.limit)) || options.api.batchRequests.defaultLimit;
+    let l = parseInt(urlparams.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0)) || options.api.batchRequests.defaultLimit;
     return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
   })();
-  const offset = Math.abs(parseInt(urlparams.offset)) || 0;
+  const offset = parseInt(urlparams.offset?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0)) || 0;
 
-  let temp = handleSortParams(urlparams, query);
-  console.log(temp)
-  query.offset(offset).limit(limit).orderBy(temp);
+  query.offset(offset).limit(limit).orderBy(handleSortParams(urlparams, query));
   return query;
 }
 

@@ -16,6 +16,23 @@ import { expect } from 'chai';
 
 
 describe('Getting token & refreshing it with various credentials', () => {
+  const user = (()=>{
+    for (let parameter of parameters.oauth) if (parameter.succeed) {
+      return parameter.credentials;
+    }
+  })();
+  it(`FAIL: POST /token - invalid application/json: ${user.username}`, done => {
+    request
+        .post('/token')
+        .send(JSON.stringify(user).slice(0,10))
+        .set('Content-Type', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(400)
+        .expect(res => {
+          expect(res.body).to.be.an('object').that.has.a.property('error');
+        }).end(done);
+  });
+
   for (let parameter of parameters.oauth) {
     let refresh_token = undefined;
     it(`${parameter.succeed ? '' : 'FAIL: '}POST /token - application/json: ${parameter.credentials.username}`, done => {

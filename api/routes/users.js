@@ -46,10 +46,10 @@ users.get('/', async (req, res, next) => {
   const allowedUsersRegexp = new RegExp(options.api.batchRequests.allowedRoles.join("|")); // regexp: /student|teacher|.../
 
   const limit = (()=>{
-    let l = Math.abs(parseInt(req.query.limit)) || options.api.batchRequests.defaultLimit;
+    let l = parseInt(req.query.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0)) || options.api.batchRequests.defaultLimit;
     return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
   })();
-  const offset = Math.abs(parseInt(req.query.offset)) || 0;
+  const offset = parseInt(req.query.offset?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0)) || 0;
 
   let users = [];
   if (req.query.role?.match(allowedUsersRegexp))

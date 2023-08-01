@@ -18,7 +18,7 @@ import { expect } from 'chai';
 describe('Requesting users with various tokens', () => {
   for (let parameter in parameters.api.users) {
     const userdata = parameters.api.users[parameter];
-    it(`${parameter != 'fake' ? '' : 'FAIL: '}GET /me - (${parameter})`, done => {
+    it(`${parameter != 'fake' ? '' : 'FAIL: '}GET /users/me - (${parameter})`, done => {
       request
         .get('/users/me')
         .set('Authorization', 'Bearer ' + userdata.access_token)
@@ -63,19 +63,59 @@ describe('Requesting users with various tokens', () => {
           expect(res.body).to.have.a.property('UID', parameters.api.parameters.user.teacherID);
         }).end(done);
     });
-    /*
-    it(`GET /users/ - (${parameter})`, done => {
+
+    it(`GET /users?role=teacher - (${parameter})`, done => {
       request
-        .get('/users?limit=2&offset=1&sort=-UID')
+        .get('/users?role=teacher&sort=GuardianPhone&nulls=last')
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(200)
         .expect(res => {
-          expect(res.body).to.be.an('array');
-          expect(res.body[0].UID > res.body[1].UID).to.be.true;
+          expect(res.body).to.be.an('array').and.to.have.lengthOf.at.most(options.api.batchRequests.defaultLimit);
+          let GuardianPhones = [];
+          for (let user of res.body) GuardianPhones.push(typeof user.GuardianPhone)
+          expect(GuardianPhones).to.not.have.a('string');
         }).end(done);
-
     });
-    */
+    it(`GET /users/offset=-${parameters.api.parameters.all.hugeInt} - (${parameter})`, done => {
+      request
+        .get(`/users?offset=${parameters.api.parameters.all.hugeInt}`)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.be.an('array').which.is.empty;
+        }).end(done);
+    });
+
+    const setSortedAndLimitedExpectations = req => {
+      req
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.be.an('array').and.to.have.lengthOf.at.most(2);
+          expect(res.body[0].UID >= res.body[1].UID).to.be.true;
+          expect(res.body[0].UID+1 === parameters.api.parameters.user.lastID).to.be.true;
+        });
+
+      return req;
+    }
+
+    it(`GET /users?sort=-{1},{2} - (${parameter})`, done => {
+      setSortedAndLimitedExpectations(
+        request.get('/users?limit=2&offset=1&sort=-UID,Name')
+      ).end(done);
+    });
+    it(`GET /users?sort={1}:desc,{2}:asc - (${parameter})`, done => {
+      setSortedAndLimitedExpectations(
+        request.get('/users?limit=2&offset=1&sort=UID:desc,Name:asc')
+      ).end(done);
+    });
+    it(`GET /users?sort={1},{2}&order=desc,asc - (${parameter})`, done => {
+      setSortedAndLimitedExpectations(
+        request.get('/users?limit=2&offset=1&sort=UID,Name&order=desc,asc')
+      ).end(done);
+    });
   }
 });

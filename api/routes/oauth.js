@@ -23,7 +23,7 @@ async function passwordGrant(body) {
       response.issue = `No user with OM: "${body.username}"!`;
       return response;
     }
-    console.log(userCredentials)
+    userCredentials = await knx('login_data').first('*').where('UID', userCredentials[0].UID);
   } else {
     userCredentials = await knx('login_data').first('*').where('Username', body.username);
   }

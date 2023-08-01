@@ -2,23 +2,31 @@
   "oauth": [
     {"credentials": {"username": "miki", "password": "almafa1234", "grant_type": "password"}, "succeed": true},
     {"credentials": {"username": "DJ", "password": "almafa1234", "grant_type": "password"}, "succeed": true},
+    {"credentials": {"username": 72745678344, "password": "almafa1234", "grant_type": "password"}, "succeed": true},
     {"credentials": {"username": "Gergő", "password": "almafa1234"}, "succeed": false},
     {"credentials": {"username": "Gergő", "grant_type": "password"}, "succeed": false},
     {"credentials": {"password": "almafa1234", "grant_type": "password"}, "succeed": false}
   ],
   "api": {
     "parameters": {
+      "all": {
+        "hugeInt": 12345678901234
+      },
       "user": {
         "studentID": 4,
         "teacherID": 5,
         "permDifferenceOn": "GuardianName",
-        "firstID": 1
+        "lastID": 7
+      },
+      "rooms": {
+        "roomID": 131
       }
     },
     "users": {
       "student": {
         "username": "miki",
         "UID": 1,
+        "RID": 172,
         "access_token": "P8kj-8K7kJM-hT9RQDUH8L-v..01.yy2"
       },
       "teacher": {

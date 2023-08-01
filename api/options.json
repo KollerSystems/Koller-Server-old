@@ -14,6 +14,7 @@
   "api": {
     "port": 80,
     "exitTimeout": 2000,
+    "maxDigits": 12,
     "batchRequests": {
       "defaultLimit": 25,
       "maxLimit": 50,

@@ -18,6 +18,7 @@ rooms.get('/', async (req, res, next) => {
 
   data = await setupBatchRequest(data, req.query);
   const fieldsPermitted = getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat('Name');
+  // fieldsPermitted.splice(fieldsPermitted.indexOf('RID'),1);
   for (let i = 0; i < data.length; i++) {
     data[i].residents = await knx('resident').select(fieldsPermitted).joinRaw('natural join student').where('RID', data[i].RID);
   }
@@ -31,7 +32,7 @@ rooms.get('/me', async (req, res, next) => {
   let data = await knx('dormroom').first(getPermittedFields('dormroom', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
   const postquery = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
 
-  data.residents = postquery;
+  data.Residents = postquery;
   data.UID = parseInt(res.locals.UID);
 
   res.header('Content-Type', 'application/json').status(200).send(data).end();
@@ -46,7 +47,7 @@ rooms.get('/:id(-?\\d+)', async (req, res, next) => {
   const filteredData = filterByPermission(data, 'dormroom', roleMappings.byID[res.locals.roleID]);
   if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, "Forbidden!");
 
-  filteredData.residents = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat(['Name', 'Picture'])).joinRaw('natural join student').where('RID', req.params.id);
+  filteredData.Residents = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat(['Name', 'Picture'])).joinRaw('natural join student').where('RID', req.params.id);
   res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
 
   next();
