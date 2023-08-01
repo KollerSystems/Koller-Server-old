@@ -46,11 +46,11 @@ async function verify(authField) {
     return result;
   }
 
-  let userEntry = await knx('user').first('UID', 'Role').where('UID', authEntry.ID);
+  let userEntry = await knx('user').first('UID', 'Role').where('UID', authEntry.UID);
 
   result.code = 0;
   result.issue = "";
-  result.UID = authEntry.ID;
+  result.UID = authEntry.UID;
   result.roleID = userEntry.Role;
   return result;
 }
@@ -89,7 +89,7 @@ function logRequest(req, res, next = () => { }) {
 async function generateUniqueToken() {
   let accessToken = generateToken(options.authorization.tokenLength);
   let refreshToken = generateToken(options.authorization.tokenLength);
-  
+
   // tokenek véletlenszerű újragenerálása amíg nem egyedi
   while (true) {
     let tokenEntry = await knx('auth').first('*').where('access_token', accessToken).orWhere('refresh_token', refreshToken);
@@ -140,16 +140,13 @@ function handleRouteAccess(req, res, next) {
 function handleSortParams(urlparams, query) {
   if (!(urlparams.sort ?? "")) return [];
 
-  let nullsPlace = "last";
-  if (urlparams.nulls == "first") nullsPlace = "first";
-
   let sortparams = urlparams.sort.replace(' ', '').split(',');
   let orderparams = urlparams.order?.replace(' ', '').split(',');
 
   let sort = [];
   if (!(orderparams ?? "")) {
     for (let param of sortparams) {
-      let obj = {nulls: nullsPlace};
+      let obj = {};
 
       obj.column = param.match(/(?<=-?|\+?)([A-z]+)(?=:?)/);
       obj.column = obj.column == null ? undefined : obj.column[0];
@@ -165,7 +162,7 @@ function handleSortParams(urlparams, query) {
     }
   } else {
     for (let i = 0; i < sortparams.length; i++) {
-      let obj = {nulls: nullsPlace};
+      let obj = {};
 
       obj.column = sortparams[i].match(/(?<=-?|\+?)([A-z]+)(?=:?)/);
       obj.column = obj.column == null ? undefined : obj.column[0];
@@ -193,14 +190,17 @@ function handleSortParams(urlparams, query) {
   return sort;
 }
 
-async function setupBatchRequest(query, urlparams) {
+function setupBatchRequest(query, urlparams) {
   const limit = (()=>{
     let l = Math.abs(parseInt(urlparams.limit)) || options.api.batchRequests.defaultLimit;
     return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
   })();
   const offset = Math.abs(parseInt(urlparams.offset)) || 0;
 
-  return query.offset(offset).limit(limit).orderBy(handleSortParams(urlparams, query));
+  let temp = handleSortParams(urlparams, query);
+  console.log(temp)
+  query.offset(offset).limit(limit).orderBy(temp);
+  return query;
 }
 
 async function boilerplateRequestID (req, res, next, suboptions) {

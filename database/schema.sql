@@ -10,12 +10,13 @@ CREATE DATABASE IF NOT EXISTS `kollegium`;
 USE `kollegium`;
 
 CREATE TABLE IF NOT EXISTS `auth` (
-  `ID` varchar(12) DEFAULT NULL,
+  `UID` int(15) unsigned NOT NULL,
   `access_token` varchar(32) DEFAULT NULL,
   `refresh_token` varchar(32) DEFAULT NULL,
   `expires` int(10) unsigned DEFAULT NULL,
   `issued` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `expired` bit(1) NOT NULL DEFAULT b'0'
+  `expired` bit(1) NOT NULL DEFAULT b'0',
+  FOREIGN KEY (`UID`) REFERENCES user(`UID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE IF NOT EXISTS `crossings` (

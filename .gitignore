@@ -1,4 +1,5 @@
 .vscode
+setupServer.sh
 
 api/package-lock.json
 api/node_modules

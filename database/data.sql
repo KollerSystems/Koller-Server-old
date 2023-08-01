@@ -11,8 +11,12 @@ INSERT INTO `user` (`UID`, `Role`) VALUES
 	(6, 1),
 	(7, 1);
 
+INSERT INTO `auth` (`UID`, `access_token`, `expires`, `expired`) VALUES
+	(1, 'P8kj-8K7kJM-hT9RQDUH8L-v..01.yy2', 4294967295, b'0'),
+	(5, 'Anca577M3u.~un7z~j9pj3/67rsF/~/3', 4294967295, b'0');
+
 INSERT INTO `dormroom` VALUES
-	(172, 1, 'F8'),
+	(172, 1, NULL),
 	(131, 1, 'F1'),
 	(17, 0, 'F3');
 
