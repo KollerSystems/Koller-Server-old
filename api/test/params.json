@@ -1,0 +1,36 @@
+{
+  "oauth": [
+    {"credentials": {"username": "miki", "password": "almafa1234", "grant_type": "password"}, "succeed": true},
+    {"credentials": {"username": "DJ", "password": "almafa1234", "grant_type": "password"}, "succeed": true},
+    {"credentials": {"username": "Gergő", "password": "almafa1234"}, "succeed": false},
+    {"credentials": {"username": "Gergő", "grant_type": "password"}, "succeed": false},
+    {"credentials": {"password": "almafa1234", "grant_type": "password"}, "succeed": false}
+  ],
+  "api": {
+    "parameters": {
+      "user": {
+        "studentID": 4,
+        "teacherID": 5,
+        "permDifferenceOn": "GuardianName",
+        "firstID": 1
+      }
+    },
+    "users": {
+      "student": {
+        "username": "miki",
+        "UID": 1,
+        "access_token": "P8kj-8K7kJM-hT9RQDUH8L-v..01.yy2"
+      },
+      "teacher": {
+        "username": "DJ",
+        "UID": 5,
+        "access_token": "Anca577M3u.~un7z~j9pj3/67rsF/~/3"
+      },
+      "fake": {
+        "username": "fake",
+        "UID": 2,
+        "access_token": "L~nL4d2YH46iHM.~euD_FL6q4kS_C7qG"
+      }
+    }
+  }
+}
