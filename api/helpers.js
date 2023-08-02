@@ -137,11 +137,19 @@ function handleRouteAccess(req, res, next) {
   else classicErrorSend(res, 403, "Not permitted!");
 }
 
-function handleSortParams(urlparams, query) {
+function getSelectFields(query) {
+  let selectParams = query.toSQL().sql.match(/(?<=select ).+(?= from)/g);
+    if (selectParams != null)
+      selectParams = selectParams[0].match(/(?<=\`)[A-z]+(?=\`)/g);
+    else selectParams = [];
+  return selectParams;
+}
+
+function handleSortParams(urlparams, allowedFields) {
   if (!(urlparams.sort ?? "")) return [];
 
-  let sortparams = urlparams.sort.replace(' ', '').split(',');
-  let orderparams = urlparams.order?.replace(' ', '').split(',');
+  let sortparams = urlparams.sort.replace(', ', ',').split(',');
+  let orderparams = urlparams.order?.replace(', ', ',').split(',');
 
   let sort = [];
   if (!(orderparams ?? "")) {
@@ -173,21 +181,90 @@ function handleSortParams(urlparams, query) {
     }
   }
 
-  if (!(query ?? "")) return sort;
-
-  let selectParams = query.toSQL().sql.match(/(?<=select ).+(?= from)/g);
-  if (selectParams == null) {
-    sort = [];
-  } else {
-    selectParams = selectParams[0].match(/(?<=\`)[A-z]+(?=\`)/g);
-    for (let i = 0; i < sort.length; i++){
-      if (!selectParams.includes(sort[i].column)) {
-        sort.splice(i);
-      }
+  for (let i = 0; i < sort.length; i++) {
+    if (!allowedFields.includes(sort[i].column)) {
+      sort.splice(i);
     }
   }
 
   return sort;
+}
+
+function handleFilterParams(urlparams, allowedFields) {
+  let filters = [];
+  const operators = {
+    'lt': '<',
+    'gt': '>',
+    'lte': '<=',
+    'gte': '>=',
+    'eq': '='
+  };
+
+  if (urlparams.filter == undefined) {
+    const operatorPattern = new RegExp(/(lte?|gte?|eq)(?=:.+)/g);
+    const valuePattern = new RegExp(/(?<=(lte?|gte?|eq):).+/g);
+
+    for (let allowedField of allowedFields) {
+      let fieldValue = urlparams[allowedField];
+      if (fieldValue == undefined) continue;
+
+      if (fieldValue.length == undefined && typeof fieldValue == 'object') {
+        const ops = Object.keys(fieldValue);
+        for (let op of ops) {
+          if (typeof fieldValue[op] == 'object') continue;
+          if (operators[op] == undefined) continue;
+
+          filters.push({'field': allowedField, 'value': fieldValue[op], 'operator': operators[op]});
+        }
+      } else {
+        const isRHS = fieldValue.includes(':');
+        if (typeof fieldValue != 'object' && !isRHS) {
+          filters.push({'field': allowedField, 'value': fieldValue, 'operator': operators['eq']});
+          continue;
+        } else if (isRHS)
+          fieldValue = [fieldValue];
+
+        for (let filter of fieldValue) {
+          let value = filter.match(valuePattern);
+          if (value == null) continue;
+          value = value[0];
+
+          let op = filter.match(operatorPattern);
+          if (op != null) op = operators[op[0]];
+          filters.push({'field': allowedField, 'value': value, 'operator': (op == undefined ? operators['eq'] : op)});
+        }
+      }
+    }
+  } else {
+    const fieldPattern = new RegExp(/.+(?=\[(lte?|gte?|eq)\]:|:)/g),
+    operatorPattern = new RegExp(/(?<=\[)gte?|lte?|eq(?=\])/g),
+    valuePattern = new RegExp(/(?<=:).+/g);
+    let filterValues = urlparams.filter.replace(', ', ',').split(',');
+    for (let filter of filterValues) {
+      let field = filter.match(fieldPattern),
+      operator = filter.match(operatorPattern),
+      value = filter.match(valuePattern);
+
+      // IDEA: ha nincs megadva value érték, lehetne arra filterelni aminek van ilyen mezője
+      if (field == null || value == null) continue;
+      field = field[0], value = value[0];
+      if (operator == null) operator = operators['eq'];
+
+      if (allowedFields.includes(field)) filters.push({field, operator, value});
+    }
+  }
+
+  return filters;
+}
+
+function attachFilters(query, filters) {
+  for (let filter of filters) {
+    if (filter.value == 'null')
+      query.whereNull(filter.field);
+    else
+      query.where(filter.field, filter.operator, filter.value);
+    }
+  return query;
 }
 
 function setupBatchRequest(query, urlparams) {
@@ -197,7 +274,9 @@ function setupBatchRequest(query, urlparams) {
   })();
   const offset = parseInt(urlparams.offset?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0)) || 0;
 
-  query.offset(offset).limit(limit).orderBy(handleSortParams(urlparams, query));
+  attachFilters(query, handleFilterParams(urlparams, getSelectFields(query)));
+
+  query.offset(offset).limit(limit).orderBy(handleSortParams(urlparams, getSelectFields(query)));
   return query;
 }
 
@@ -234,4 +313,4 @@ function attachBoilerplate(method, path, callback, suboptions) {
   });
 }
 
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess, handleSortParams, setupBatchRequest/*, boilerplateRequestBatch, boilerplateRequestID, attachBoilerplate*/ }
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess,  getSelectFields, handleSortParams, handleFilterParams, attachFilters, setupBatchRequest/*, boilerplateRequestBatch, boilerplateRequestID, attachBoilerplate*/ }

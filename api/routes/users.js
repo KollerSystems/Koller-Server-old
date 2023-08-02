@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { knx, permMappings, roleMappings, options } from '../index.js';
-import { classicErrorSend, filterByPermission, getPermittedFields, handleSortParams } from '../helpers.js';
+import { attachFilters, classicErrorSend, filterByPermission, getPermittedFields, getSelectFields, handleFilterParams, handleSortParams } from '../helpers.js';
 import { isEmptyObject, cmp } from '../misc.js';
 
 const users = Router({ mergeParams: false });
@@ -52,12 +52,17 @@ users.get('/', async (req, res, next) => {
   const offset = parseInt(req.query.offset?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0)) || 0;
 
   let users = [];
-  if (req.query.role?.match(allowedUsersRegexp))
-    users = await knx(req.query.role).select(getPermittedFields(req.query.role, roleMappings.byID[res.locals.roleID]))
+  const filterable = ['UID', 'Name'];
+  if (req.query.role?.match(allowedUsersRegexp)) {
+    let fields = getPermittedFields(req.query.role, roleMappings.byID[res.locals.roleID]);
+    let query = knx(req.query.role).select(fields)
     .joinRaw('natural join user')
     .where('role', roleMappings.byRole[req.query.role])
+    .orderBy(handleSortParams(req.query, fields))
     .limit(limit).offset(offset);
-  else {
+    attachFilters(query, handleFilterParams(req.query, filterable));
+    users = await query;
+  } else {
     if (req.query.sort ?? "") {
       let nullsLast = true;
       if (req.query.nulls == "first") nullsLast = false;
@@ -65,8 +70,9 @@ users.get('/', async (req, res, next) => {
       let globalsorts = [];
       for (let role of options.api.batchRequests.allowedRoles) {
         let rolequery = knx(role).select(getPermittedFields(role, roleMappings.byID[res.locals.roleID])).limit(limit+offset);
-        let sorts = handleSortParams(req.query, rolequery);
+        let sorts = handleSortParams(req.query, getSelectFields(rolequery));
         globalsorts = globalsorts.concat(sorts);
+        attachFilters(rolequery, handleFilterParams(req.query, filterable));
         rolequery = await rolequery.orderBy(sorts);
         users = users.concat(rolequery);
       }
@@ -81,20 +87,21 @@ users.get('/', async (req, res, next) => {
       }).slice(offset, limit+offset)
     } else {
       let limitRemains = limit;
-      let offsetRemains = offset
+      let offsetRemains = offset;
       for (let role of options.api.batchRequests.allowedRoles) {
         if (limitRemains <= 0) break;
 
-        const queried = await knx(role).select(getPermittedFields(role, roleMappings.byID[res.locals.roleID]))
+        let query = knx(role).select(getPermittedFields(role, roleMappings.byID[res.locals.roleID]))
           .joinRaw("natural join user")
           .where('role', roleMappings.byRole[role])
           .limit(limitRemains).offset(offsetRemains);
-        users = users.concat(queried);
+        query = await attachFilters(query, handleFilterParams(req.query, filterable));
+        users = users.concat(query);
 
         const currentCapacity = (await knx(role).select(knx.count('UID').as("rows")))[0].rows;
 
-        limitRemains -= queried.length;
-        offsetRemains -= (currentCapacity - queried.length)
+        limitRemains -= query.length;
+        offsetRemains -= (currentCapacity - query.length)
         if (offsetRemains < 0) offsetRemains = 0
       }
     }

@@ -16,7 +16,7 @@ INSERT INTO `auth` (`UID`, `access_token`, `expires`, `expired`) VALUES
 	(5, 'Anca577M3u.~un7z~j9pj3/67rsF/~/3', 4294967295, b'0');
 
 INSERT INTO `dormroom` VALUES
-	(172, 1, NULL),
+	(172, 1, 'F8'),
 	(131, 1, 'F1'),
 	(17, 0, 'F3');
 
@@ -43,7 +43,8 @@ INSERT INTO `resident` VALUES
 	(2, 172, 1),
 	(3, 131, 0),
 	(4, 131, 1),
-	(6, 17, 0);
+	(6, 17, 0),
+	(7, 17, 1);
 
 
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'UID', b'1');

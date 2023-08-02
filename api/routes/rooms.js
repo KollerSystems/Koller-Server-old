@@ -8,19 +8,11 @@ const rooms = Router({ mergeParams: false });
 rooms.get('/', async (req, res, next) => {
   let data = knx('dormroom').select(getPermittedFields('dormroom', roleMappings.byID[res.locals.roleID]));
 
-  // TODO: setupBatchRequestben megoldani a filteringet
-  if (['0', '1', 'female', 'male'].includes(req.query.Gender)) {
-    data.where('Gender', (req.query.Gender.match(/\d/g)) ? req.query.Gender : req.query.Gender == 'female' ? 0 : 1);
-  }
-  if (req.query.Group?.match(/(L|F)\d+/g)) {
-    data.where('Group', req.query.Group);
-  }
-
   data = await setupBatchRequest(data, req.query);
   const fieldsPermitted = getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat('Name');
   // fieldsPermitted.splice(fieldsPermitted.indexOf('RID'),1);
   for (let i = 0; i < data.length; i++) {
-    data[i].residents = await knx('resident').select(fieldsPermitted).joinRaw('natural join student').where('RID', data[i].RID);
+    data[i].Residents = await knx('resident').select(fieldsPermitted).joinRaw('natural join student').where('RID', data[i].RID);
   }
   res.header('Content-Type', 'application/json').status(200).send(data).end();
 
