@@ -1,6 +1,6 @@
 {
   "name": "koller-api",
-  "version": "1.2.0",
+  "version": "0.4.0",
   "description": "API szerver a Kollerhez",
   "main": "index.js",
   "homepage": "https://github.com/4E-6F-72-62-65-72-74/Koller-backend",
@@ -10,7 +10,7 @@
     "directory": "api/"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "mocha -s 100",
     "start": "node index.js"
   },
   "keywords": [],

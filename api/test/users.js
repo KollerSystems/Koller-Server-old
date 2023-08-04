@@ -15,7 +15,7 @@ const request = supertest(`localhost:${options.api.port}/api`);
 import { expect } from 'chai';
 
 
-describe('Requesting users with various tokens', () => {
+describe('Requesting users with various tokens', function() {
   for (let parameter in parameters.api.users) {
     const userdata = parameters.api.users[parameter];
     it(`${parameter != 'fake' ? '' : 'FAIL: '}GET /users/me - (${parameter})`, done => {
@@ -95,8 +95,8 @@ describe('Requesting users with various tokens', () => {
         .expect(200)
         .expect(res => {
           expect(res.body).to.be.an('array').and.to.have.lengthOf.at.most(2);
-          expect(res.body[0].UID >= res.body[1].UID).to.be.true;
-          expect(res.body[0].UID+1 === parameters.api.parameters.user.lastID).to.be.true;
+          expect(res.body[0].UID).to.at.least(res.body[1].UID);
+          expect(res.body[0].UID+1).to.eql(parameters.api.parameters.user.lastID);
         });
 
       return req;

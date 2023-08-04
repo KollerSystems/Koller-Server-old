@@ -1,28 +1,122 @@
 # A dokumentáció értelmezése
 
+## A dokumentációról
+
 A dokumentáció részekre van bontva, elsőkörben az elérési útvonalak vannak leírva, felbontva kissebb részekre, pontos végponttal. Részletezve van mire használható, és meghatározza az esetleges paramétereket is. A kissebb részek befejezése után pár példa található.
 
-Még a dokumentáció elején egy elérési útvanalakból álló fa áll, melyek főcíme a különböző fő elérési útvonalakra való ugrást teszi lehetővé
+Még a dokumentáció elején egy elérési útvanalakból álló fa áll, melyek főcíme a különböző fő elérési útvonalakra való ugrást teszi lehetővé.
+
+Ezen a fán az olyan értékek, melyek nem konkrétumok "`:`"-al kezdődnek. A részletesebb leírásában kapcsos zárójelek között van feltüntetve. Ilyen érték lehet példaként egy ID. Névvel vannak ellátva, könnyebb referálás érdekében.
+
+## Elérési útvonalak, végpontok
 
 **Elérési útvonalak** dokumentációjánál a következő formát lehet látni:
 
 ```
-GET /users?limit={limit}&offset={offset}
+GET /users/{uid}
 ```
 
 Először a *HTTP method*, majd utána az elérési útvonal, melyben csak eggyel visszamenve van kiírva az útvonal. Például a `/api/users/me` csak `/users/me`-ként van kiírva, hisz a `/api` irreleváns.
 
 *GET* kérések esetén a *query string*-ek elhagyhatóak, hacsak nincs külön kiemelve.
 
-A dokumentum elején található fán az olyan értékek, melyek nem konkrétumok "`:`"-al kezdődnek. A részletesebb leírásában kapcsos zárójelek között van feltüntetve. Ilyen érték lehet példaként egy ID. Ezek névvel vannak ellátva, könnyebb referálás érdekében.
+Paraméterek értékei kapcsos zárójelben vannak feltüntetve, abban az esetben ha **egzakt** értékeket vár el a szerver akkor `|` karakter választja el a lehetséges értékeket. Előfordulhat hogy *regular expression*-nel van feltüntetve.
 
-Az ID-k közül is többféle van: 
-- *UID*: **U**ser **Id**entifier - Két ugyanilyen IDjú felhasználó nem lehet, legyen akár két különböző típusú.
-- *RID*: **R**oom **Id**entifier - Szobák azonosítására használt.
+## Szortírozás, szűrés, paginálás
 
-Paraméterek értékei kapcsos zárójelben vannak feltüntetve, abban az esetben ha **egzakt** értékeket vár el a szerver akkor `|` karakter választja el a lehetséges értékeket.
+Előfordulnak olyan *endpoint*-ok, amely több felhasználó, szoba stb. lekérésére alkalmas. Ilyenek esetén fel van tüntetve hogy lehet rajta szortírozni, szűrni és paginálni. A szintaxisuk leírásra kerül itt, így egyszerűsítés kedvéért nem lesz minden ilyen *endpoint*-nál részletezve.
 
-**Példák esetén:**
+### Paginálás
+
+Az esetek többségében felesleges a szervernek az összes adatot elküldenie egyszerre, hiszen ennek csak egy része lesz használva. Emellett a kérés válasza is nagy mennyiségű adatot tartalmaz, így lassítva a válaszidőt.
+
+Ennek elkerülése végett, a lekérdező meghatározhat egy `limit` értéket, amely a maximum elküldhető felhasználó, szoba stb. számát adja meg a szervernek. Ez az érték se lehet végtelen, meg van határozva a szerver beállításában egy érték, aminél ha túlmegy a megadott `limit`, akkor a maximum megadható `limit`ként lesz értelmezve.
+
+Annak érdekében hogy ne csak a legelső `limit` számú entitást lehessen lekérni, a felhasználó meghatározhat egy `offset` értéket is, ezáltal "eltolva", hogy honnan kezdődik a `limit`.
+
+Példa:
+
+```GET /api/rooms?limit=10&offset=20```
+
+A 20. szobától(adatbázisban lévő sorrend alapján) kezdve 10 szobát küld el a szerver.
+
+### Szortírozás
+
+Annak érdekében hogy a szerver által elküldött adatok ne az adatbázisban meghatározott, gyakorlatilag véletlenszerű sorrendben jöjjenek, lehet szortírozni.
+
+Erre több szintaxis is van, akármelyik használata lehetséges, de a különféle módok kombinálása nem belátható eredményekkel járhat, így **nem ajánlott**.
+
+Példákon keresztül lehet talán legjobban látni melyik hogy működik:
+
+```GET /api/rooms?sort=-RID,Gender```
+
+Ebben az esetben fel kell sorolni a szortírozni kívánt tulajdonságok mező neveit, és ellátni azokat negatív előjellel amelyeket csökkenő sorrend alapján kívánunk szortírozni.
+
+Ezzel **csökkenő** sorrendben kérjük le a szobákat az IDjuk alapján, majd utána másodlagosan szortírozzuk a "szoba nemétől" **növekvő** sorrendben. Ennek nincs értelme ugyan, mert két szoba IDja nem lehet azonos, így nem lesz szükség a másodlagos szortírozásra.
+
+```GET /api/rooms?sort=RID:desc,Gender:asc```
+
+Felsoroljuk a mezőneveket, ugyanúgy mint az előbb, de most egy `:`-al meghatározzuk az egyes mezőnevek sorrendjét. Az alap sorrend a növekvő(***asc**ending*) így elhagyható, azonban a csökkenő(***desc**ending*) természetesen nem.
+
+Ugyanazt érjük el mint az előbbinél.
+
+```GET /api/rooms?sort=RID,Gender&order=desc,asc```
+
+Ennél először felsoroljuk a `sort` paraméternél mely mezők alapján szeretnénk szortírozni, majd az `order` paraméterben megadjuk az előzőleg megadott sorrendben, hogy melyik csökkenő és melyik növekvő. Itt is elhagyható a növekvő, de csak a végéről, hasonló módon mint a programozási nyelvek esetében a függvények paramétereinek megadásakor.
+
+Ugyanaz a végeredménye, mint az eddigieknél.
+
+### Szűrés
+
+Szűrés segítségével meg tudjuk határozni, hogy milyen feltételeknek kell teljesülnie, hogy egy entitást megkaphassunk.
+
+Erre is van többféle stílus, többek között *"LHS Bracket"* és *"RHS Colon"*. Ismételten példákon keresztül lesz szemléltetve.
+
+Ahhoz hogy komparálni tudjunk, rövidített formájukat kell használnunk a teljes angol kiolvasásának:
+
+- eq: **Eq**ual
+- lt: **L**ess **T**han
+- gt: **G**reater **T**han
+- lte: **L**ess **T**han or **E**qual to
+- gte: **G**reater **T**han or **E**qual to
+
+Abban az esetben ahol egyenlőnek kell lennie(*eq*) elhagyható a szögletes zárójel és az *eq*.
+
+```GET /api/rooms?RID[gt]=5&Gender=1```
+
+Ez az *LHS Bracket* stílus, itt paraméter neve két dologból áll, a szűrni kíván mező neve és az összehasonlító "operátor"ból, szögletes zárójelbe helyezve. a paraméter értéke az összehasonlítandó érték.
+
+Az 5-nél nagyobb ID-jú, "férfi" szobákat kéri csak le.
+
+```GET /api/rooms?RID=gt:5&Gender=1```
+
+Ez az *RHS Colon* stílus, itt a paraméter neve megegyezik a mező nevével, az operátor az értékének egy része melyet `:` választ el a hasonlítandó értéktől.
+
+Ugyanazt érjük el mint előbb.
+
+```GET /api/rooms?filter=RID[gt]:5,Gender:1```
+
+Ebben az esetben a filter paraméterbe kerül minden szűrni kívánt érték. A legelső, *LHS Bracket* módhoz áll talán a legközelebb, hiszen itt a `:` az `=` jelnek felel meg. Az egyes feltételek vesszővel vannak elválasztva. Akár egy szóköz is lehet közöttük.
+
+Az előző kettővel megegyező az eredménye.
+
+### Megjegyzések
+
+A paginálást, szortírozást és szűrést lehet kombinálni, egyszerre használni.
+
+Szűréssel akár egyfajta paginálást is el lehet érni, de a `limit` paramétert célszerű beállítani ilyenkor is.
+
+Erre egy példa:
+
+```GET /api/rooms?filter=RID[gt]:10,RID[lte]:20&limit=10```
+
+Feltételezve hogy 10-től 20-ig van minden számra egy ID, akkor ugyanazt érjük el vele, mint a:
+
+```GET /api/rooms?limit=10&offset=10```
+
+kéréssel. A különbség ott van, hogyha nincs minden ID 10 és 20 között, akkor az első féle úton csak annyit kérünk le amennyinek van 10 és 20 közötti IDja, míg a második féle módón a 10 létező szoba utáni 10 szobát kérjük le.
+
+## Példákról
 
 ```
 POST /oauth/token HTTP/1.1
@@ -74,6 +168,10 @@ Felépítése:
 		- `events`
 
 *POST* kérések esetén a válasz egy *JSON* objektum formájában érkezik. Ez a legtöbb *GET* kérésre is igaz.
+
+Az ID-k közül is többféle van: 
+- *UID*: **U**ser **Id**entifier - Két ugyanilyen IDjú felhasználó nem lehet, legyen akár két különböző típusú.
+- *RID*: **R**oom **Id**entifier - Szobák azonosítására használt.
 
 ## `/oauth`
 
@@ -136,18 +234,12 @@ Content-Type: application/json
 
 A szervertől való lekérések gyökere.
 
-### `GET /users?role={student|teacher}&limit={limit}&offset={offset}`
+### `GET /users?role={student|teacher}`
 
-Több felhasználó lekérése.
+Paginálható, szortírozható és szűrhető.
 
-Három paramétert lehet megadni, egyik sem kötelező:
+Több felhasználó lekérése. Mivel a lekérhető felhasználók típusai mások, így `role` paraméter hiányában csak a **közös tulajdonságokra** lehet szűrni. Ellenkező esetben akármilyenre.
 
-- `role`: Csak a megadott típusú felhasználók lekérése, ha nincs megadva, minden típusú felhasználó visszaadása(típusa szerint egymás után).
-- `limit`: A maximális felhasználók száma amit a szerver egyszerre visszaküldhet. Ha az érték nagyobb a megengedettnél, a legnagyobbként értelmezi a szerver.
-- `offset`: A visszaküldött adatokat eltolja ezen értékkel, csak utána kezdi a `limit`-et számolni.
-
-Értelemszerűen a `limit` és `offset` paramétereket együtt érdemes használni, így egyfajta *"lapozhatóság"*(*pagination*) hozható létre. 
- 
 ### `GET /users/me`
 
 Semmilyen paramétert sem fogad el, a használt *access token* alapján visszaküldi a felhasználó adatait.
@@ -162,13 +254,11 @@ A kérést `application/octet-stream` *Content Type* headerrel el kell látni, a
 
 ---
 
-### `GET /rooms?Gender={0|1|female|male}&Group={/(L|F)\d+/}limit={limit}&offset={offset}`
+### `GET /rooms`
 
-Több, az összes szoba lekérése.
+Paginálható, szortírozható és szűrhető.
 
-Két paraméterrel lehetséges a szűrés:
-- `Gender`: (0-nő, 1-férfi): Egy szobában csak azonos neműek lakhatnak. Így lehet szűrni a "szoba nemére".
-- `Group`: A szobában lakó csoportra lehet szűrni.
+Több, az összes szoba lekérése, ehhez hozzátolódnak még a szoba lakosai is.
 
 ### `GET /rooms/me`
 
@@ -180,11 +270,15 @@ A megadott RID-jú szoba, és benne lakók lekérése. Több információt ad a 
 
 ---
 
-### `GET /crossings/me?limit={limit}&offset={offset}`
+### `GET /crossings/me`
+
+Paginálható, szortírozható és szűrhető. **(tesztelés alatt)**
 
 A lekérdező felhasználó portai ki- és belépései lekérdezése visszamenőleg.
 
-### `GET /crossings/{uid}?limit={limit}&offset={offset}`
+### `GET /crossings/{uid}`
+
+Paginálható, szortírozható és szűrhető. **(tesztelés alatt)**
 
 A megadott UID-jú felhasználó kapu átlépéseinek történelmének lekérdezése.
 

@@ -191,6 +191,11 @@ function handleSortParams(urlparams, allowedFields) {
 }
 
 function handleFilterParams(urlparams, allowedFields) {
+  /* styles:
+   * ?RID[lte]=17
+   * ?RID=lte:17
+   * ?filter=RID[lte]:17
+  **/
   let filters = [];
   const operators = {
     'lt': '<',
@@ -199,8 +204,8 @@ function handleFilterParams(urlparams, allowedFields) {
     'gte': '>=',
     'eq': '='
   };
-
-  if (urlparams.filter == undefined) {
+  const filt = urlparams.filter || urlparams.filters;
+  if (filt == undefined) {
     const operatorPattern = new RegExp(/(lte?|gte?|eq)(?=:.+)/g);
     const valuePattern = new RegExp(/(?<=(lte?|gte?|eq):).+/g);
 
@@ -236,10 +241,10 @@ function handleFilterParams(urlparams, allowedFields) {
       }
     }
   } else {
-    const fieldPattern = new RegExp(/.+(?=\[(lte?|gte?|eq)\]:|:)/g),
+    const fieldPattern = new RegExp(/([A-Z]|[a-z])+((?=\[(lte?|gte?|eq)\]:)|(?=:))/g),
     operatorPattern = new RegExp(/(?<=\[)gte?|lte?|eq(?=\])/g),
     valuePattern = new RegExp(/(?<=:).+/g);
-    let filterValues = urlparams.filter.replace(', ', ',').split(',');
+    let filterValues = filt.replace(', ', ',').split(',');
     for (let filter of filterValues) {
       let field = filter.match(fieldPattern),
       operator = filter.match(operatorPattern),
@@ -249,6 +254,9 @@ function handleFilterParams(urlparams, allowedFields) {
       if (field == null || value == null) continue;
       field = field[0], value = value[0];
       if (operator == null) operator = operators['eq'];
+      else
+        operator = operators[operator[0]];
+      if (operator == undefined) operator = operators['eq'];
 
       if (allowedFields.includes(field)) filters.push({field, operator, value});
     }

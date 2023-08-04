@@ -60,7 +60,7 @@ users.get('/', async (req, res, next) => {
     .where('role', roleMappings.byRole[req.query.role])
     .orderBy(handleSortParams(req.query, fields))
     .limit(limit).offset(offset);
-    attachFilters(query, handleFilterParams(req.query, filterable));
+    attachFilters(query, handleFilterParams(req.query, fields));
     users = await query;
   } else {
     if (req.query.sort ?? "") {

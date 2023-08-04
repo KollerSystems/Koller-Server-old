@@ -15,7 +15,7 @@ const request = supertest(`localhost:${options.api.port}/oauth`);
 import { expect } from 'chai';
 
 
-describe('Getting token & refreshing it with various credentials', () => {
+describe('Getting token & refreshing it with various credentials', function () {
   const user = (()=>{
     for (let parameter of parameters.oauth) if (parameter.succeed) {
       return parameter.credentials;
