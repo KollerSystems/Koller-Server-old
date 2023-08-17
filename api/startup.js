@@ -1,4 +1,5 @@
 import { knx, options, permMappings, roleMappings } from './index.js'
+import { deepEqual } from 'assert';
 import { has } from './misc.js'
 const perms = ["Read", "Write"];
 
@@ -77,6 +78,7 @@ async function extendMissingPermissions() {
   }*/
 }
 
+// a "server started with errors" csak akkor jó ha ez a legelső meghívott ellenerző függvény
 async function checkDatabase() { // TODO: nem linkelt user típus && route access check
   const problems = { missingUsers: {}, undeclaredPermTables: [], partialPermTables: {} };
 
@@ -106,12 +108,19 @@ async function checkDatabase() { // TODO: nem linkelt user típus && route acces
     if (problems.partialPermTables[table].length == 0) delete problems.partialPermTables[table];
   }
 
+  try {
+    const noProblems = { missingUsers: {}, undeclaredPermTables: [], partialPermTables: {} };
+    deepEqual(problems, noProblems);
+    return;
+  } catch (err) {
+    console.error("Server will start with errors:")
+  };
 
   for (let userType in problems.missingUsers)
-    console.warn(`Missing ${userType} defined in user: ${problems.missingUsers[userType].join(", ")}`);
-  if (problems.undeclaredPermTables.length > 0) console.warn(`Missing permission definition for: ${problems.undeclaredPermTables.join(", ")}`);
+    console.error(`Missing ${userType} defined in user: ${problems.missingUsers[userType].join(", ")}`);
+  if (problems.undeclaredPermTables.length > 0) console.error(`Missing permission definition for: ${problems.undeclaredPermTables.join(", ")}`);
   for (let table in problems.partialPermTables) {
-    console.warn(`Partially defined ${table}: ${problems.partialPermTables[table].join(", ")} missing!`);
+    console.error(`Partially defined ${table}: ${problems.partialPermTables[table].join(", ")} missing!`);
   }
 }
 
@@ -125,8 +134,8 @@ function checkOptions() {
   // alapértelmezett limit nagyobb mint a maximális
   problems.defaultOutOfRange = options.api.batchRequests.defaultLimit > options.api.batchRequests.maxLimit;
 
-  if (problems.nonexistantRolesAllowed.length > 0) console.warn(`Non-existant role allowed for batch requests: ${problems.nonexistantRolesAllowed.join(", ")}`);
-  if (problems.defaultOutOfRange) console.warn("The default batch request limit is bigger than the set max limit!");
+  if (problems.nonexistantRolesAllowed.length > 0) console.error(`Non-existant role allowed for batch requests: ${problems.nonexistantRolesAllowed.join(", ")}`);
+  if (problems.defaultOutOfRange) console.error("The default batch request limit is bigger than the set max limit!");
 }
 
 export { treeifyMaps, extendMissingPermissions, checkDatabase, checkOptions }

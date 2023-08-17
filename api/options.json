@@ -14,6 +14,7 @@
   "api": {
     "port": 80,
     "exitTimeout": 2000,
+    "extendPermissions": true,
     "maxDigits": 12,
     "batchRequests": {
       "defaultLimit": 25,
@@ -41,10 +42,5 @@
     "logConsole": true,
     "logFile": "",
     "overwriteLog": false
-  },
-  "errorChecking": {
-    "extendPermissions": true,
-    "database": true,
-    "options": true
   }
 }

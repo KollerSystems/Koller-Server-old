@@ -322,6 +322,8 @@ Az *API* szerverhez kapcsolódó opciók.
 
 - `port`: A portszám, amin elérhetjük a szervert.
 - `exitTimeout`: Időtartam milliszekundumban mérve, lejárása után a szerver időtúllépés miatt leállítja az indítást.
+- `extendPermissions`: A szerver kibővítse-e az adatbázisban nem meghatározott permissziókat alapértékükkel.
+- `maxDigits`: Olyan routeok esetében ahol a szerver ID-t vár el, mekkora legyen a maximális számjegyek hossza.
 - `batchRequests`: Többszörös adatlekéréseknél használt opciók.
 	- `defaultLimit`: Alapértelmezett max érték amit a szerver visszaadhat, olyan esetben ha kérésben nincs meghatározva `limit` érték.
 	- `maxLimit`: A maximum megadható `limit`. Túllépése esetén ezen értékként értelmezi a szerver.
@@ -346,13 +348,5 @@ Naplózással kapcsolatos konfigurációk.
 - `logConsole`: Naplózott bejegyzések kiírása a konzolra.
 - `logFile`: Bejegyzések létrehozása a megadott fájl elérési útvonalában, *String*-ként. Nem létező fájl esetén a szerver létrehoz egy újat az útvonalnak eleget téve.
 - `overwriteLog`: Felülírja-e a szerver a `logFile`-ban megadott fájl tartalmát.
-
-## `errorChecking`
-
-Szerver indításakor lefuttatható, hibamegelőző/ellenőrző funkciók. Esetleges hibáktól függetlenül a szerver elindul, de nagy valószínűséggel hibába fog futni, nem ajánlott figyelmen kívül hagyni a figyelmeztetéseit.
-
-`extendPermissions`: A szerver kibővítse-e az adatbázisban nem meghatározott permissziókat alapértékükkel.
-`database`: Különféle adatbázis konfigurációt érintő hibákért való keresés. 
-`options`: `options.json` fájlban meghatározott hibás konfiguráció iránti keresés.
 
 ---

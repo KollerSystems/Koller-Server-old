@@ -71,9 +71,9 @@ roleMappings.byRole = Object.fromEntries(Object.entries(roleMappings.byID).map((
 const permMappings = treeifyMaps(await knx('permissions').select('*'), 'perms');
 const routeAccess = treeifyMaps(await knx('route_access').select('*'), 'routes');
 
-if (options.errorChecking.extendPermissions) await extendMissingPermissions();
-if (options.errorChecking.database) await checkDatabase();
-if (options.errorChecking.options) checkOptions();
+// if (options.errorChecking.extendPermissions) await extendMissingPermissions();
+// if (options.errorChecking.database) await checkDatabase();
+// if (options.errorChecking.options) checkOptions();
 
 
 let server = app.listen(80, async err => {

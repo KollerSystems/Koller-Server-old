@@ -50,6 +50,10 @@ Töltsük le a kívánt [Node.js](https://nodejs.org/en/download/) verziót, és
 
 Ezután telepítsük az összes függőséget amit a program használ. Ezt lehet manuálisan is egyesével, de egyszerűbb ha az api mappában parancssorból futtatjuk az `npm install` parancsot.
 
-Ha hiba nélkül telepítette a szükséges könyvtárakat, futtatható az API szerver parancssorból az api mappában az `npm start` illetve a `node index.js` paranccsal.
+Ha hiba nélkül telepítette a szükséges könyvtárakat, futtatható az API szerver parancssorból.
 
-A futtatáshoz előfordulhat, hogy **szükséges rendszergazdai jogosultság**, ebben az esetben fordulj az operációs rendszerrel kapcsolatos oldalakhoz.
+A szervert lehet `node index.js` paranccsal futtatni, ilyenkor clusterelés nélkül, egy core futtatja a szervert.
+
+Clusterelés [**pm2**](https://pm2.keymetrics.io/) csomaggal megoldható, ami előzőleg le lett töltve. A `pm2 start index.js -i max` parancs az összes elérhető CPU core-t használatba veszi. Ugyanez megoldható az `npm start`-al. Leállításához használhatjuk a `pm2 stop index.js` parancsot amit rövdíthetjük itt az `npm stop`-al, illetve a clustert *monitor*-olhatjuk a `pm2 monit` paranccssal. Ezek mellett a logok megtekinthetők a `pm2 logs` segítségével.
+
+A futtatáshoz előfordulhat, hogy **szükséges rendszergazdai jogosultság**, ebben az esetben fordulj az operációs rendszerrel kapcsolatos oldalakhoz. Ilyen esetben a pm2-t is rendszergazdai jogosultsággal kell futtatni.
