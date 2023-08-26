@@ -40,5 +40,57 @@
         "access_token": "L~nL4d2YH46iHM.~euD_FL6q4kS_C7qG"
       }
     }
+  },
+  "config": {
+    "tree": {
+      "authorization": {
+        "tokenLength": "number",
+        "allowedCharacters": "string",
+        "expiry": {
+          "accessToken": "number",
+          "refreshToken": "number"
+        }
+      },
+      "databaseLoginData": {
+        "user": "string",
+        "password": "string"
+      },
+      "api": {
+        "port": "number",
+        "exitTimeout": "number",
+        "extendPermissions": "boolean",
+        "maxDigits": "number",
+        "batchRequests": {
+          "defaultLimit": "number",
+          "maxLimit": "number",
+          "allowedRoles": "array"
+        },
+        "SSE": {
+          "clientRetryInterval": "number"
+        }
+      },
+      "readerConnection": {
+        "websocket": {
+          "port": "number",
+          "path": "string",
+          "secret": "string",
+          "authenticationTimeout": "number"
+        }
+      },
+      "logging": {
+        "logAsISOString": "boolean",
+        "logResponseTime": "boolean",
+        "logIP": "boolean",
+        "logUnsuccessful": "boolean",
+        "logNotFound": "boolean",
+        "logConsole": "boolean",
+        "logFile": "string",
+        "overwriteLog": "boolean"
+      }
+    }
+  },
+  "database": {
+    "tables": ["auth", "crossings", "login_data", "mifare_tags", "notes_types", "permissions", "route_access", "dormroom", "resident", "role_name", "roomorder", "student", "teacher", "user"],
+    "reqPermDefinitions": ["student", "teacher", "mifare_tags", "dormroom", "resident"]
   }
 }

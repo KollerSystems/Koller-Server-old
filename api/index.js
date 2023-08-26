@@ -11,7 +11,7 @@ import { crossings } from './routes/crossings.js';
 import { rooms } from './routes/rooms.js';
 
 import { checkToken, handleNotFound, logRequest, handleRouteAccess, classicErrorSend } from './helpers.js';
-import { treeifyMaps, extendMissingPermissions, checkDatabase, checkOptions } from './startup.js';
+import { treeifyMaps, extendMissingPermissions } from './startup.js';
 import { handleWebsocket } from './reader.js';
 
 import { readFile } from 'fs/promises';
@@ -71,7 +71,7 @@ roleMappings.byRole = Object.fromEntries(Object.entries(roleMappings.byID).map((
 const permMappings = treeifyMaps(await knx('permissions').select('*'), 'perms');
 const routeAccess = treeifyMaps(await knx('route_access').select('*'), 'routes');
 
-// if (options.errorChecking.extendPermissions) await extendMissingPermissions();
+if (options.api.extendPermissions) await extendMissingPermissions();
 // if (options.errorChecking.database) await checkDatabase();
 // if (options.errorChecking.options) checkOptions();
 
