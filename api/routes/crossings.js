@@ -9,7 +9,7 @@ const crossings = Router({ mergeParams: false });
 function copyObjKeys(destObj, srcObj, key) {
   for (let k of key)
     destObj[k] = srcObj[k];
-};
+}
 
 function filterAndSend(res, data) {
   if (isEmptyObject(data))
@@ -25,14 +25,14 @@ async function getBatchRequestData(query, table, fields, where) {
   return setupBatchRequest(knx(table).select(fields).where(where), query);
 }
 
-crossings.get('/me', async (req,res,next) => {
-  const data = await getBatchRequestData(req.query, 'crossings', ['ID', 'Time', 'Direction'], { 'UID': res.locals.UID });
+crossings.get('/me', async (req, res, next) => {
+  const data = await getBatchRequestData(req.query, 'crossings', [ 'ID', 'Time', 'Direction' ], { 'UID': res.locals.UID });
   filterAndSend(res, data);
 
   next();
 });
-crossings.get('/:id(\\d+)', async (req,res,next) => { // regexp: /\d+/
-  const data = await getBatchRequestData(req.query, 'crossings', ['ID', 'Time', 'Direction'], { 'UID': req.params.id });
+crossings.get('/:id(\\d+)', async (req, res, next) => { // regexp: /\d+/
+  const data = await getBatchRequestData(req.query, 'crossings', [ 'ID', 'Time', 'Direction' ], { 'UID': req.params.id });
   filterAndSend(res, data);
 
   next();
@@ -55,7 +55,7 @@ crossings.get('/events', async (req, res, next) => {
 
     data.ID = person.UID;
     data.Direction = person.direction;
-    copyObjKeys(data, personFetch, ["Name", "Class", "Group", "School", "Picture"]);
+    copyObjKeys(data, personFetch, [ 'Name', 'Class', 'Group', 'School', 'Picture' ]);
     if (person.direction == 0) {
       const lastCrossing = await knx('crossings').first('Direction', 'Time').where('UID', person.UID).orderBy('Time', 'desc').offset(1);
       data.Tout = lastCrossing.Time;

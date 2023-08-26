@@ -1,14 +1,14 @@
 const options = require('./options.json');
 
 module.exports = {
-  apps: [{
+  apps: [ {
     name: 'Koller',
     script: './index.js',
     env_production: {
-      NODE_ENV: "production"
+      NODE_ENV: 'production'
     },
     env_development: {
-      NODE_ENV: "development"
+      NODE_ENV: 'development'
     },
     exec_mode: 'cluster',
     instances: 'max',
@@ -18,5 +18,5 @@ module.exports = {
     restart_delay: 1000,
     kill_timeout: options.api.exitTimeout + 100,
     listen_timeout: 10000
-  }]
-}
+  } ]
+};

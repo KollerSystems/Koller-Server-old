@@ -12,7 +12,7 @@ function handleWebsocket(ws) {
 
   ws.on('message', async data => {
     const recieved = parseJSON(data.toString());
-    if (isEmptyObject(recieved)) console.error("Invalid JSON recieved on websocket connection");
+    if (isEmptyObject(recieved)) console.error('Invalid JSON recieved on websocket connection');
 
     if (!authenticated && recieved.cmd != 0) {
       ws.close(1008);
@@ -36,7 +36,7 @@ function handleWebsocket(ws) {
       else {
         ws.send(JSON.stringify({ 'cmd': 1, 'correct': true, 'tag': recieved.tag }));
         const lastCrossing = await knx('crossings').first('Direction', 'Time').where('UID', fetched.UID).orderBy('Time', 'desc');
-        const isInside = lastCrossing?.Direction[0] || "" ? 0 : 1; // bent van-e? alapból bent van -- bement/bent van 0 - kiment/kint van 1
+        const isInside = lastCrossing?.Direction[0] || '' ? 0 : 1; // bent van-e? alapból bent van -- bement/bent van 0 - kiment/kint van 1
         crossEvent.emit('cross', { 'UID': fetched.UID, 'direction': isInside });
         await knx('crossings').insert({ 'UID': fetched.UID, 'direction': isInside });
       }
@@ -51,6 +51,6 @@ function handleWebsocket(ws) {
   ws.on('error', err => {
     console.error(err);
   });
-};
+}
 
 export { handleWebsocket };

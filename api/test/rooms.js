@@ -18,8 +18,8 @@ describe('Requesting rooms with various tokens', function() {
   for (let parameter in parameters.api.users) {
     const userdata = parameters.api.users[parameter];
 
-    const codes = {'fake': 401, 'teacher': 404, 'student': 200}
-    it(`${['fake', 'teacher'].includes(parameter) ? 'FAIL: ' : ''}GET /rooms/me - (${parameter})`, done => {
+    const codes = { 'fake': 401, 'teacher': 404, 'student': 200 };
+    it(`${[ 'fake', 'teacher' ].includes(parameter) ? 'FAIL: ' : ''}GET /rooms/me - (${parameter})`, done => {
       request
         .get('/rooms/me')
         .set('Authorization', 'Bearer ' + userdata.access_token)
@@ -29,7 +29,7 @@ describe('Requesting rooms with various tokens', function() {
           expect(res.body).to.be.an('object');
           if (parameter == 'student') {
             expect(res.body).to.have.a.property('RID', userdata.RID);
-            expect(res.body).to.have.a.property('UID', userdata.UID)
+            expect(res.body).to.have.a.property('UID', userdata.UID);
             expect(res.body).to.have.a.property('Residents').which.is.an('array');
           } else {
             expect(res.body).to.have.a.property('error');
@@ -76,7 +76,7 @@ describe('Requesting rooms with various tokens', function() {
         });
 
       return req;
-    }
+    };
 
     it(`GET /rooms?sort=-{1},{2} - (${parameter})`, done => {
       setSortedAndLimitedExpectations(
@@ -101,7 +101,7 @@ describe('Requesting rooms with various tokens', function() {
         .expect(200);
 
       return req;
-    }
+    };
 
     it(`GET /rooms?{1}=17 - (${parameter})`, done => {
       setFilteredExpectations(

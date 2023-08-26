@@ -25,7 +25,7 @@ rooms.get('/me', async (req, res, next) => {
   const postquery = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
 
   data.Residents = postquery;
-  data.UID = parseInt(res.locals.UID);
+  data.UID = parseInt(res.locals.UID, 10);
 
   res.header('Content-Type', 'application/json').status(200).send(data).end();
   next();
@@ -33,13 +33,13 @@ rooms.get('/me', async (req, res, next) => {
 
 rooms.get('/:id(-?\\d+)', async (req, res, next) => {
   const data = await knx('dormroom').first('*').where('RID', req.params.id);
-  if (data == undefined) return classicErrorSend(res, 404, `There is no room with the specified ID!`);
+  if (data == undefined) return classicErrorSend(res, 404, 'There is no room with the specified ID!');
 
 
   const filteredData = filterByPermission(data, 'dormroom', roleMappings.byID[res.locals.roleID]);
-  if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, "Forbidden!");
+  if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, 'Forbidden!');
 
-  filteredData.Residents = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat(['Name', 'Picture'])).joinRaw('natural join student').where('RID', req.params.id);
+  filteredData.Residents = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat([ 'Name', 'Picture' ])).joinRaw('natural join student').where('RID', req.params.id);
   res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
 
   next();

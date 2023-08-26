@@ -25,7 +25,7 @@ describe('Requesting users with various tokens', function() {
         .expect('Content-Type', /json/)
         .expect(parameter == 'fake' ? 401 : 200)
         .expect(res => {
-          expect(res.body).to.be.an('object')
+          expect(res.body).to.be.an('object');
           if (parameter != 'fake') {
             expect(res.body).to.not.have.a.property('error');
             expect(res.body).to.have.a.property('UID', userdata.UID);
@@ -43,7 +43,7 @@ describe('Requesting users with various tokens', function() {
         .expect(200)
         .expect(res => {
           expect(res.body).to.be.an('object');
-          expect(res.body).to.not.have.a.property('error')
+          expect(res.body).to.not.have.a.property('error');
           expect(res.body).to.have.a.property('UID', parameters.api.parameters.user.studentID);
           if (parameter == 'student')
             expect(res.body).to.not.have.a.property(parameters.api.parameters.user.permDifferenceOn);
@@ -59,7 +59,7 @@ describe('Requesting users with various tokens', function() {
         .expect(200)
         .expect(res => {
           expect(res.body).to.be.an('object');
-          expect(res.body).to.not.have.a.property('error')
+          expect(res.body).to.not.have.a.property('error');
           expect(res.body).to.have.a.property('UID', parameters.api.parameters.user.teacherID);
         }).end(done);
     });
@@ -73,7 +73,7 @@ describe('Requesting users with various tokens', function() {
         .expect(res => {
           expect(res.body).to.be.an('array').and.to.have.lengthOf.at.most(options.api.batchRequests.defaultLimit);
           let GuardianPhones = [];
-          for (let user of res.body) GuardianPhones.push(typeof user.GuardianPhone)
+          for (let user of res.body) GuardianPhones.push(typeof user.GuardianPhone);
           expect(GuardianPhones).to.not.have.a('string');
         }).end(done);
     });
@@ -100,7 +100,7 @@ describe('Requesting users with various tokens', function() {
         });
 
       return req;
-    }
+    };
 
     it(`GET /users?sort=-{1},{2} - (${parameter})`, done => {
       setSortedAndLimitedExpectations(

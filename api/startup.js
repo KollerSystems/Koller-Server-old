@@ -1,15 +1,14 @@
-import { knx, options, permMappings, roleMappings } from './index.js'
-import { deepEqual } from 'assert';
-import { has } from './misc.js'
-const perms = ["Read", "Write"];
+import { knx, permMappings, roleMappings } from './index.js';
+import { has } from './misc.js';
+const perms = [ 'Read', 'Write' ];
 
 function setIfMissingKey(obj, key, defaultValue = {}) {
   if (!has(obj, key)) obj[key] = defaultValue;
 }
 
-function treeifyMaps(arr, mapType = "perms") {
+function treeifyMaps(arr, mapType = 'perms') {
   const tree = {};
-  if (mapType == "perms") {
+  if (mapType == 'perms') {
     for (let row of arr) {
       row.Role = roleMappings.byID[row.Role];
       setIfMissingKey(tree, row.Table);
@@ -33,7 +32,7 @@ function treeifyMaps(arr, mapType = "perms") {
         tree[row.Role][keyname][row.Table][row.Field] = Boolean(row[perm][0]);
       }
     }*/
-  } else if (mapType == "routes") {
+  } else if (mapType == 'routes') {
     for (let row of arr) {
       setIfMissingKey(tree, row.Route);
       setIfMissingKey(tree[row.Route], row.Role);
@@ -78,4 +77,4 @@ async function extendMissingPermissions() {
   }*/
 }
 
-export { treeifyMaps, extendMissingPermissions }
+export { treeifyMaps, extendMissingPermissions };

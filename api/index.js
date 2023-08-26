@@ -21,7 +21,7 @@ const options = JSON.parse(
   )
 );
 
-let logFileStream = (options.logging.logFile != "") ? createWriteStream(options.logging.logFile, { 'flags': options.logging.overwriteLog ? 'w' : 'a' }) : undefined;
+let logFileStream = (options.logging.logFile != '') ? createWriteStream(options.logging.logFile, { 'flags': options.logging.overwriteLog ? 'w' : 'a' }) : undefined;
 
 
 const app = express();
@@ -29,15 +29,15 @@ const api = express.Router();
 
 app.use('/', (req, res, next) => {
   res.locals.incomingTime = new Date();
-  if (["POST", "PUT", "PATCH"].includes(req.method) && req.get('Content-Type') == undefined)
-    return classicErrorSend(res, 400, "Invalid Content-Type value or header missing!");
-  next()
+  if ([ 'POST', 'PUT', 'PATCH' ].includes(req.method) && req.get('Content-Type') == undefined)
+    return classicErrorSend(res, 400, 'Invalid Content-Type value or header missing!');
+  next();
 });
 
 app.use(express.raw());
-app.use(express.json({ 'type': "application/json" }));
-app.use((err, req, res, next) => {
-  classicErrorSend(res, 400, "Invalid data in body!");
+app.use(express.json({ 'type': 'application/json' }));
+app.use((err, req, res) => {
+  classicErrorSend(res, 400, 'Invalid data in body!');
 });
 app.use(express.urlencoded({ extended: true }));
 
@@ -66,21 +66,19 @@ const knx = knex({
 
 
 const roleMappings = {};
-roleMappings.byID = (await knx('role_name').select('Role', 'Table')).reduce((map, entry) => { map[entry.Role] = entry.Table; return map }, {});
-roleMappings.byRole = Object.fromEntries(Object.entries(roleMappings.byID).map(([k, v]) => [v, k]));
+roleMappings.byID = (await knx('role_name').select('Role', 'Table')).reduce((map, entry) => { map[entry.Role] = entry.Table; return map; }, {});
+roleMappings.byRole = Object.fromEntries(Object.entries(roleMappings.byID).map(([ k, v ]) => [ v, k ]));
 const permMappings = treeifyMaps(await knx('permissions').select('*'), 'perms');
 const routeAccess = treeifyMaps(await knx('route_access').select('*'), 'routes');
 
 if (options.api.extendPermissions) await extendMissingPermissions();
-// if (options.errorChecking.database) await checkDatabase();
-// if (options.errorChecking.options) checkOptions();
 
 
 let server = app.listen(80, async err => {
   if (err) {
-    await server.close(() => console.error("Server terminated - unable to start listening due to error:"));
+    await server.close(() => console.error('Server terminated - unable to start listening due to error:'));
     console.error(err);
-    process.exit(1)
+    process.exit(1);
   }
   console.log(`Server started listening on port ${options.api.port}!`);
 });
@@ -93,7 +91,7 @@ const crossEvent = new EventEmitter();
 
 server.on('close', () => {
   setTimeout(() => {
-    console.log("Server terminated - timeout!")
+    console.log('Server terminated - timeout!');
     process.exit(1);
   }, options.api.exitTimeout);
 
@@ -101,13 +99,13 @@ server.on('close', () => {
   for (const client of websocketServer.clients) {
     client.close(1012);
   }
-  if (logFileStream ?? "") logFileStream.destroy();
+  if (logFileStream ?? '') logFileStream.destroy();
   knx.destroy();
 });
 
 process.on('SIGINT', async () => {
-  await server.close(() => console.log("Server terminated - SIGINT!"));
+  await server.close(() => console.log('Server terminated - SIGINT!'));
   process.exit(0);
 });
 
-export { knx, options, roleMappings, permMappings, routeAccess, logFileStream, crossEvent }
+export { knx, options, roleMappings, permMappings, routeAccess, logFileStream, crossEvent };
