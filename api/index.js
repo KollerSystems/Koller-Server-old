@@ -9,6 +9,7 @@ import { oauth } from './routes/oauth.js';
 import { users } from './routes/users.js';
 import { crossings } from './routes/crossings.js';
 import { rooms } from './routes/rooms.js';
+import { timetable } from './routes/timetable.js';
 
 import { checkToken, handleNotFound, logRequest, handleRouteAccess, classicErrorSend } from './helpers.js';
 import { treeifyMaps, extendMissingPermissions } from './startup.js';
@@ -36,7 +37,7 @@ app.use('/', (req, res, next) => {
 
 app.use(express.raw());
 app.use(express.json({ 'type': 'application/json' }));
-app.use((err, req, res) => {
+app.use((err, req, res, _next) => {
   classicErrorSend(res, 400, 'Invalid data in body!');
 });
 app.use(express.urlencoded({ extended: true }));
@@ -50,6 +51,7 @@ app.use('/api', api);
 api.use('/users', users);
 api.use('/crossings', crossings);
 api.use('/rooms', rooms);
+api.use('/timetable', timetable);
 
 app.use('/', handleNotFound);
 app.use('/', logRequest);

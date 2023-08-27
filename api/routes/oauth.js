@@ -19,7 +19,7 @@ async function passwordGrant(body) {
   let userCredentials;
   if (/^\d+$/.test(body.username)) {
     userCredentials = await knx.union([ knx('student').first('UID', { 'isStudent': 1 }).where('OM', body.username), knx('teacher').first('UID', 0).where('OM', body.username) ], true);
-    if (!userCredentials) {
+    if (!userCredentials || userCredentials.length == 0) {
       response.issue = `No user with OM: "${body.username}"!`;
       return response;
     }

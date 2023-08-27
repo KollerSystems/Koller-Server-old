@@ -89,17 +89,21 @@ function logRequest(req, res, next = () => { }) {
 async function generateUniqueToken() {
   // tokenek véletlenszerű újragenerálása amíg nem egyedi
   let accessToken, refreshToken;
+  let tokenEntry = undefined;
   do {
     accessToken = generateToken(options.authorization.tokenLength);
-  } while (!(await knx('auth').first('*').where('access_token', accessToken)));
+    tokenEntry = await knx('auth').first('*').where('access_token', accessToken);
+  } while (tokenEntry);
   do {
     refreshToken = generateToken(options.authorization.tokenLength);
-  } while (!(await knx('auth').first('*').where('refresh_token', refreshToken)));
+    tokenEntry = await knx('auth').first('*').where('refresh_token', refreshToken);
+  } while (tokenEntry);
 
   return { 'access_token': accessToken, 'refresh_token': refreshToken };
 }
 
 function classicErrorSend(res, code, text) {
+  // console.log(res);
   res.header('Content-Type', 'application/json').status(code).send({ 'error': text }).end();
   logRequest(res.req, res);
 }

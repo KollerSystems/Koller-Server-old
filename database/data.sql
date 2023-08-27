@@ -13,7 +13,14 @@ INSERT INTO `user` (`UID`, `Role`) VALUES
 
 INSERT INTO `auth` (`UID`, `access_token`, `expires`, `expired`) VALUES
 	(1, 'P8kj-8K7kJM-hT9RQDUH8L-v..01.yy2', 4294967295, b'0'),
+	(3, '/HSM/Jgh74lf7ygp3_Id6C4~~xe5M53R', 4294967295, b'0'),
+	(6, '/5.Q~RhtNkd.M/w4txuP35rmDKkddXu2', 4294967295, b'0'),
 	(5, 'Anca577M3u.~un7z~j9pj3/67rsF/~/3', 4294967295, b'0');
+
+INSERT INTO `groupdef` (`Group`, `HeadTUID`) VALUES
+	('F1', 5),
+	('F3', 5),
+	('F8', 5);
 
 INSERT INTO `dormroom` VALUES
 	(172, 1, 'F8'),
@@ -45,6 +52,15 @@ INSERT INTO `resident` VALUES
 	(4, 131, 1),
 	(6, 17, 0),
 	(7, 17, 1);
+
+INSERT INTO `mandatory_program_types` VALUES
+	(1, 'Honismeret', 33, 5),
+	(2, 'Asztrofizika', 23, 5);
+INSERT INTO `mandatory_programs` (`MandatoryID`, `Date`, `Group`, `Lesson`, `Length`) VALUES
+	(1, current_timestamp(), 'F1', 0, 1),
+	(1, current_timestamp(), 'F3', 2, 2),
+	(2, current_timestamp(), 'F1', 4, 1),
+	(2, ADDDATE(CURDATE(), 1), 'F3', 0, 2);
 
 
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'UID', b'1');
@@ -132,6 +148,11 @@ INSERT INTO `route_access` VALUES (1, '/api/rooms/me', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/rooms/me', b'0', b'1');
 INSERT INTO `route_access` VALUES (1, '/api/rooms/:id', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/rooms/:id', b'1', b'0');
+
+INSERT INTO `route_access` VALUES (1, '/api/timetable', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/timetable', b'0', b'1');
+INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory', b'1', b'0');
+INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory', b'0', b'1');
 
 
 INSERT INTO `mifare_tags` (UID, Bytes) VALUES (1, x'b69f6669d72c5ce0f0c4bac027cd961c9c9ad06fdaf5e93244297a64fc555a7a');

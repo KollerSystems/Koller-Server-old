@@ -66,11 +66,20 @@ CREATE TABLE IF NOT EXISTS `route_access` (
   KEY `Access` (`Role`,`Route`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
+CREATE TABLE IF NOT EXISTS `groupdef` (
+  `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
+  `Group` varchar(4) DEFAULT NULL,
+  `HeadTUID` int(15) unsigned NOT NULL,
+  PRIMARY KEY(`ID`),
+  KEY `Group` (`Group`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
 CREATE TABLE IF NOT EXISTS `dormroom` (
   `RID` smallint(5) unsigned NOT NULL,
   `Gender` tinyint(1) unsigned DEFAULT NULL,
   `Group` varchar(4) DEFAULT NULL,
-  PRIMARY KEY (`RID`)
+  PRIMARY KEY (`RID`),
+  FOREIGN KEY (`Group`) REFERENCES groupdef(`Group`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE IF NOT EXISTS `resident` (
@@ -115,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `student` (
   `OM` varchar(11) DEFAULT NULL,
   `Name` text DEFAULT NULL,
   `Picture` longblob DEFAULT NULL,
-  `Group` tinytext DEFAULT NULL,
+  `Group` varchar(4) DEFAULT NULL,
   `Class` tinytext DEFAULT NULL,
   `School` text DEFAULT NULL,
   `Birthplace` text DEFAULT NULL,
@@ -135,7 +144,8 @@ CREATE TABLE IF NOT EXISTS `student` (
   `Instagram` tinytext DEFAULT NULL,
   `Email` tinytext DEFAULT NULL,
   PRIMARY KEY (`UID`) USING BTREE,
-  FOREIGN KEY (`UID`) REFERENCES user(`UID`)
+  FOREIGN KEY (`UID`) REFERENCES user(`UID`),
+  FOREIGN KEY (`Group`) REFERENCES groupdef(`Group`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE IF NOT EXISTS `teacher` (
@@ -150,6 +160,26 @@ CREATE TABLE IF NOT EXISTS `user` (
   `UID` int(15) unsigned NOT NULL AUTO_INCREMENT,
   `Role` tinyint(1) unsigned DEFAULT 0,
   PRIMARY KEY (`UID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+CREATE TABLE IF NOT EXISTS `mandatory_program_types` (
+  `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
+  `Topic` text NOT NULL,
+  `RID` smallint(5) unsigned NOT NULL,
+  `TUID` int(15) unsigned NOT NULL,
+  PRIMARY KEY (`ID`),
+  FOREIGN KEY (`TUID`) REFERENCES user(`UID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+CREATE TABLE IF NOT EXISTS `mandatory_programs` (
+  `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
+  `MandatoryID` int(15) unsigned NOT NULL,
+  `Date` DATE NOT NULL,
+  `Group` varchar(4) DEFAULT NULL,
+  `Lesson` tinyint unsigned NOT NULL,
+  `Length` tinyint unsigned NOT NULL DEFAULT 1,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY Class (`MandatoryID`, `Date`, `Group`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 
