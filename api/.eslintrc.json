@@ -61,8 +61,9 @@
         "semi-spacing": "error",
         "no-unused-vars": [
             "warn",
-            "always",
             { "argsIgnorePattern": "^_" }
-        ]
+        ],
+        "default-param-last": "error",
+        "spaced-comment": "error"
     }
 }

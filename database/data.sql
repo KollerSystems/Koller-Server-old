@@ -56,10 +56,10 @@ INSERT INTO `resident` VALUES
 INSERT INTO `mandatory_program_types` VALUES
 	(1, 'Honismeret', 33, 5),
 	(2, 'Asztrofizika', 23, 5);
-INSERT INTO `mandatory_programs` (`MandatoryID`, `Date`, `Group`, `Lesson`, `Length`) VALUES
-	(1, current_timestamp(), 'F1', 0, 1),
-	(1, current_timestamp(), 'F3', 2, 2),
-	(2, current_timestamp(), 'F1', 4, 1),
+INSERT INTO `mandatory_programs` (`TypeID`, `Date`, `Group`, `Lesson`, `Length`) VALUES
+	(1, CURDATE(), 'F1', 0, 1),
+	(1, CURDATE(), 'F3', 2, 2),
+	(2, CURDATE(), 'F1', 4, 1),
 	(2, ADDDATE(CURDATE(), 1), 'F3', 0, 2);
 
 
@@ -91,6 +91,18 @@ INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'dormroo
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'resident', 'UID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'resident', 'RID', b'0');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'resident', 'BedNum', b'1');
+
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_program_types', 'TypeID', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_program_types', 'Topic', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_program_types', 'RID', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_program_types', 'TUID', b'1');
+
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'ID', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'TypeID', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'Date', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'Group', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'Lesson', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'Length', b'1');
 
 
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'UID', b'1');
@@ -152,7 +164,7 @@ INSERT INTO `route_access` VALUES (2, '/api/rooms/:id', b'1', b'0');
 INSERT INTO `route_access` VALUES (1, '/api/timetable', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/timetable', b'0', b'1');
 INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory', b'1', b'0');
-INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory', b'0', b'1');
+INSERT INTO `route_access` VALUES (2, '/api/timetable/mandatory', b'0', b'1');
 
 
 INSERT INTO `mifare_tags` (UID, Bytes) VALUES (1, x'b69f6669d72c5ce0f0c4bac027cd961c9c9ad06fdaf5e93244297a64fc555a7a');

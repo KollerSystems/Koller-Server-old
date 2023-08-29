@@ -163,23 +163,23 @@ CREATE TABLE IF NOT EXISTS `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE IF NOT EXISTS `mandatory_program_types` (
-  `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
+  `TypeID` int(15) unsigned NOT NULL AUTO_INCREMENT,
   `Topic` text NOT NULL,
   `RID` smallint(5) unsigned NOT NULL,
   `TUID` int(15) unsigned NOT NULL,
-  PRIMARY KEY (`ID`),
+  PRIMARY KEY (`TypeID`),
   FOREIGN KEY (`TUID`) REFERENCES user(`UID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE IF NOT EXISTS `mandatory_programs` (
   `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
-  `MandatoryID` int(15) unsigned NOT NULL,
+  `TypeID` int(15) unsigned NOT NULL,
   `Date` DATE NOT NULL,
   `Group` varchar(4) DEFAULT NULL,
   `Lesson` tinyint unsigned NOT NULL,
   `Length` tinyint unsigned NOT NULL DEFAULT 1,
   PRIMARY KEY (`ID`),
-  UNIQUE KEY Class (`MandatoryID`, `Date`, `Group`)
+  UNIQUE KEY Class (`TypeID`, `Date`, `Group`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 

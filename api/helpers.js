@@ -114,10 +114,10 @@ function filterByPermission(data, table, role, permType = 'read') { // perftest:
     if (permMappings[table][key][role][permType]) permittedData[key] = data[key];
   return permittedData;
 }
-function getPermittedFields(table, role, permType = 'read') {
+function getPermittedFields(table, role, explicit = false, permType = 'read') {
   let allowedFields = [];
   for (let field in permMappings[table]) {
-    if (permMappings[table][field][role][permType]) allowedFields.push(field);
+    if (permMappings[table][field][role][permType]) allowedFields.push(explicit ? (table + '.' + field) : field);
   }
   return allowedFields;
 }
