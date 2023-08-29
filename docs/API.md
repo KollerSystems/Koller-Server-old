@@ -162,6 +162,9 @@ Felépítése:
 		- `/`
 		- `/me`
 		- `/:rid`
+	- `/timetable`
+		- `/`
+		- `/mandatory`
 	- `/crossings`
 		- `/me`
 		- `/:uid`
@@ -267,6 +270,26 @@ A bejelentkezett felhasználó szobájának lekérése, amihez társulnak még a
 ### `GET /rooms/{rid}`
 
 A megadott RID-jú szoba, és benne lakók lekérése. Több információt ad a lakosokról, mint amikor egyszerre több szoba kerül lekérdezésre
+
+---
+
+### `GET /timetable`
+
+A felhasználó órarendjének lekérése.
+
+### `GET /timetable/mandatory`
+
+Paginálható, szortírozható és szűrhető.
+
+A bejelentkezett felhasználó csoportjához bejegyzett alapprogramokat kéri le.
+
+Az órák (*Lesson*) számozása 0-val kezdődik. Hossza (*Length*) ha 1, akkor sima óra, ha 2 akkor dupla és így tovább.
+
+A szortírozhatóságát kihasználva megfelelő sorrendbe lehet tenni az órákat:
+
+```
+GET /api/timetable/mandatory?sort=Date,Lesson
+```
 
 ---
 

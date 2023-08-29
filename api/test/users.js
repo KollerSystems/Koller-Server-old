@@ -11,7 +11,7 @@ const parameters = JSON.parse(
 );
 
 import supertest from 'supertest';
-const request = supertest(`localhost:${options.api.port}/api`);
+const request = supertest(`localhost:${options.api.port}/api/users`);
 import { expect } from 'chai';
 
 
@@ -20,7 +20,7 @@ describe('Requesting users with various tokens', function() {
     const userdata = parameters.api.users[parameter];
     it(`${parameter != 'fake' ? '' : 'FAIL: '}GET /users/me - (${parameter})`, done => {
       request
-        .get('/users/me')
+        .get('/me')
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(parameter == 'fake' ? 401 : 200)
@@ -37,7 +37,7 @@ describe('Requesting users with various tokens', function() {
 
     it(`GET /users/${parameters.api.parameters.user.studentID} - (${parameter})`, done => {
       request
-        .get('/users/'+parameters.api.parameters.user.studentID)
+        .get('/'+parameters.api.parameters.user.studentID)
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(200)
@@ -53,7 +53,7 @@ describe('Requesting users with various tokens', function() {
     });
     it(`GET /users/${parameters.api.parameters.user.teacherID} - (${parameter})`, done => {
       request
-        .get('/users/'+parameters.api.parameters.user.teacherID)
+        .get('/'+parameters.api.parameters.user.teacherID)
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(200)
@@ -66,7 +66,7 @@ describe('Requesting users with various tokens', function() {
 
     it(`GET /users?role=teacher - (${parameter})`, done => {
       request
-        .get('/users?role=teacher&sort=GuardianPhone&nulls=last')
+        .get('?role=teacher&sort=GuardianPhone&nulls=last')
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(200)
@@ -79,7 +79,7 @@ describe('Requesting users with various tokens', function() {
     });
     it(`GET /users/offset=-${parameters.api.parameters.all.hugeInt} - (${parameter})`, done => {
       request
-        .get(`/users?offset=${parameters.api.parameters.all.hugeInt}`)
+        .get(`?offset=${parameters.api.parameters.all.hugeInt}`)
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(200)
@@ -104,17 +104,17 @@ describe('Requesting users with various tokens', function() {
 
     it(`GET /users?sort=-{1},{2} - (${parameter})`, done => {
       setSortedAndLimitedExpectations(
-        request.get('/users?limit=2&offset=1&sort=-UID,Name')
+        request.get('?limit=2&offset=1&sort=-UID,Name')
       ).end(done);
     });
     it(`GET /users?sort={1}:desc,{2}:asc - (${parameter})`, done => {
       setSortedAndLimitedExpectations(
-        request.get('/users?limit=2&offset=1&sort=UID:desc,Name:asc')
+        request.get('?limit=2&offset=1&sort=UID:desc,Name:asc')
       ).end(done);
     });
     it(`GET /users?sort={1},{2}&order=desc,asc - (${parameter})`, done => {
       setSortedAndLimitedExpectations(
-        request.get('/users?limit=2&offset=1&sort=UID,Name&order=desc,asc')
+        request.get('?limit=2&offset=1&sort=UID,Name&order=desc,asc')
       ).end(done);
     });
   }

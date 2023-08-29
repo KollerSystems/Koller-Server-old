@@ -44,7 +44,7 @@ Az olvasó használatához ezek után futtatni kell a `main.py` fájlt, de csak 
 
 ### API szerver lokális futtatása teszteléshez
 
-Az API szerver a **Node.js 19.2.0**-ás verziójában lett fejlesztve és tesztelve, az újabb verziók nagy eséllyel nem okoznak gondot, régebbi verziókkal is működik valószínűleg ( de eddig csak a **v18.16.1** került tesztelésre), de mindenképp *ajánlott* Node.js v16-nál újabbat használni.
+Az API szerver a **Node.js 19.2.0**-ás verziójában lett fejlesztve és tesztelve, az újabb verziók nagy eséllyel nem okoznak gondot, régebbi verziókkal is működik valószínűleg (de eddig csak a **v18.16.1** került tesztelésre), de mindenképp *ajánlott* Node.js v16-nál újabbat használni.
 
 Töltsük le a kívánt [Node.js](https://nodejs.org/en/download/) verziót, és az npm (Node Package Manager) segédprogramot mellé, ha nem tölti le automatikusan a Node.js-el együtt.
 

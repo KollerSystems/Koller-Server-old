@@ -24,10 +24,11 @@
     },
     "users": {
       "student": {
-        "username": "miki",
-        "UID": 1,
-        "RID": 172,
-        "access_token": "P8kj-8K7kJM-hT9RQDUH8L-v..01.yy2"
+        "username": "Gyuri",
+        "UID": 3,
+        "RID": 131,
+        "Group": "F1",
+        "access_token": "/HSM/Jgh74lf7ygp3_Id6C4~~xe5M53R"
       },
       "teacher": {
         "username": "DJ",

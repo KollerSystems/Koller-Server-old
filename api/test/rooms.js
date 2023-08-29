@@ -11,7 +11,7 @@ const parameters = JSON.parse(
 );
 
 import supertest from 'supertest';
-const request = supertest(`localhost:${options.api.port}/api`);
+const request = supertest(`localhost:${options.api.port}/api/rooms`);
 import { expect } from 'chai';
 
 describe('Requesting rooms with various tokens', function() {
@@ -21,7 +21,7 @@ describe('Requesting rooms with various tokens', function() {
     const codes = { 'fake': 401, 'teacher': 404, 'student': 200 };
     it(`${[ 'fake', 'teacher' ].includes(parameter) ? 'FAIL: ' : ''}GET /rooms/me - (${parameter})`, done => {
       request
-        .get('/rooms/me')
+        .get('/me')
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(codes[parameter])
@@ -41,7 +41,7 @@ describe('Requesting rooms with various tokens', function() {
 
     it(`GET /rooms/${parameters.api.parameters.rooms.roomID} - (${parameter})`, done => {
       request
-        .get(`/rooms/${parameters.api.parameters.rooms.roomID}`)
+        .get(`/${parameters.api.parameters.rooms.roomID}`)
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(200)
@@ -56,7 +56,7 @@ describe('Requesting rooms with various tokens', function() {
     });
     it(`GET /rooms/${parameters.api.parameters.all.hugeInt} - (${parameter})`, done => {
       request
-        .get(`/rooms/${parameters.api.parameters.all.hugeInt}`)
+        .get(`/${parameters.api.parameters.all.hugeInt}`)
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(404)
@@ -80,17 +80,17 @@ describe('Requesting rooms with various tokens', function() {
 
     it(`GET /rooms?sort=-{1},{2} - (${parameter})`, done => {
       setSortedAndLimitedExpectations(
-        request.get('/rooms?limit=2&offset=1&sort=-RID,Group')
+        request.get('?limit=2&offset=1&sort=-RID,Group')
       ).end(done);
     });
     it(`GET /rooms?sort={1}:desc,{2}:asc - (${parameter})`, done => {
       setSortedAndLimitedExpectations(
-        request.get('/rooms?limit=2&offset=1&sort=RID:desc,Group:asc')
+        request.get('?limit=2&offset=1&sort=RID:desc,Group:asc')
       ).end(done);
     });
     it(`GET /rooms?sort={1},{2}&order=desc,asc - (${parameter})`, done => {
       setSortedAndLimitedExpectations(
-        request.get('/rooms?limit=2&offset=1&sort=RID,Group&order=desc,asc')
+        request.get('?limit=2&offset=1&sort=RID,Group&order=desc,asc')
       ).end(done);
     });
 
@@ -105,7 +105,7 @@ describe('Requesting rooms with various tokens', function() {
 
     it(`GET /rooms?{1}=17 - (${parameter})`, done => {
       setFilteredExpectations(
-        request.get('/rooms?RID=17')
+        request.get('?RID=17')
       ).expect(res => {
         expect(res.body).to.be.an('array').and.to.have.a.lengthOf(1);
         expect(res.body[0].RID).to.equal(17);
@@ -113,7 +113,7 @@ describe('Requesting rooms with various tokens', function() {
     });
     it(`GET /rooms?{1}[gt]=17 - (${parameter})`, done => {
       setFilteredExpectations(
-        request.get('/rooms?RID[gt]=17&sort=RID')
+        request.get('?RID[gt]=17&sort=RID')
       ).expect(res => {
         expect(res.body).to.be.an('array');
         expect(res.body[0].RID).to.be.above(17);
@@ -121,7 +121,7 @@ describe('Requesting rooms with various tokens', function() {
     });
     it(`GET /rooms?{1}[gte]=17 - (${parameter})`, done => {
       setFilteredExpectations(
-        request.get('/rooms?RID[gte]=17&sort=RID')
+        request.get('?RID[gte]=17&sort=RID')
       ).expect(res => {
         expect(res.body).to.be.an('array');
         expect(res.body[0].RID).to.be.equal(17);
@@ -130,7 +130,7 @@ describe('Requesting rooms with various tokens', function() {
     });
     it(`GET /rooms?{1}[lt]=17 - (${parameter})`, done => {
       setFilteredExpectations(
-        request.get('/rooms?RID[lt]=172&sort=-RID')
+        request.get('?RID[lt]=172&sort=-RID')
       ).expect(res => {
         expect(res.body).to.be.an('array');
         expect(res.body[0].RID).to.be.below(172);
@@ -138,7 +138,7 @@ describe('Requesting rooms with various tokens', function() {
     });
     it(`GET /rooms?{1}=gt:17 - (${parameter})`, done => {
       setFilteredExpectations(
-        request.get('/rooms?RID=gt:17&sort=RID')
+        request.get('?RID=gt:17&sort=RID')
       ).expect(res => {
         expect(res.body).to.be.an('array');
         expect(res.body[0].RID).to.be.above(17);
@@ -146,7 +146,7 @@ describe('Requesting rooms with various tokens', function() {
     });
     it(`GET /rooms?filter={1}[gt]:17 - (${parameter})`, done => {
       setFilteredExpectations(
-        request.get('/rooms?filter=RID[gt]:17&sort=RID')
+        request.get('?filter=RID[gt]:17&sort=RID')
       ).expect(res => {
         expect(res.body).to.be.an('array');
         expect(res.body[0].RID).to.be.above(17);
@@ -154,7 +154,7 @@ describe('Requesting rooms with various tokens', function() {
     });
     it(`GET /rooms?filter={1}[lt]:0 - (${parameter})`, done => {
       setFilteredExpectations(
-        request.get('/rooms?filter=RID[lt]:0')
+        request.get('?filter=RID[lt]:0')
       ).expect(res => {
         expect(res.body).to.be.an('array').that.has.a.lengthOf(0);
       }).end(done);
