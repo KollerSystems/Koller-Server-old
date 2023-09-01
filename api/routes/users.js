@@ -25,6 +25,9 @@ users.post('/mifare', async (req, res, next) => {
 
 users.get('/me', async (req, res, next) => {
   const userdata = await knx(roleMappings.byID[res.locals.roleID]).first('*').where('UID', res.locals.UID);
+  const classdata = await knx('class').first('*').where('ID', userdata.ClassID ?? -1);
+  if (userdata.ClassID ?? '') userdata.Class = classdata;
+  delete userdata.ClassID;
   res.header('Content-Type', 'application/json').status(200).send(userdata).end();
   next();
 });
@@ -35,6 +38,9 @@ users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
 
   const userData = await knx(roleMappings.byID[user.Role]).first('*').where('UID', user.UID);
   const filteredData = filterByPermission(userData, roleMappings.byID[user.Role], roleMappings.byID[res.locals.roleID]);
+  const classdata = await knx('class').first('*').where('ID', userData.ClassID ?? -1);
+  if (userData.ClassID ?? '') filteredData.Class = classdata;
+  delete filteredData.ClassID;
 
   if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, 'Forbidden!');
   res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
@@ -62,6 +68,11 @@ users.get('/', async (req, res, next) => {
       .limit(limit).offset(offset);
     attachFilters(query, handleFilterParams(req.query, fields));
     users = await query;
+    for (let i = 0; i < users.length; i++) {
+      const classdata = await knx('class').first('*').where('ID', users[i].ClassID ?? -1);
+      if (users[i].ClassID ?? '') users[i].Class = classdata;
+      delete users[i].ClassID;
+    }
   } else {
     if (req.query.sort ?? '') {
       let nullsLast = true;
@@ -85,6 +96,12 @@ users.get('/', async (req, res, next) => {
         }
         return v;
       }).slice(offset, limit+offset);
+
+      for (let i = 0; i < users.length; i++) {
+        const classdata = await knx('class').first('*').where('ID', users[i].ClassID ?? -1);
+        if (users[i].ClassID ?? '') users[i].Class = classdata;
+        delete users[i].ClassID;
+      }
     } else {
       let limitRemains = limit;
       let offsetRemains = offset;
@@ -103,6 +120,12 @@ users.get('/', async (req, res, next) => {
         limitRemains -= query.length;
         offsetRemains -= (currentCapacity - query.length);
         if (offsetRemains < 0) offsetRemains = 0;
+      }
+
+      for (let i = 0; i < users.length; i++) {
+        const classdata = await knx('class').first('*').where('ID', users[i].ClassID ?? -1);
+        if (users[i].ClassID ?? '') users[i].Class = classdata;
+        delete users[i].ClassID;
       }
     }
   }

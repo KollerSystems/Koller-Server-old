@@ -35,6 +35,20 @@ describe('Requesting users with various tokens', function() {
 
     if (parameter == 'fake') continue;
 
+    if (String(userdata.access_token).match(/[A-Z]/)) {
+      it(`FAIL: GET /users/me - (${parameter}; lowercase token)`, done => {
+        request
+          .get('/me')
+          .set('Authorization', 'Bearer ' + (userdata.access_token).toLowerCase())
+          .expect('Content-Type', /json/)
+          .expect(401)
+          .expect(res => {
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.a.property('error');
+          }).end(done);
+      });
+    }
+
     it(`GET /users/${parameters.api.parameters.user.studentID} - (${parameter})`, done => {
       request
         .get('/'+parameters.api.parameters.user.studentID)

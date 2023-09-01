@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `auth` (
   `issued` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `expired` bit(1) NOT NULL DEFAULT b'0',
   FOREIGN KEY (`UID`) REFERENCES user(`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `crossings` (
   `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `crossings` (
   `Direction` bit(1) NOT NULL,
   PRIMARY KEY (`ID`),
   FOREIGN KEY (`UID`) REFERENCES user(`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `login_data` (
   `UID` int(15) unsigned NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `login_data` (
   `Password` text DEFAULT NULL,
   PRIMARY KEY (`UID`) USING BTREE,
   FOREIGN KEY (`UID`) REFERENCES user(`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `mifare_tags` (
   `UID` int(15) unsigned NOT NULL,
@@ -42,12 +42,7 @@ CREATE TABLE IF NOT EXISTS `mifare_tags` (
   `Bytes` tinyblob NOT NULL,
   PRIMARY KEY (`Bytes`(32)),
   FOREIGN KEY (`UID`) REFERENCES user(`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `notes_types` (
-  `Category` tinyint(3) unsigned DEFAULT NULL,
-  `Name` tinytext DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `permissions` (
   `Role` tinyint(1) NOT NULL,
@@ -56,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `permissions` (
   `Read` bit(1) NOT NULL DEFAULT b'0',
   `Write` bit(1) NOT NULL DEFAULT b'0',
   KEY `Table` (`Table`,`Field`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `route_access` (
   `Role` tinyint(1) NOT NULL,
@@ -64,23 +59,22 @@ CREATE TABLE IF NOT EXISTS `route_access` (
   `Accessible` bit(1) NOT NULL DEFAULT b'0',
   `Hide` bit(1) NOT NULL DEFAULT b'0',
   KEY `Access` (`Role`,`Route`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
-CREATE TABLE IF NOT EXISTS `groupdef` (
+CREATE TABLE IF NOT EXISTS `class` (
   `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
-  `Group` varchar(4) DEFAULT NULL,
+  `Class` varchar(4) DEFAULT NULL,
   `HeadTUID` int(15) unsigned NOT NULL,
   PRIMARY KEY(`ID`),
-  KEY `Group` (`Group`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+  KEY `Class` (`Class`)
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `dormroom` (
   `RID` smallint(5) unsigned NOT NULL,
   `Gender` tinyint(1) unsigned DEFAULT NULL,
   `Group` varchar(4) DEFAULT NULL,
-  PRIMARY KEY (`RID`),
-  FOREIGN KEY (`Group`) REFERENCES groupdef(`Group`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+  PRIMARY KEY (`RID`)
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `resident` (
   `UID` int(15) unsigned NOT NULL,
@@ -89,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `resident` (
   PRIMARY KEY (`UID`),
   UNIQUE KEY RoomPosition (`RID`, `BedNum`),
   FOREIGN KEY (`UID`) REFERENCES user(`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `role_name` (
   `Role` tinyint(1) unsigned NOT NULL DEFAULT 0,
@@ -97,7 +91,7 @@ CREATE TABLE IF NOT EXISTS `role_name` (
   `FullName` text DEFAULT NULL,
   PRIMARY KEY (`Role`),
   KEY `Table` (`Table`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `roomorder` (
   `ID` int(15) NOT NULL AUTO_INCREMENT,
@@ -117,15 +111,16 @@ CREATE TABLE IF NOT EXISTS `roomorder` (
   `Unwashed` binary(2) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   FOREIGN KEY (`RatingTUID`) REFERENCES user(`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `student` (
   `UID` int(15) unsigned NOT NULL,
   `OM` varchar(11) DEFAULT NULL,
   `Name` text DEFAULT NULL,
+  `Gender` tinyint(1) unsigned NOT NULL,
   `Picture` longblob DEFAULT NULL,
   `Group` varchar(4) DEFAULT NULL,
-  `Class` tinytext DEFAULT NULL,
+  `ClassID` int(15) unsigned NOT NULL,
   `School` text DEFAULT NULL,
   `Birthplace` text DEFAULT NULL,
   `Birthdate` date DEFAULT NULL,
@@ -145,8 +140,8 @@ CREATE TABLE IF NOT EXISTS `student` (
   `Email` tinytext DEFAULT NULL,
   PRIMARY KEY (`UID`) USING BTREE,
   FOREIGN KEY (`UID`) REFERENCES user(`UID`),
-  FOREIGN KEY (`Group`) REFERENCES groupdef(`Group`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+  FOREIGN KEY (`ClassID`) REFERENCES class(`ID`)
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `teacher` (
   `UID` int(15) unsigned NOT NULL,
@@ -154,13 +149,13 @@ CREATE TABLE IF NOT EXISTS `teacher` (
   `OM` varchar(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`UID`) USING BTREE,
   FOREIGN KEY (`UID`) REFERENCES user(`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `user` (
   `UID` int(15) unsigned NOT NULL AUTO_INCREMENT,
   `Role` tinyint(1) unsigned DEFAULT 0,
   PRIMARY KEY (`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `mandatory_program_types` (
   `TypeID` int(15) unsigned NOT NULL AUTO_INCREMENT,
@@ -169,18 +164,19 @@ CREATE TABLE IF NOT EXISTS `mandatory_program_types` (
   `TUID` int(15) unsigned NOT NULL,
   PRIMARY KEY (`TypeID`),
   FOREIGN KEY (`TUID`) REFERENCES user(`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `mandatory_programs` (
   `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
   `TypeID` int(15) unsigned NOT NULL,
   `Date` DATE NOT NULL,
-  `Group` varchar(4) DEFAULT NULL,
+  `ClassID` int(15) unsigned NOT NULL,
   `Lesson` tinyint unsigned NOT NULL,
   `Length` tinyint unsigned NOT NULL DEFAULT 1,
   PRIMARY KEY (`ID`),
-  UNIQUE KEY Class (`TypeID`, `Date`, `Group`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+  UNIQUE KEY Class (`TypeID`, `Date`, `ClassID`),
+  FOREIGN KEY (`ClassID`) REFERENCES class(`ID`)
+) DEFAULT COLLATE=utf8_bin;
 
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

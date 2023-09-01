@@ -1,6 +1,6 @@
 {
   "oauth": [
-    {"credentials": {"username": "miki", "password": "almafa1234", "grant_type": "password"}, "succeed": true},
+    {"credentials": {"username": "Miki", "password": "almafa1234", "grant_type": "password"}, "succeed": true},
     {"credentials": {"username": "DJ", "password": "almafa1234", "grant_type": "password"}, "succeed": true},
     {"credentials": {"username": 72745678344, "password": "almafa1234", "grant_type": "password"}, "succeed": true},
     {"credentials": {"username": "Gergő", "password": "almafa1234"}, "succeed": false},
@@ -91,7 +91,7 @@
     }
   },
   "database": {
-    "tables": ["auth", "crossings", "login_data", "mifare_tags", "notes_types", "permissions", "route_access", "dormroom", "resident", "role_name", "roomorder", "student", "teacher", "user"],
+    "tables": ["auth", "crossings", "login_data", "mifare_tags", "permissions", "route_access", "dormroom", "resident", "role_name", "roomorder", "student", "teacher", "user"],
     "reqPermDefinitions": ["student", "teacher", "mifare_tags", "dormroom", "resident"]
   }
 }

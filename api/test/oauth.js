@@ -80,5 +80,22 @@ describe('Getting token & refreshing it with various credentials', function () {
           expect(res.body).to.have.keys('access_token', 'refresh_token', 'token_type', 'expires_in');
         }).end(done);
     });
+
+    if (String(parameter.credentials.username).match(/[A-Z]/)) {
+      let lowercredential = { ...parameter.credentials };
+      lowercredential.username = (lowercredential.username).toLowerCase();
+      it('FAIL: POST /token - (lowercase username)', done => {
+        request
+          .post('/token')
+          .set('Content-Type', 'application/json')
+          .send(lowercredential)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .expect(res => {
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.a.key('error');
+          }).end(done);
+      });
+    }
   }
 });

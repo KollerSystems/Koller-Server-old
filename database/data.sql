@@ -17,10 +17,10 @@ INSERT INTO `auth` (`UID`, `access_token`, `expires`, `expired`) VALUES
 	(6, '/5.Q~RhtNkd.M/w4txuP35rmDKkddXu2', 4294967295, b'0'),
 	(5, 'Anca577M3u.~un7z~j9pj3/67rsF/~/3', 4294967295, b'0');
 
-INSERT INTO `groupdef` (`Group`, `HeadTUID`) VALUES
-	('F1', 5),
-	('F3', 5),
-	('F8', 5);
+INSERT INTO `class` (`ID`, `Class`, `HeadTUID`) VALUES
+	(1, '11.B', 5),
+	(2, '9.A', 5),
+	(3, '12.E', 5);
 
 INSERT INTO `dormroom` VALUES
 	(172, 1, 'F8'),
@@ -37,13 +37,13 @@ INSERT INTO `login_data` (`UID`, `Username`, `Password`) VALUES
 
 INSERT INTO `teacher` VALUES (5, 'Dobos József', '72237485955');
 
-INSERT INTO `student` (`UID`, `OM`, `Name`, `Picture`, `Group`, `Class`, `School`, `Birthplace`, `Birthdate`, `GuardianName`, `GuardianPhone`, `RID`, `Country`, `City`, `Street`, `PostCode`, `Address`, `Floor`, `Door`) VALUES
-	(1, '73454685362', 'Várnagy Miklós Tamás', NULL, 'F8', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2023-02-26', 'Papp Lajos', '36 64 865 3423', 172, 'Új-Zéland', 'Hamilton', 'Clarkin Road', 3214, 2, NULL, NULL),
-	(2, '72745678344', 'Katona Márton Barnabás', NULL, 'F8', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-07-22', 'Kis Gazsiné', '213 676 33 87 93', 172, 'Afganistan', 'Kabul', 'Asmayi Road', 553, 8, 3, NULL),
-	(3, '74583725375', 'Bende Ákos György', NULL, 'F1', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-08-15', 'Kalapos József', '43 673 527890180', 131, 'Austria', 'Graz', 'Plüddemanngasse', 8010, 62, 32, 3),
-	(4, '72345456628', 'Bencsik Gergő', NULL, 'F1', '11.B', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-02-28', 'Tóth András', '36 90 343 5454', 131, 'Uganda', 'Kampala', 'Kabalega Close', NULL, 16, NULL, NULL),
-	(6, '77685796872', 'Varró Liza', NULL, 'F3', '9.A', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2008-07-08', 'Magyar Béla', '36 20 387 5254', 17, 'Dél-Kórea', 'Seoul', 'Opaesan-ro', NULL, 11, NULL, NULL),
-	(7, '77348695718', 'Páter Zsófia Édua', NULL, 'F3', '12.E', 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-11-30', 'Kisfaludy Zoltán', '36 70 322 9834', 17, 'Japán', 'Tokió', 'Sekiguchi', NULL, 3, NULL, NULL);
+INSERT INTO `student` (`UID`, `OM`, `Name`, `Gender`, `Picture`, `Group`, `ClassID`, `School`, `Birthplace`, `Birthdate`, `GuardianName`, `GuardianPhone`, `RID`, `Country`, `City`, `Street`, `PostCode`, `Address`, `Floor`, `Door`) VALUES
+	(1, '73454685362', 'Várnagy Miklós Tamás', b'1', NULL, 'F8', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2023-02-26', 'Papp Lajos', '36 64 865 3423', 172, 'Új-Zéland', 'Hamilton', 'Clarkin Road', 3214, 2, NULL, NULL),
+	(2, '72745678344', 'Katona Márton Barnabás', b'1', NULL, 'F8', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-07-22', 'Kis Gazsiné', '213 676 33 87 93', 172, 'Afganistan', 'Kabul', 'Asmayi Road', 553, 8, 3, NULL),
+	(3, '74583725375', 'Bende Ákos György', b'1', NULL, 'F1', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-08-15', 'Kalapos József', '43 673 527890180', 131, 'Austria', 'Graz', 'Plüddemanngasse', 8010, 62, 32, 3),
+	(4, '72345456628', 'Bencsik Gergő', b'1', NULL, 'F1', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-02-28', 'Tóth András', '36 90 343 5454', 131, 'Uganda', 'Kampala', 'Kabalega Close', NULL, 16, NULL, NULL),
+	(6, '77685796872', 'Varró Liza', b'0', NULL, 'F3', 2, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2008-07-08', 'Magyar Béla', '36 20 387 5254', 17, 'Dél-Kórea', 'Seoul', 'Opaesan-ro', NULL, 11, NULL, NULL),
+	(7, '77348695718', 'Páter Zsófia Édua', b'0', NULL, 'F3', 3, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-11-30', 'Kisfaludy Zoltán', '36 70 322 9834', 17, 'Japán', 'Tokió', 'Sekiguchi', NULL, 3, NULL, NULL);
 
 INSERT INTO `resident` VALUES
 	(1, 172, 0),
@@ -56,18 +56,19 @@ INSERT INTO `resident` VALUES
 INSERT INTO `mandatory_program_types` VALUES
 	(1, 'Honismeret', 33, 5),
 	(2, 'Asztrofizika', 23, 5);
-INSERT INTO `mandatory_programs` (`TypeID`, `Date`, `Group`, `Lesson`, `Length`) VALUES
-	(1, CURDATE(), 'F1', 0, 1),
-	(1, CURDATE(), 'F3', 2, 2),
-	(2, CURDATE(), 'F1', 4, 1),
-	(2, ADDDATE(CURDATE(), 1), 'F3', 0, 2);
+INSERT INTO `mandatory_programs` (`TypeID`, `Date`, `ClassID`, `Lesson`, `Length`) VALUES
+	(1, CURDATE(), 1, 0, 1),
+	(1, CURDATE(), 2, 2, 2),
+	(2, CURDATE(), 1, 4, 1),
+	(2, ADDDATE(CURDATE(), 1), 1, 0, 2);
 
 
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'UID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'Name', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'Gender', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'Picture', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'Group', b'1');
-INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'Class', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'ClassID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'School', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'RID', b'1');
 
@@ -100,16 +101,20 @@ INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandato
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'ID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'TypeID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'Date', b'1');
-INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'Group', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'ClassID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'Lesson', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'mandatory_programs', 'Length', b'1');
 
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'class', 'ID', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'class', 'Class', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'class', 'HeadTUID', b'1');
 
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'UID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'Name', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'Gender', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'Picture', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'Group', b'1');
-INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'Class', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'ClassID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'School', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'RID', b'1');
 
@@ -133,6 +138,11 @@ INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'dormroo
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'resident', 'UID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'resident', 'RID', b'0');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'resident', 'BedNum', b'1');
+
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'class', 'ID', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'class', 'Class', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'class', 'HeadTUID', b'1');
+
 
 
 INSERT INTO `route_access` VALUES (1, '/api/crossings/events', b'0', b'1');
