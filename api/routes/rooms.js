@@ -8,12 +8,13 @@ const rooms = Router({ mergeParams: false });
 rooms.get('/', async (req, res, next) => {
   let data = knx('dormroom').select(getPermittedFields('dormroom', roleMappings.byID[res.locals.roleID]));
 
-  data = await setupBatchRequest(data, req.query);
   const fieldsPermitted = getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat('Name');
-  // fieldsPermitted.splice(fieldsPermitted.indexOf('RID'),1);
-  for (let i = 0; i < data.length; i++) {
-    data[i].Residents = await knx('resident').select(fieldsPermitted).joinRaw('natural join student').where('RID', data[i].RID);
-  }
+  // fieldsPermitted.splice(fieldsPermitted.indexOf('RID'), 1);
+
+  data = await setupBatchRequest(data, req.query, [ { 'mountPoint': 'Residents', 'callback': async parent => {
+    return await knx('resident').select(fieldsPermitted).joinRaw('natural join student').where('RID', parent.RID);
+  } } ]);
+
   res.header('Content-Type', 'application/json').status(200).send(data).end();
 
   next();
@@ -22,7 +23,7 @@ rooms.get('/', async (req, res, next) => {
 rooms.get('/me', async (req, res, next) => {
   const prequery = await knx('student').first('RID').where('UID', res.locals.UID); // kell lennie UIDnak, nem kell check
   let data = await knx('dormroom').first(getPermittedFields('dormroom', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
-  const postquery = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
+  const postquery = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat('Name')).joinRaw('natural join student').where('RID', prequery.RID);
 
   data.Residents = postquery;
   data.UID = parseInt(res.locals.UID, 10);

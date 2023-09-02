@@ -131,5 +131,19 @@ describe('Requesting users with various tokens', function() {
         request.get('?limit=2&offset=1&sort=UID,Name&order=desc,asc')
       ).end(done);
     });
+
+    it('GET /users?role=student&sort=Class.ID:desc', done => {
+      request
+        .get('?role=student&Class.ID:desc')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.be.an('array').and.to.have.lengthOf.at.most(options.api.batchRequests.defaultLimit);
+          for (let i = 1; i < res.body.length; i++) {
+            expect(res.body[i-1].Class.ID).to.be.at.most(res.body[i].Class.ID);
+          }
+        }).end(done);
+    });
   }
 });

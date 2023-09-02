@@ -61,4 +61,10 @@ function remove(array, item) {
   return array;
 }
 
-export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, cmp, remove };
+function deleteProperty(obj, key) {
+  let v = obj[key];
+  delete obj[key];
+  return v;
+}
+
+export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, cmp, remove, deleteProperty };

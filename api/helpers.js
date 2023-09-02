@@ -1,5 +1,5 @@
 import { knx, logFileStream, options, permMappings, routeAccess } from './index.js';
-import { intoTimestamp, generateToken } from './misc.js';
+import { intoTimestamp, generateToken, cmp } from './misc.js';
 
 /*
  * OAUTH case sensitivity ignorálása
@@ -145,6 +145,8 @@ function getSelectFields(query) {
 function handleSortParams(urlparams, allowedFields) {
   if (!(urlparams.sort ?? '')) return [];
 
+  const isCertain = field => !field.match(/\./g) && allowedFields.includes(field);
+
   let sortparams = urlparams.sort.replace(', ', ',').split(',');
   let orderparams = urlparams.order?.replace(', ', ',').split(',');
 
@@ -153,7 +155,7 @@ function handleSortParams(urlparams, allowedFields) {
     for (let param of sortparams) {
       let obj = {};
 
-      obj.column = param.match(/(?<=-?|\+?)([A-z]+)(?=:?)/);
+      obj.column = param.match(/(?<=-?|\+?)(([A-z]|\.)+)(?=:?)/);
       obj.column = obj.column == null ? undefined : obj.column[0];
 
       obj.order = param.match(/(\+|-)(?=([A-z]+):?)/g);
@@ -168,8 +170,7 @@ function handleSortParams(urlparams, allowedFields) {
   } else {
     for (let i = 0; i < sortparams.length; i++) {
       let obj = {};
-
-      obj.column = sortparams[i].match(/(?<=-?|\+?)([A-z]+)(?=:?)/);
+      obj.column = sortparams[i].match(/(?<=-?|\+?)(([A-z]|\.)+)(?=:?)/);
       obj.column = obj.column == null ? undefined : obj.column[0];
 
       obj.order = orderparams[i] == undefined ? 'asc' : orderparams[i];
@@ -179,9 +180,7 @@ function handleSortParams(urlparams, allowedFields) {
   }
 
   for (let i = 0; i < sort.length; i++) {
-    if (!allowedFields.includes(sort[i].column)) {
-      sort.splice(i);
-    }
+    sort[i].immediate = isCertain(sort[i].column);
   }
 
   return sort;
@@ -193,7 +192,10 @@ function handleFilterParams(urlparams, allowedFields) {
    * ?RID=lte:17
    * ?filter=RID[lte]:17
   **/
-  let filters = [];
+  let filters = { 'immediate': [], 'postquery': [] };
+
+  const isCertain = field => !field.match(/\./g) && allowedFields.includes(field);
+
   const operators = {
     'lt': '<',
     'gt': '>',
@@ -201,13 +203,15 @@ function handleFilterParams(urlparams, allowedFields) {
     'gte': '>=',
     'eq': '='
   };
+  // console.log(urlparams);
   const filt = urlparams.filter || urlparams.filters;
   if (filt == undefined) {
     const operatorPattern = new RegExp(/(lte?|gte?|eq)(?=:.+)/g);
     const valuePattern = new RegExp(/(?<=(lte?|gte?|eq):).+/g);
 
-    for (let allowedField of allowedFields) {
-      let fieldValue = urlparams[allowedField];
+    const bannedKeywords = [ 'limit', 'offset', 'sort', 'order' ]; // -filter
+    for (let field of Object.keys(urlparams).filter(v => !bannedKeywords.includes(v))) {
+      let fieldValue = urlparams[field];
       if (fieldValue == undefined) continue;
 
       if (fieldValue.length == undefined && typeof fieldValue == 'object') {
@@ -216,12 +220,12 @@ function handleFilterParams(urlparams, allowedFields) {
           if (typeof fieldValue[op] == 'object') continue;
           if (operators[op] == undefined) continue;
 
-          filters.push({ 'field': allowedField, 'value': fieldValue[op], 'operator': operators[op] });
+          filters[isCertain(field) ? 'immediate' : 'postquery'].push({ 'field': field, 'value': fieldValue[op], 'operator': operators[op] });
         }
       } else {
         const isRHS = fieldValue.includes(':');
         if (typeof fieldValue != 'object' && !isRHS) {
-          filters.push({ 'field': allowedField, 'value': fieldValue, 'operator': operators['eq'] });
+          filters[isCertain(field) ? 'immediate' : 'postquery'].push({ 'field': field, 'value': fieldValue, 'operator': operators['eq'] });
           continue;
         } else if (isRHS)
           fieldValue = [ fieldValue ];
@@ -233,7 +237,7 @@ function handleFilterParams(urlparams, allowedFields) {
 
           let op = filter.match(operatorPattern);
           if (op != null) op = operators[op[0]];
-          filters.push({ 'field': allowedField, 'value': value, 'operator': (op == undefined ? operators['eq'] : op) });
+          filters[isCertain(field) ? 'immediate' : 'postquery'].push({ 'field': field, 'value': value, 'operator': (op == undefined ? operators['eq'] : op) });
         }
       }
     }
@@ -255,7 +259,7 @@ function handleFilterParams(urlparams, allowedFields) {
         operator = operators[operator[0]];
       if (operator == undefined) operator = operators['eq'];
 
-      if (allowedFields.includes(field)) filters.push({ field, operator, value });
+      filters[isCertain(field) ? 'immediate' : 'postquery'].push({ field, operator, value });
     }
   }
 
@@ -272,17 +276,90 @@ function attachFilters(query, filters) {
   return query;
 }
 
-function setupBatchRequest(query, urlparams) {
+async function handleMounts(data, mounts) {
+  data = await data;
+  for (let i = 0; i < data.length; i++) {
+    for (let mount of mounts) {
+      data[i][mount.mountPoint] = await mount.callback(data[i]);
+    }
+  }
+  return data;
+}
+
+function compareStringOp(a, b, op) {
+  switch (op) {
+    case '=':
+      return a == b;
+    case '>':
+      return a > b;
+    case '<':
+      return a < b;
+    case '>=':
+      return a >= b;
+    case '<=':
+      return a <= b;
+  }
+}
+function traverse(obj, map) {
+  let c = obj;
+  for (let key of map) {
+    if (c == undefined) return undefined;
+    c = c[key];
+  }
+  return c;
+}
+async function setupBatchRequest(query, urlparams, mounts = []) {
   const limit = (() => {
     let l = parseInt(urlparams.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || options.api.batchRequests.defaultLimit;
     return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
   })();
   const offset = parseInt(urlparams.offset?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || 0;
 
-  attachFilters(query, handleFilterParams(urlparams, getSelectFields(query)));
+  const filterparams = handleFilterParams(urlparams, getSelectFields(query));
+  attachFilters(query, filterparams.immediate);
 
-  query.offset(offset).limit(limit).orderBy(handleSortParams(urlparams, getSelectFields(query)));
-  return query;
+  let sortparams = handleSortParams(urlparams, getSelectFields(query));
+  let immediateSort = [];
+
+  for (let i = 0; i < sortparams.length; i++) {
+    if (sortparams[i].immediate) {
+      delete sortparams[i].immediate;
+      immediateSort.push(sortparams[i]);
+    } else {
+      break;
+    }
+  }
+
+  const data = query.offset(offset).limit(limit).orderBy(immediateSort);
+  if (mounts.length == 0) return await data;
+  const finalData = await handleMounts(data, mounts);
+
+  for (let filter of filterparams.postquery) {
+    let traversePath = filter.field.split('.');
+    let v = parseInt(filter.value, 10);
+    filter.value = Number.isNaN(v) ? filter.value : v;
+    for (let i = 0; i < finalData.length; i++) {
+      const traversed = traverse(finalData[i], traversePath);
+      if (traversed == undefined) continue;
+
+      if (!compareStringOp(traversed, filter.value, filter.operator)) {
+        delete finalData[i];
+      }
+    }
+  }
+
+
+  let collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+  return finalData.filter(v => v != null).sort((a, b) => {
+    for (let sort of sortparams) {
+      let traversePath = sort.column.split('.');
+
+      let travA = traverse(a, traversePath), travB = traverse(b, traversePath);
+      let compared = cmp(travA, travB, sort.order == 'desc', urlparams.nulls == 'last', collator.compare);
+      if (compared != undefined && compared != 0) return compared;
+    }
+    return 0;
+  });
 }
 
 /*
@@ -319,4 +396,4 @@ function attachBoilerplate(method, path, callback, suboptions) {
   });
 }*/
 
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess,  getSelectFields, handleSortParams, handleFilterParams, attachFilters, setupBatchRequest/*, boilerplateRequestBatch, boilerplateRequestID, attachBoilerplate*/ };
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess,  getSelectFields, handleSortParams, handleFilterParams, attachFilters, setupBatchRequest/* , boilerplateRequestBatch, boilerplateRequestID, attachBoilerplate*/ };
