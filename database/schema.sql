@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `class` (
   KEY `Class` (`Class`)
 ) DEFAULT COLLATE=utf8_bin;
 
-CREATE TABLE IF NOT EXISTS `dormroom` (
+CREATE TABLE IF NOT EXISTS `dorm_room` (
   `RID` smallint(5) unsigned NOT NULL,
   `Gender` tinyint(1) unsigned DEFAULT NULL,
   `Group` varchar(4) DEFAULT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `role_name` (
   KEY `Table` (`Table`)
 ) DEFAULT COLLATE=utf8_bin;
 
-CREATE TABLE IF NOT EXISTS `roomorder` (
+CREATE TABLE IF NOT EXISTS `room_order` (
   `ID` int(15) NOT NULL AUTO_INCREMENT,
   `RatingTUID` int(15) unsigned DEFAULT NULL,
   `RID` smallint(5) unsigned NOT NULL,
@@ -176,6 +176,15 @@ CREATE TABLE IF NOT EXISTS `mandatory_programs` (
   PRIMARY KEY (`ID`),
   UNIQUE KEY Class (`TypeID`, `Date`, `ClassID`),
   FOREIGN KEY (`ClassID`) REFERENCES class(`ID`)
+) DEFAULT COLLATE=utf8_bin;
+
+CREATE TABLE IF NOT EXISTS `attendees` (
+  `UID` int(15) unsigned NOT NULL,
+  `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
+  `ProgramID`int(15) NOT NULL,
+  `Type`tinyint(1) NOT NULL,
+  PRIMARY KEY (`ID`),
+  FOREIGN KEY (`UID`) REFERENCES user(`UID`)
 ) DEFAULT COLLATE=utf8_bin;
 
 
