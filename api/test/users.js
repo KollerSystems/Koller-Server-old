@@ -91,7 +91,7 @@ describe('Requesting users with various tokens', function() {
           expect(GuardianPhones).to.not.have.a('string');
         }).end(done);
     });
-    it(`GET /users/offset=-${parameters.api.parameters.all.hugeInt} - (${parameter})`, done => {
+    it(`GET /users?offset=-${parameters.api.parameters.all.hugeInt} - (${parameter})`, done => {
       request
         .get(`?offset=${parameters.api.parameters.all.hugeInt}`)
         .set('Authorization', 'Bearer ' + userdata.access_token)

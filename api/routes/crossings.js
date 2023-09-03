@@ -21,18 +21,18 @@ function filterAndSend(res, data) {
   }
 }
 
-async function getBatchRequestData(query, table, fields, where) {
-  return setupBatchRequest(knx(table).select(fields).where(where), query);
+async function getBatchRequestData(query, rawUrl, table, fields, where) {
+  return setupBatchRequest(knx(table).select(fields).where(where), query, rawUrl);
 }
 
 crossings.get('/me', async (req, res, next) => {
-  const data = await getBatchRequestData(req.query, 'crossings', [ 'ID', 'Time', 'Direction' ], { 'UID': res.locals.UID });
+  const data = await getBatchRequestData(req.query, req.url, 'crossings', [ 'ID', 'Time', 'Direction' ], { 'UID': res.locals.UID });
   filterAndSend(res, data);
 
   next();
 });
 crossings.get('/:id(\\d+)', async (req, res, next) => { // regexp: /\d+/
-  const data = await getBatchRequestData(req.query, 'crossings', [ 'ID', 'Time', 'Direction' ], { 'UID': req.params.id });
+  const data = await getBatchRequestData(req.query, req.url, 'crossings', [ 'ID', 'Time', 'Direction' ], { 'UID': req.params.id });
   filterAndSend(res, data);
 
   next();

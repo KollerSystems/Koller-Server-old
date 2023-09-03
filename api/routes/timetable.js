@@ -20,7 +20,7 @@ timetable.get('/mandatory', async (req, res, next) => {
   query.select(mandatoryProgramFields.concat(mandatoryProgramTypeFields)).where('ClassID', userClassID);
 
   // Nem kell, hiszen azt lehet tudni hogy a felhasználó melyik osztályba jár.
-  const mandatoryPrograms = await setupBatchRequest(query, req.query/* , [ { 'mountPoint': 'Class', 'callback': async parent => {
+  const mandatoryPrograms = await setupBatchRequest(query, req.query, req.url/* , [ { 'mountPoint': 'Class', 'callback': async parent => {
     delete parent.ClassID;
     return userClass;
   } } ] */);

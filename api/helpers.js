@@ -1,5 +1,6 @@
 import { knx, logFileStream, options, permMappings, routeAccess } from './index.js';
-import { intoTimestamp, generateToken, cmp } from './misc.js';
+import { intoTimestamp, generateToken, cmp, tryparse } from './misc.js';
+import { parse } from 'node:url';
 
 /*
  * OAUTH case sensitivity ignorálása
@@ -193,8 +194,23 @@ function handleFilterParams(urlparams, allowedFields) {
    * ?filter=RID[lte]:17
   **/
   let filters = { 'immediate': [], 'postquery': [] };
+  let filtersMap = { 'immediate': [], 'postquery': [] };
 
   const isCertain = field => !field.match(/\./g) && allowedFields.includes(field);
+  const filterType = (obj, field) => obj[isCertain(field) ? 'immediate' : 'postquery'];
+  const pushTo = (field, value, operator) => {
+    const index = filterType(filtersMap, field).findIndex(v => v.field == field && v.operator == operator);
+    if (index == -1) {
+      filterType(filtersMap, field).push({ field, operator });
+      filterType(filters, field).push({ field, value, operator });
+    } else {
+      const valueAtIndex = filterType(filters, field)[index];
+      if (Array.isArray(valueAtIndex)) filterType(filters, field)[index].push({ field, value, operator });
+      else {
+        filterType(filters, field)[index] = [ valueAtIndex, { field, value, operator } ];
+      }
+    }
+  };
 
   const operators = {
     'lt': '<',
@@ -203,63 +219,60 @@ function handleFilterParams(urlparams, allowedFields) {
     'gte': '>=',
     'eq': '='
   };
-  // console.log(urlparams);
-  const filt = urlparams.filter || urlparams.filters;
-  if (filt == undefined) {
-    const operatorPattern = new RegExp(/(lte?|gte?|eq)(?=:.+)/g);
-    const valuePattern = new RegExp(/(?<=(lte?|gte?|eq):).+/g);
 
-    const bannedKeywords = [ 'limit', 'offset', 'sort', 'order' ]; // -filter
-    for (let field of Object.keys(urlparams).filter(v => !bannedKeywords.includes(v))) {
-      let fieldValue = urlparams[field];
-      if (fieldValue == undefined) continue;
+  urlparams = parse(urlparams).query;
+  urlparams = urlparams == null ? [] : urlparams.split('&');
 
-      if (fieldValue.length == undefined && typeof fieldValue == 'object') {
-        const ops = Object.keys(fieldValue);
-        for (let op of ops) {
-          if (typeof fieldValue[op] == 'object') continue;
-          if (operators[op] == undefined) continue;
+  for (let urlparam of urlparams) {
+    const splitparam = urlparam.split('=');
+    const key = splitparam[0], value = splitparam[1];
 
-          filters[isCertain(field) ? 'immediate' : 'postquery'].push({ 'field': field, 'value': fieldValue[op], 'operator': operators[op] });
-        }
-      } else {
-        const isRHS = fieldValue.includes(':');
-        if (typeof fieldValue != 'object' && !isRHS) {
-          filters[isCertain(field) ? 'immediate' : 'postquery'].push({ 'field': field, 'value': fieldValue, 'operator': operators['eq'] });
-          continue;
-        } else if (isRHS)
-          fieldValue = [ fieldValue ];
+    if (key == undefined || value == undefined) continue;
 
-        for (let filter of fieldValue) {
-          let value = filter.match(valuePattern);
-          if (value == null) continue;
-          value = value[0];
+    if ([ 'filter', 'filters' ].includes(key)) {
+      const fieldPattern = new RegExp(/([A-Z]|[a-z])+((?=\[(lte?|gte?|eq)\]:)|(?=:))/g),
+        operatorPattern = new RegExp(/(?<=\[)gte?|lte?|eq(?=\])/g),
+        valuePattern = new RegExp(/(?<=:).+/g);
+      let filterValues = value.replace(', ', ',').split(',');
+      for (let filter of filterValues) {
+        let field = filter.match(fieldPattern),
+          operator = filter.match(operatorPattern),
+          value = filter.match(valuePattern);
 
-          let op = filter.match(operatorPattern);
-          if (op != null) op = operators[op[0]];
-          filters[isCertain(field) ? 'immediate' : 'postquery'].push({ 'field': field, 'value': value, 'operator': (op == undefined ? operators['eq'] : op) });
-        }
+        // IDEA: ha nincs megadva value érték, lehetne arra filterelni aminek van ilyen mezője
+        if (field == null || value == null) continue;
+        field = field[0], value = value[0];
+        if (operator == null) operator = operators['eq'];
+        else
+          operator = operators[operator[0]];
+        if (operator == undefined) operator = operators['eq'];
+
+        pushTo(field, value, operator);
       }
-    }
-  } else {
-    const fieldPattern = new RegExp(/([A-Z]|[a-z])+((?=\[(lte?|gte?|eq)\]:)|(?=:))/g),
-      operatorPattern = new RegExp(/(?<=\[)gte?|lte?|eq(?=\])/g),
-      valuePattern = new RegExp(/(?<=:).+/g);
-    let filterValues = filt.replace(', ', ',').split(',');
-    for (let filter of filterValues) {
-      let field = filter.match(fieldPattern),
-        operator = filter.match(operatorPattern),
-        value = filter.match(valuePattern);
+    } else {
+      if ([ 'limit', 'offset', 'sort', 'order' ].includes(key)) continue;
 
-      // IDEA: ha nincs megadva value érték, lehetne arra filterelni aminek van ilyen mezője
-      if (field == null || value == null) continue;
-      field = field[0], value = value[0];
-      if (operator == null) operator = operators['eq'];
-      else
-        operator = operators[operator[0]];
-      if (operator == undefined) operator = operators['eq'];
+      if (key.match(/\[(lte?|gte?|eq)\]/g)) {
+        // RID[gte]=3
+        let operator = key.match(/(?<=\[)gte?|lte?|eq(?=\])/g)?.[0];
+        if (!operator) operator = 'eq';
 
-      filters[isCertain(field) ? 'immediate' : 'postquery'].push({ field, operator, value });
+        const field = key.match(/.+(?=\[(gte?|lte?|eq)\])/g)?.[0];
+        if (!field) continue;
+
+        pushTo(field, tryparse(value), operators[operator]);
+      } else if (value.match(/(gte?|lte?|eq):/g)) {
+        // RID=gt:3
+        const val = value.match(/(?<=:).+/g)?.[0];
+        if (!val) continue;
+
+        let operator = value.match(/(gte?|lte?|eq)(?=:)/g)?.[0];
+        if (!operator) operator = 'eq';
+
+        pushTo(key, tryparse(val), operators[operator]);
+      } else {
+        pushTo(key, tryparse(value), operators['eq']);
+      }
     }
   }
 
@@ -268,10 +281,17 @@ function handleFilterParams(urlparams, allowedFields) {
 
 function attachFilters(query, filters) {
   for (let filter of filters) {
-    if (filter.value == 'null')
-      query.whereNull(filter.field);
-    else
-      query.where(filter.field, filter.operator, filter.value);
+    if (Array.isArray(filter)) {
+      query.where(builder => {
+        for (let f of filter)
+          builder.orWhere(f.field, f.operator, f.value);
+      });
+    } else {
+      if (filter.value == 'null')
+        query.whereNull(filter.field);
+      else
+        query.where(filter.field, filter.operator, filter.value);
+    }
   }
   return query;
 }
@@ -300,6 +320,16 @@ function compareStringOp(a, b, op) {
       return a <= b;
   }
 }
+function compareMultiple(comparesArray, value) {
+  let c;
+  for (let compare of comparesArray) {
+    let v = parseInt(compare.value, 10);
+    compare.value = Number.isNaN(v) ? compare.value : v;
+    c = c || compareStringOp(compare.value, value, compare.operator);
+  }
+  return c;
+}
+
 function traverse(obj, map) {
   let c = obj;
   for (let key of map) {
@@ -308,14 +338,14 @@ function traverse(obj, map) {
   }
   return c;
 }
-async function setupBatchRequest(query, urlparams, mounts = []) {
+async function setupBatchRequest(query, urlparams, rawUrl, mounts = []) {
   const limit = (() => {
     let l = parseInt(urlparams.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || options.api.batchRequests.defaultLimit;
     return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
   })();
   const offset = parseInt(urlparams.offset?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || 0;
 
-  const filterparams = handleFilterParams(urlparams, getSelectFields(query));
+  const filterparams = handleFilterParams(rawUrl, getSelectFields(query));
   attachFilters(query, filterparams.immediate);
 
   let sortparams = handleSortParams(urlparams, getSelectFields(query));
@@ -335,15 +365,29 @@ async function setupBatchRequest(query, urlparams, mounts = []) {
   const finalData = await handleMounts(data, mounts);
 
   for (let filter of filterparams.postquery) {
-    let traversePath = filter.field.split('.');
-    let v = parseInt(filter.value, 10);
-    filter.value = Number.isNaN(v) ? filter.value : v;
-    for (let i = 0; i < finalData.length; i++) {
-      const traversed = traverse(finalData[i], traversePath);
-      if (traversed == undefined) continue;
+    const isOrRel = Array.isArray(filter);
+    let traversePath = (isOrRel ? filter[0] : filter).field.split('.');
 
-      if (!compareStringOp(traversed, filter.value, filter.operator)) {
-        delete finalData[i];
+    if (isOrRel) {
+      for (let i = 0; i < finalData.length; i++) {
+        const traversed = traverse(finalData[i], traversePath);
+        if (traversed == undefined) continue;
+
+        if (!compareMultiple(filter, traversed)) {
+          delete finalData[i];
+        }
+      }
+    } else {
+      let v = parseInt(filter.value, 10);
+      filter.value = Number.isNaN(v) ? filter.value : v;
+
+      for (let i = 0; i < finalData.length; i++) {
+        const traversed = traverse(finalData[i], traversePath);
+        if (traversed == undefined) continue;
+
+        if (!compareStringOp(traversed, filter.value, filter.operator)) {
+          delete finalData[i];
+        }
       }
     }
   }

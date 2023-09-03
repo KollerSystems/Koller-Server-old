@@ -79,7 +79,7 @@ users.get('/', async (req, res, next) => {
     const mount = req.query.role == 'student' ? [ { 'mountPoint': 'Class', 'callback': parent => {
       return knx('class').first('*').where('ID', deleteProperty(parent, 'ClassID'));
     } } ] : [];
-    users = await setupBatchRequest(query, req.query, mount);
+    users = await setupBatchRequest(query, req.query, req.url, mount);
   } else {
     if (req.query.sort ?? '') {
       let nullsLast = true;
@@ -90,7 +90,7 @@ users.get('/', async (req, res, next) => {
         let rolequery = knx(role).select(getPermittedFields(role, roleMappings.byID[res.locals.roleID])).limit(limit+offset);
         let sorts = handleSortParams(req.query, getSelectFields(rolequery));
         globalsorts = globalsorts.concat(sorts);
-        attachFilters(rolequery, handleFilterParams(req.query, filterable).immediate);
+        attachFilters(rolequery, handleFilterParams(req.url, filterable).immediate);
         rolequery = await rolequery.orderBy(sorts);
         users = users.concat(rolequery);
       }
@@ -119,7 +119,7 @@ users.get('/', async (req, res, next) => {
           .joinRaw('natural join user')
           .where('role', roleMappings.byRole[role])
           .limit(limitRemains).offset(offsetRemains);
-        query = await attachFilters(query, handleFilterParams(req.query, filterable).immediate);
+        query = await attachFilters(query, handleFilterParams(req.url, filterable).immediate);
         users = users.concat(query);
 
         const currentCapacity = (await knx(role).select(knx.count('UID').as('rows')))[0].rows;

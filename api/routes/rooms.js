@@ -11,7 +11,7 @@ rooms.get('/', async (req, res, next) => {
   const fieldsPermitted = getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat('Name');
   // fieldsPermitted.splice(fieldsPermitted.indexOf('RID'), 1);
 
-  data = await setupBatchRequest(data, req.query, [ { 'mountPoint': 'Residents', 'callback': async parent => {
+  data = await setupBatchRequest(data, req.query, req.url, [ { 'mountPoint': 'Residents', 'callback': async parent => {
     return await knx('resident').select(fieldsPermitted).joinRaw('natural join student').where('RID', parent.RID);
   } } ]);
 

@@ -67,4 +67,18 @@ function deleteProperty(obj, key) {
   return v;
 }
 
-export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, cmp, remove, deleteProperty };
+function tryparse(str) {
+  let v = parseInt(str, 10);
+  return isNaN(v) ? str : v;
+}
+
+function findIndecies(arr, callback) {
+  let found = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (callback(arr[i])) found.push(i);
+    // console.log(arr[i], callback(arr[i]))
+  }
+  return found;
+}
+
+export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, cmp, remove, deleteProperty, tryparse, findIndecies };
