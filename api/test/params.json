@@ -91,7 +91,7 @@
     }
   },
   "database": {
-    "tables": ["auth", "crossings", "login_data", "mifare_tags", "permissions", "route_access", "dormroom", "resident", "role_name", "roomorder", "student", "teacher", "user"],
-    "reqPermDefinitions": ["student", "teacher", "mifare_tags", "dormroom", "resident"]
+    "tables": ["auth", "crossings", "login_data", "mifare_tags", "permissions", "route_access", "dorm_room", "resident", "role_name", "room_order", "student", "teacher", "user"],
+    "reqPermDefinitions": ["student", "teacher", "mifare_tags", "dorm_room", "resident"]
   }
 }

@@ -107,7 +107,7 @@ describe('Checking server configuration', async function() {
   });
 
   it('room definitions exist', async () => {
-    const missingRIDs = await knx('dormroom').select('*').whereNotExists(knx('resident').select('*').whereRaw('dormroom.RID = resident.RID'));
+    const missingRIDs = await knx('dorm_room').select('*').whereNotExists(knx('resident').select('*').whereRaw('dorm_room.RID = resident.RID'));
     expect(missingRIDs, missingRIDs).to.be.empty;
   });
 

@@ -179,10 +179,10 @@ CREATE TABLE IF NOT EXISTS `mandatory_programs` (
 ) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `attendees` (
-  `UID` int(15) unsigned NOT NULL,
   `ID` int(15) unsigned NOT NULL AUTO_INCREMENT,
-  `ProgramID`int(15) NOT NULL,
-  `Type`tinyint(1) NOT NULL,
+  `UID` int(15) unsigned NOT NULL,
+  `ProgramID` int(15) NOT NULL,
+  `Type` tinyint(1) NOT NULL,
   PRIMARY KEY (`ID`),
   FOREIGN KEY (`UID`) REFERENCES user(`UID`)
 ) DEFAULT COLLATE=utf8_bin;
