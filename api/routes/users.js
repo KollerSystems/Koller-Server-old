@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { knx, roleMappings, options } from '../index.js';
-import { attachFilters, classicErrorSend, filterByPermission, getPermittedFields, getSelectFields, handleFilterParams, handleSortParams, setupBatchRequest } from '../helpers.js';
-import { isEmptyObject, cmp, deleteProperty } from '../misc.js';
+import { knx, roleMappings } from '../index.js';
+import { addCoalesces, classicErrorSend, filterByPermission, getPermittedFields, selectCoalesce, setupBatchRequest } from '../helpers.js';
+import { isEmptyObject } from '../misc.js';
 
 const users = Router({ mergeParams: false });
 
@@ -49,92 +49,20 @@ users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
 });
 
 users.get('/', async (req, res, next) => {
-  const allowedUsersRegexp = new RegExp(options.api.batchRequests.allowedRoles.join('|')); // regexp: /student|teacher|.../
+  // const allowedUsersRegexp = new RegExp(options.api.batchRequests.allowedRoles.join('|')); // regexp: /student|teacher|.../
 
-  const limit = (() => {
-    let l = parseInt(req.query.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || options.api.batchRequests.defaultLimit;
-    return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
-  })();
-  const offset = parseInt(req.query.offset?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || 0;
+  const fields = selectCoalesce([
+    { 'fields': [ 'UID', 'Role' ], 'table': 'user' },
+    { 'fields': getPermittedFields('student', roleMappings.byID[res.locals.roleID], false), 'table': 'student' },
+    { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' }
+  ]);
+  let query = knx('user');
+  addCoalesces(query, fields.coalesces);
+  query.select(...fields.selects).leftJoin('student', 'student.UID', 'user.UID').leftJoin('teacher', 'teacher.UID', 'user.UID');
 
-  let users = [];
-  const filterable = [ 'UID', 'Name' ];
-  if (req.query.role?.match(allowedUsersRegexp)) {
-    let fields = getPermittedFields(req.query.role, roleMappings.byID[res.locals.roleID]);
-    // let query = knx(req.query.role).select(fields)
-    //   .joinRaw('natural join user')
-    //   .where('role', roleMappings.byRole[req.query.role])
-    //   .orderBy(handleSortParams(req.query, fields))
-    //   .limit(limit).offset(offset);
-    // attachFilters(query, handleFilterParams(req.query, fields));
-    // users = await query;
-    // for (let i = 0; i < users.length; i++) {
-    //   const classdata = await knx('class').first('*').where('ID', users[i].ClassID ?? -1);
-    //   if (users[i].ClassID ?? '') users[i].Class = classdata;
-    //   delete users[i].ClassID;
-    // }
-    let query = knx(req.query.role).select(fields)
-      .joinRaw('natural join user')
-      .where('role', roleMappings.byRole[req.query.role]);
-    const mount = req.query.role == 'student' ? [ { 'mountPoint': 'Class', 'callback': parent => {
-      return knx('class').first('*').where('ID', deleteProperty(parent, 'ClassID'));
-    } } ] : [];
-    users = await setupBatchRequest(query, req.query, req.url, mount);
-  } else {
-    if (req.query.sort ?? '') {
-      let nullsLast = true;
-      if (req.query.nulls == 'first') nullsLast = false;
-
-      let globalsorts = [];
-      for (let role of options.api.batchRequests.allowedRoles) {
-        let rolequery = knx(role).select(getPermittedFields(role, roleMappings.byID[res.locals.roleID])).limit(limit+offset);
-        let sorts = handleSortParams(req.query, getSelectFields(rolequery));
-        globalsorts = globalsorts.concat(sorts);
-        attachFilters(rolequery, handleFilterParams(req.url, filterable).immediate);
-        rolequery = await rolequery.orderBy(sorts);
-        users = users.concat(rolequery);
-      }
-
-      let collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-      users = users.sort((a, b) => {
-        let v = 0;
-        for (let sort of globalsorts) {
-          v = v || cmp(a[sort.column], b[sort.column], sort.order == 'desc', nullsLast, collator.compare);
-        }
-        return v;
-      }).slice(offset, limit+offset);
-
-      for (let i = 0; i < users.length; i++) {
-        const classdata = await knx('class').first('*').where('ID', users[i].ClassID ?? -1);
-        if (users[i].ClassID ?? '') users[i].Class = classdata;
-        delete users[i].ClassID;
-      }
-    } else {
-      let limitRemains = limit;
-      let offsetRemains = offset;
-      for (let role of options.api.batchRequests.allowedRoles) {
-        if (limitRemains <= 0) break;
-
-        let query = knx(role).select(getPermittedFields(role, roleMappings.byID[res.locals.roleID]))
-          .joinRaw('natural join user')
-          .where('role', roleMappings.byRole[role])
-          .limit(limitRemains).offset(offsetRemains);
-        query = await attachFilters(query, handleFilterParams(req.url, filterable).immediate);
-        users = users.concat(query);
-
-        const currentCapacity = (await knx(role).select(knx.count('UID').as('rows')))[0].rows;
-
-        limitRemains -= query.length;
-        offsetRemains -= (currentCapacity - query.length);
-        if (offsetRemains < 0) offsetRemains = 0;
-      }
-
-      for (let i = 0; i < users.length; i++) {
-        const classdata = await knx('class').first('*').where('ID', users[i].ClassID ?? -1);
-        if (users[i].ClassID ?? '') users[i].Class = classdata;
-        delete users[i].ClassID;
-      }
-    }
+  let users = await setupBatchRequest(query, req.query, req.url);
+  for (let i = 0; i < users.length; i++) {
+    Object.keys(users[i]).forEach((k) => users[i][k] == null && delete users[i][k]);
   }
 
   res.header('Content-Type', 'application/json').status(200).send(users).end();

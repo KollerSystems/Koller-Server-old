@@ -406,6 +406,63 @@ async function setupBatchRequest(query, urlparams, rawUrl, mounts = []) {
   });
 }
 
+// TODO: revision - wasteful?
+function addCoalesces(query, coalesces) {
+  for (let coalesce of coalesces) {
+    query.select(knx.raw(coalesce));
+  }
+}
+function selectCoalesce(tableArr) {
+  const findDupFields = (checkedTableObj, checkedTables) => {
+    let tables = [];
+    for (let tableObj of tableArr) {
+      if (checkedTableObj.table == tableObj.table || checkedTables.includes(tableObj.table)) continue;
+
+      const found = tableObj.fields.filter(field => checkedTableObj.fields.indexOf(field) != -1);
+      if (found.length > 0) tables.push({ 'fields': found, 'table': tableObj.table });
+    }
+    return tables;
+  };
+
+  let checkedTables = [];
+  let duplicateFields = {};
+  for (let tableObj of tableArr) {
+    const allDuplicates = findDupFields(tableObj, checkedTables);
+    checkedTables.push(tableObj.table);
+    for (let duplicates of allDuplicates) {
+      for (let field of duplicates.fields) {
+        if (!(field in duplicateFields)) duplicateFields[field] = [];
+
+        if (!duplicateFields[field].includes(duplicates.table)) duplicateFields[field].push(duplicates.table);
+        if (!duplicateFields[field].includes(tableObj.table)) duplicateFields[field].push(tableObj.table);
+      }
+    }
+  }
+
+  let coalesces = [];
+  for (let field in duplicateFields) {
+    let selectStr = '';
+    selectStr += 'COALESCE(';
+    for (let i = 0; i < duplicateFields[field].length; i++) {
+      const tables = duplicateFields[field];
+      selectStr += tables[i] + '.' + field + (i+1 == tables.length ? `) AS ${field}` : ', ');
+    }
+    coalesces.push(selectStr);
+  }
+
+  let selects = [];
+  for (let tableObj of tableArr) {
+    const fields = tableObj.fields.filter(field => {
+      if (duplicateFields?.[field] ?? '') return !duplicateFields[field].includes(tableObj.table);
+      return true;
+    });
+    for (let field of fields) {
+      selects.push(tableObj.table + '.' + field);
+    }
+  }
+  return { coalesces, selects };
+}
+
 /*
 async function boilerplateRequestID (req, res, next, suboptions) {
   const data = await knx(suboptions.table).first('*').where(suboptions.searchID, suboptions.IDval);
@@ -440,4 +497,4 @@ function attachBoilerplate(method, path, callback, suboptions) {
   });
 }*/
 
-export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess,  getSelectFields, handleSortParams, handleFilterParams, attachFilters, setupBatchRequest/* , boilerplateRequestBatch, boilerplateRequestID, attachBoilerplate*/ };
+export { checkToken, handleNotFound, logRequest, generateUniqueToken, classicErrorSend, filterByPermission, getPermittedFields, handleRouteAccess,  getSelectFields, handleSortParams, handleFilterParams, attachFilters, setupBatchRequest, addCoalesces, selectCoalesce/* , boilerplateRequestBatch, boilerplateRequestID, attachBoilerplate*/ };
