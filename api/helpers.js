@@ -138,9 +138,18 @@ function handleRouteAccess(req, res, next) {
 function getSelectFields(query) {
   let selectParams = query.toSQL().sql.match(/(?<=select ).+(?= from)/g);
   if (selectParams != null)
-    selectParams = selectParams[0].match(/(?<=`)[A-z]+(?=`)/g);
+    selectParams = selectParams[0].replace(', ', ',').split(',');
   else selectParams = [];
-  return selectParams;
+  const fields = [];
+  for (let selectParam of selectParams) {
+    let renameMatch = selectParam.match(/(?<=AS )[A-z]+/g);
+    let fieldTableMatch = selectParam.match(/(?<=`[A-z]+`\.`)[A-z]+(?=`)/g);
+    let fieldMatch = selectParam.match(/(?<=`)[A-z]+(?=`)/g);
+
+    const pushElem = renameMatch?.[0] || fieldTableMatch?.[0] || fieldMatch?.[0];
+    if (pushElem != null) fields.push(pushElem);
+  }
+  return fields;
 }
 
 function handleSortParams(urlparams, allowedFields) {
@@ -225,7 +234,7 @@ function handleFilterParams(urlparams, allowedFields) {
 
   for (let urlparam of urlparams) {
     const splitparam = urlparam.split('=');
-    const key = splitparam[0], value = splitparam[1];
+    const key = splitparam[0], value = decodeURIComponent(splitparam[1]);
 
     if (key == undefined || value == undefined) continue;
 
@@ -250,8 +259,7 @@ function handleFilterParams(urlparams, allowedFields) {
         pushTo(field, value, operator);
       }
     } else {
-      if ([ 'limit', 'offset', 'sort', 'order' ].includes(key)) continue;
-
+      if ([ 'limit', 'offset', 'sort', 'order', 'nulls' ].includes(key)) continue;
       if (key.match(/\[(lte?|gte?|eq)\]/g)) {
         // RID[gte]=3
         let operator = key.match(/(?<=\[)gte?|lte?|eq(?=\])/g)?.[0];
@@ -413,54 +421,38 @@ function addCoalesces(query, coalesces) {
   }
 }
 function selectCoalesce(tableArr) {
-  const findDupFields = (checkedTableObj, checkedTables) => {
-    let tables = [];
-    for (let tableObj of tableArr) {
-      if (checkedTableObj.table == tableObj.table || checkedTables.includes(tableObj.table)) continue;
+  let fields = {};
+  for (let i = 0; i < tableArr.length; i++) {
+    // if ((i+1) == tableArr.length) break;
+    for (let j = i+1; j < tableArr.length; j++) {
+      const dupes = tableArr[i].fields.filter(v => tableArr[j].fields.includes(v));
+      for (let dupe of dupes) {
+        if (!(dupe in fields)) fields[dupe] = [];
 
-      const found = tableObj.fields.filter(field => checkedTableObj.fields.indexOf(field) != -1);
-      if (found.length > 0) tables.push({ 'fields': found, 'table': tableObj.table });
-    }
-    return tables;
-  };
-
-  let checkedTables = [];
-  let duplicateFields = {};
-  for (let tableObj of tableArr) {
-    const allDuplicates = findDupFields(tableObj, checkedTables);
-    checkedTables.push(tableObj.table);
-    for (let duplicates of allDuplicates) {
-      for (let field of duplicates.fields) {
-        if (!(field in duplicateFields)) duplicateFields[field] = [];
-
-        if (!duplicateFields[field].includes(duplicates.table)) duplicateFields[field].push(duplicates.table);
-        if (!duplicateFields[field].includes(tableObj.table)) duplicateFields[field].push(tableObj.table);
+        if (!fields[dupe].includes(tableArr[i].table)) fields[dupe].push(tableArr[i].table);
+        if (!fields[dupe].includes(tableArr[j].table)) fields[dupe].push(tableArr[j].table);
       }
     }
   }
 
   let coalesces = [];
-  for (let field in duplicateFields) {
-    let selectStr = '';
-    selectStr += 'COALESCE(';
-    for (let i = 0; i < duplicateFields[field].length; i++) {
-      const tables = duplicateFields[field];
-      selectStr += tables[i] + '.' + field + (i+1 == tables.length ? `) AS ${field}` : ', ');
+  for (let field in fields) {
+    let str = 'COALESCE(';
+    for (let table of fields[field]) {
+      str += table + '.' + field + ', ';
     }
-    coalesces.push(selectStr);
+    str = str.replace(/,\s$/, '') + `) AS ${field}`;
+    coalesces.push(str);
   }
 
   let selects = [];
   for (let tableObj of tableArr) {
-    const fields = tableObj.fields.filter(field => {
-      if (duplicateFields?.[field] ?? '') return !duplicateFields[field].includes(tableObj.table);
-      return true;
-    });
-    for (let field of fields) {
-      selects.push(tableObj.table + '.' + field);
+    for (let field of tableObj.fields) {
+      if (!(field in fields)) selects.push(tableObj.table + '.' + field);
     }
   }
-  return { coalesces, selects };
+
+  return { selects, coalesces };
 }
 
 /*
