@@ -138,24 +138,35 @@ function handleRouteAccess(req, res, next) {
 function getSelectFields(query) {
   let selectParams = query.toSQL().sql.match(/(?<=select ).+(?= from)/g);
   if (selectParams != null)
-    selectParams = selectParams[0].replace(', ', ',').split(',');
+    selectParams = selectParams[0].match(/(\w+\([\w.`, ]+\)( AS \w+)?)|([\w.`]+( AS \w+)?)/g);
   else selectParams = [];
-  const fields = [];
+  const fields = { 'all': [], 'coalesce': {} };
   for (let selectParam of selectParams) {
-    let renameMatch = selectParam.match(/(?<=AS )[A-z]+/g);
-    let fieldTableMatch = selectParam.match(/(?<=`[A-z]+`\.`)[A-z]+(?=`)/g);
-    let fieldMatch = selectParam.match(/(?<=`)[A-z]+(?=`)/g);
+    let renameMatch = selectParam.match(/(?<=AS `?)\w+/g);
+    let fieldMatch = selectParam.match(/[\w`]+$/g);
 
-    const pushElem = renameMatch?.[0] || fieldTableMatch?.[0] || fieldMatch?.[0];
-    if (pushElem != null) fields.push(pushElem);
+    const pushElem = renameMatch?.[0]?.replaceAll('`', '') || fieldMatch?.[0].replaceAll('`', '');
+    if (pushElem != null) fields.all.push(pushElem);
+
+    let coalesceMatch = selectParam.match(/(COALESCE|coalesce)\(.+\)/g);
+    if (!(coalesceMatch ?? '')) continue;
+
+    let fieldIdentities = coalesceMatch[0].slice(9, -1).replaceAll(', ', ',').split(',');
+    let fieldName = fieldIdentities[0].match(/(?<=\.`?)\w+/g)?.[0];
+    if (!(fieldName ?? '')) continue;
+
+    const regexp = new RegExp(`(?<=\\.\`?)${fieldName}`, 'g');
+    const sameFields = fieldIdentities.slice(1).every(identity => (identity.match(regexp)?.[0] ?? ''));
+    if (sameFields) fields.coalesce[fieldName] = coalesceMatch[0];
   }
+
   return fields;
 }
 
 function handleSortParams(urlparams, allowedFields) {
   if (!(urlparams.sort ?? '')) return [];
 
-  const isCertain = field => !field.match(/\./g) && allowedFields.includes(field);
+  const isCertain = field => allowedFields.all.includes(field);
 
   let sortparams = urlparams.sort.replace(', ', ',').split(',');
   let orderparams = urlparams.order?.replace(', ', ',').split(',');
@@ -191,6 +202,11 @@ function handleSortParams(urlparams, allowedFields) {
 
   for (let i = 0; i < sort.length; i++) {
     sort[i].immediate = isCertain(sort[i].column);
+    sort[i].complex = false;
+    if (sort[i].column in allowedFields.coalesce) {
+      sort[i].column = allowedFields.coalesce[sort[i].column];
+      sort[i].complex = true;
+    }
   }
 
   return sort;
@@ -205,18 +221,18 @@ function handleFilterParams(urlparams, allowedFields) {
   let filters = { 'immediate': [], 'postquery': [] };
   let filtersMap = { 'immediate': [], 'postquery': [] };
 
-  const isCertain = field => !field.match(/\./g) && allowedFields.includes(field);
+  const isCertain = field => !field.match(/\./g) && allowedFields.all.includes(field);
   const filterType = (obj, field) => obj[isCertain(field) ? 'immediate' : 'postquery'];
   const pushTo = (field, value, operator) => {
     const index = filterType(filtersMap, field).findIndex(v => v.field == field && v.operator == operator);
     if (index == -1) {
       filterType(filtersMap, field).push({ field, operator });
-      filterType(filters, field).push({ field, value, operator });
+      filterType(filters, field).push({ 'field': allowedFields.coalesce[field] || field, value, operator });
     } else {
       const valueAtIndex = filterType(filters, field)[index];
-      if (Array.isArray(valueAtIndex)) filterType(filters, field)[index].push({ field, value, operator });
+      if (Array.isArray(valueAtIndex)) filterType(filters, field)[index].push({ 'field': allowedFields.coalesce[field] || field, value, operator });
       else {
-        filterType(filters, field)[index] = [ valueAtIndex, { field, value, operator } ];
+        filterType(filters, field)[index] = [ valueAtIndex, { 'field': allowedFields.coalesce[field] || field, value, operator } ];
       }
     }
   };
@@ -292,16 +308,25 @@ function attachFilters(query, filters) {
     if (Array.isArray(filter)) {
       query.where(builder => {
         for (let f of filter)
-          builder.orWhere(f.field, f.operator, f.value);
+          builder.orWhere(knx.raw(f.field), f.operator, f.value);
       });
     } else {
       if (filter.value == 'null')
         query.whereNull(filter.field);
       else
-        query.where(filter.field, filter.operator, filter.value);
+        query.where(knx.raw(filter.field), filter.operator, filter.value);
     }
   }
   return query;
+}
+
+function attachSorts(query, sorts) {
+  const simplesorts = sorts.filter(v => !v.complex);
+  query.orderBy(simplesorts);
+  for (let sort of sorts) {
+    if (!sort.complex) continue;
+    query.orderBy(knx.raw(sort.column), sort.order);
+  }
 }
 
 async function handleMounts(data, mounts) {
@@ -368,7 +393,9 @@ async function setupBatchRequest(query, urlparams, rawUrl, mounts = []) {
     }
   }
 
-  const data = query.offset(offset).limit(limit).orderBy(immediateSort);
+  const data = query.offset(offset).limit(limit);
+  attachSorts(data, immediateSort);
+
   if (mounts.length == 0) return await data;
   const finalData = await handleMounts(data, mounts);
 
