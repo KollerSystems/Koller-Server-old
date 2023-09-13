@@ -60,7 +60,7 @@ users.get('/', async (req, res, next) => {
   addCoalesces(query, fields.coalesces);
   query.select(...fields.selects).leftJoin('student', 'student.UID', 'user.UID').leftJoin('teacher', 'teacher.UID', 'user.UID');
 
-  let users = await setupBatchRequest(query, req.query, req.url);
+  let users = await setupBatchRequest(query, req.query, req.url, [ { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } } ], { 'ClassID': undefined });
   for (let i = 0; i < users.length; i++) {
     Object.keys(users[i]).forEach((k) => users[i][k] == null && delete users[i][k]);
   }

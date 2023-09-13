@@ -163,10 +163,10 @@ function getSelectFields(query) {
   return fields;
 }
 
-function handleSortParams(urlparams, allowedFields) {
+function handleSortParams(urlparams, allowedFields, translation) {
   if (!(urlparams.sort ?? '')) return [];
 
-  const isCertain = field => allowedFields.all.includes(field);
+  const isCertain = field => allowedFields.all.includes(field) || (traverse(translation, field.split('.')) != undefined);
 
   let sortparams = urlparams.sort.replace(', ', ',').split(',');
   let orderparams = urlparams.order?.replace(', ', ',').split(',');
@@ -199,10 +199,11 @@ function handleSortParams(urlparams, allowedFields) {
       if (obj.column != undefined) sort.push(obj);
     }
   }
-
   for (let i = 0; i < sort.length; i++) {
     sort[i].immediate = isCertain(sort[i].column);
     sort[i].complex = false;
+    let traversed = traverse(translation, sort[i].column.split('.'));
+    if (traversed ?? '') sort[i].column = traversed;
     if (sort[i].column in allowedFields.coalesce) {
       sort[i].column = allowedFields.coalesce[sort[i].column];
       sort[i].complex = true;
@@ -212,7 +213,7 @@ function handleSortParams(urlparams, allowedFields) {
   return sort;
 }
 
-function handleFilterParams(urlparams, allowedFields) {
+function handleFilterParams(urlparams, allowedFields, translation) {
   /* styles:
    * ?RID[lte]=17
    * ?RID=lte:17
@@ -221,18 +222,22 @@ function handleFilterParams(urlparams, allowedFields) {
   let filters = { 'immediate': [], 'postquery': [] };
   let filtersMap = { 'immediate': [], 'postquery': [] };
 
-  const isCertain = field => !field.match(/\./g) && allowedFields.all.includes(field);
+  const isCertain = field => allowedFields.all.includes(field) || (traverse(translation, field.split('.')) ?? '');
   const filterType = (obj, field) => obj[isCertain(field) ? 'immediate' : 'postquery'];
   const pushTo = (field, value, operator) => {
     const index = filterType(filtersMap, field).findIndex(v => v.field == field && v.operator == operator);
     if (index == -1) {
+      let traversed = traverse(translation, field.split('.'));
+
       filterType(filtersMap, field).push({ field, operator });
-      filterType(filters, field).push({ 'field': allowedFields.coalesce[field] || field, value, operator });
+      filterType(filters, field).push({ 'field': traversed || allowedFields.coalesce[field] || field, value, operator });
     } else {
+      let traversed = traverse(translation, field.split('.'));
+
       const valueAtIndex = filterType(filters, field)[index];
-      if (Array.isArray(valueAtIndex)) filterType(filters, field)[index].push({ 'field': allowedFields.coalesce[field] || field, value, operator });
+      if (Array.isArray(valueAtIndex)) filterType(filters, field)[index].push({ 'field': traversed || allowedFields.coalesce[field] || field, value, operator });
       else {
-        filterType(filters, field)[index] = [ valueAtIndex, { 'field': allowedFields.coalesce[field] || field, value, operator } ];
+        filterType(filters, field)[index] = [ valueAtIndex, { 'field': traversed || allowedFields.coalesce[field] || field, value, operator } ];
       }
     }
   };
@@ -329,16 +334,6 @@ function attachSorts(query, sorts) {
   }
 }
 
-async function handleMounts(data, mounts) {
-  data = await data;
-  for (let i = 0; i < data.length; i++) {
-    for (let mount of mounts) {
-      data[i][mount.mountPoint] = await mount.callback(data[i]);
-    }
-  }
-  return data;
-}
-
 function compareStringOp(a, b, op) {
   switch (op) {
     case '=':
@@ -363,25 +358,36 @@ function compareMultiple(comparesArray, value) {
   return c;
 }
 
-function traverse(obj, map) {
+function traverse(obj, map, tillValue = true) {
   let c = obj;
-  for (let key of map) {
+  for (let i = 0; i < map.length; i++) {
     if (c == undefined) return undefined;
-    c = c[key];
+    if (!tillValue && i+1 == map.length) break;
+    c = c[map[i]];
   }
   return c;
 }
-async function setupBatchRequest(query, urlparams, rawUrl, mounts = []) {
+async function setupBatchRequest(query, urlparams, rawUrl, mounts = [], renames = {}) {
   const limit = (() => {
     let l = parseInt(urlparams.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || options.api.batchRequests.defaultLimit;
     return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
   })();
   const offset = parseInt(urlparams.offset?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || 0;
 
-  const filterparams = handleFilterParams(rawUrl, getSelectFields(query));
+  let translation = {};
+  for (let mount of mounts) {
+    if (!mount.flexible) continue;
+
+    query.leftJoin(mount.query.table, mount.join[0], mount.query.table + '.' + mount.join[1]);
+    translation[mount.point] = {};
+    for (let field of mount.query.fields)
+      translation[mount.point][field] = mount.query.table + '.' + field;
+  }
+
+  const filterparams = handleFilterParams(rawUrl, getSelectFields(query), translation);
   attachFilters(query, filterparams.immediate);
 
-  let sortparams = handleSortParams(urlparams, getSelectFields(query));
+  let sortparams = handleSortParams(urlparams, getSelectFields(query), translation);
   let immediateSort = [];
 
   for (let i = 0; i < sortparams.length; i++) {
@@ -397,7 +403,31 @@ async function setupBatchRequest(query, urlparams, rawUrl, mounts = []) {
   attachSorts(data, immediateSort);
 
   if (mounts.length == 0) return await data;
-  const finalData = await handleMounts(data, mounts);
+
+  let finalData = await query;
+
+  for (let obj of finalData) {
+    for (let mount of mounts) {
+      if (mount.flexible) {
+        obj[mount.point] = await knx(mount.query.table).first(mount.query.fields).where(mount.join[1], obj[mount.join[0]]);
+      } else {
+        obj[mount.point] = await mount.callback(obj);
+      }
+    }
+    for (let field in renames) {
+      let traversePath = field.split('.');
+      let traversed = traverse(obj, traversePath, false);
+      if (traversed == undefined) continue;
+
+      if (renames[field] == undefined) {
+        delete traversed[traversePath.at(-1)];
+      } else if (typeof renames[field] == 'string') {
+        let v = traversed[traversePath.at(-1)];
+        delete traversed[traversePath.at(-1)];
+        traversed[renames[field]] = v;
+      }
+    }
+  }
 
   for (let filter of filterparams.postquery) {
     const isOrRel = Array.isArray(filter);
@@ -426,11 +456,14 @@ async function setupBatchRequest(query, urlparams, rawUrl, mounts = []) {
       }
     }
   }
+  if (filterparams.postquery.length > 0) finalData = finalData.filter(v => v != null);
 
-
+  /*
+  // más a sortja ennek, és az SQLnek, így teljesen összekeveri
   let collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-  return finalData.filter(v => v != null).sort((a, b) => {
+  return finalData.sort((a, b) => {
     for (let sort of sortparams) {
+      if (sort.immediate) continue;
       let traversePath = sort.column.split('.');
 
       let travA = traverse(a, traversePath), travB = traverse(b, traversePath);
@@ -438,7 +471,8 @@ async function setupBatchRequest(query, urlparams, rawUrl, mounts = []) {
       if (compared != undefined && compared != 0) return compared;
     }
     return 0;
-  });
+  }); */
+  return finalData;
 }
 
 // TODO: revision - wasteful?
