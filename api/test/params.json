@@ -1,4 +1,10 @@
 {
+  "benchmark" : {
+    "on": true,
+    "file": "./test/bench.csv",
+    "delimiter": ",",
+    "order": ["oauth", "users", "rooms", "timetable"]
+  },
   "oauth": [
     {"credentials": {"username": "Miki", "password": "almafa1234", "grant_type": "password"}, "succeed": true},
     {"credentials": {"username": "DJ", "password": "almafa1234", "grant_type": "password"}, "succeed": true},
