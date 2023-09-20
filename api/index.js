@@ -24,6 +24,7 @@ const options = JSON.parse(
 
 let logFileStream = (options.logging.logFile != '') ? createWriteStream(options.logging.logFile, { 'flags': options.logging.overwriteLog ? 'w' : 'a' }) : undefined;
 
+process.env.TZ = 'UTC';
 
 const app = express();
 const api = express.Router();

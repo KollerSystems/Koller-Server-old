@@ -68,7 +68,7 @@ function deleteProperty(obj, key) {
 }
 
 function tryparse(str) {
-  let v = parseInt(str, 10);
+  let v = Number(str, 10);
   return isNaN(v) ? str : v;
 }
 

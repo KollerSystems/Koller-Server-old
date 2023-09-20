@@ -1,5 +1,5 @@
 import { knx, logFileStream, options, permMappings, routeAccess } from './index.js';
-import { intoTimestamp, generateToken, cmp, tryparse } from './misc.js';
+import { intoTimestamp, generateToken, tryparse } from './misc.js';
 import { parse } from 'node:url';
 
 /*
@@ -162,6 +162,21 @@ function getSelectFields(query) {
 
   return fields;
 }
+function getFromFields(query) {
+  let froms = [];
+  const sql = query.toSQL().sql;
+
+  let descartesFrom = sql.match(/(?<=from )(([\w`]+, )+)?[\w`]+/gi)?.[0]?.replaceAll(', ', ',')?.split(',');
+  if (descartesFrom ?? '') froms.push(...descartesFrom);
+
+  let joins = sql.match(/(?<=join )[\w`]+/gi);
+  if (joins ?? '') froms.push(...joins);
+
+  for (let i = 0; i < froms.length; i++)
+    froms[i] = froms[i].replaceAll('`', '');
+
+  return froms;
+}
 
 function handleSortParams(urlparams, allowedFields, translation) {
   if (!(urlparams.sort ?? '')) return [];
@@ -308,19 +323,56 @@ function handleFilterParams(urlparams, allowedFields, translation) {
   return filters;
 }
 
-function attachFilters(query, filters) {
+function attachFilters(query, filters, columns) {
+  const prettifyDateArr = (arr, extend = false) => {
+    let str = arr[0].toString();
+    for (let i = 1; i < arr.length; i++) {
+      str += '-' + arr[i].toString().padStart(2, '0');
+    }
+    if (extend) {
+      for (let i = arr.length; i < 3; i++) {
+        str += '-00';
+      }
+    }
+    return str;
+  };
+  const fieldValues = filter => {
+    const column = columns[filter.field];
+    if (column?.type == 'date') {
+      if (filter.operator == '=') {
+        filter.operator = 'like';
+        filter.value = prettifyDateArr(filter.value.toString().split('-')) + '%';
+      } else {
+        const split = filter.value.toString().split('-');
+        if (split.length < 3) {
+          const i = split.length - 1;
+          let f = [ '<=', '>' ].includes(filter.operator) ? 1 : 0;
+          f = f == -2 ? 0 : f;
+          split[i] = Number(split[i]) + f;
+        }
+
+        filter.value = prettifyDateArr(split, true);
+      }
+
+    } else {
+      filter.field = knx.raw(filter.field);
+    }
+    return [ filter.field, filter.operator, filter.value ];
+  };
+
   for (let filter of filters) {
     if (Array.isArray(filter)) {
       query.where(builder => {
         for (let f of filter)
-          builder.orWhere(knx.raw(f.field), f.operator, f.value);
+          builder.orWhere(...fieldValues(f));
       });
     } else {
       if (filter.value == 'null')
         query.whereNull(filter.field);
       else
-        query.where(knx.raw(filter.field), filter.operator, filter.value);
+        query.where(...fieldValues(filter));
     }
+
   }
   return query;
 }
@@ -384,8 +436,15 @@ async function setupBatchRequest(query, urlparams, rawUrl, mounts = [], renames 
       translation[mount.point][field] = mount.query.table + '.' + field;
   }
 
+  const tables = getFromFields(query);
+  let columns = {};
+  for (let table of tables) {
+    const cInfo = await knx(table).columnInfo();
+    columns = { ...columns, ... cInfo };
+  }
+
   const filterparams = handleFilterParams(rawUrl, getSelectFields(query), translation);
-  attachFilters(query, filterparams.immediate);
+  attachFilters(query, filterparams.immediate, columns);
 
   let sortparams = handleSortParams(urlparams, getSelectFields(query), translation);
   let immediateSort = [];

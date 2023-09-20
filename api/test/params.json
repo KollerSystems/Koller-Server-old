@@ -1,6 +1,6 @@
 {
   "benchmark" : {
-    "on": true,
+    "on": false,
     "file": "./test/bench.csv",
     "delimiter": ",",
     "order": ["oauth", "users", "rooms", "timetable"]
