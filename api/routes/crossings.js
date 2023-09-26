@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { setupBatchRequest } from '../helpers.js';
+import { setupBatchRequest } from '../helpers/batchRequests.js';
 import { knx, options, crossEvent, roleMappings } from '../index.js';
-import { isEmptyObject } from '../misc.js';
+import { isEmptyObject } from '../helpers/misc.js';
 
 const crossings = Router({ mergeParams: false });
 

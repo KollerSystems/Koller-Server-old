@@ -11,7 +11,7 @@ import { crossings } from './routes/crossings.js';
 import { rooms } from './routes/rooms.js';
 import { timetable } from './routes/timetable.js';
 
-import { checkToken, handleNotFound, logRequest, handleRouteAccess, classicErrorSend } from './helpers.js';
+import { checkToken, handleNotFound, logRequest, handleRouteAccess, classicErrorSend } from './helpers/helpers.js';
 import { treeifyMaps, extendMissingPermissions } from './startup.js';
 import { handleWebsocket } from './reader.js';
 

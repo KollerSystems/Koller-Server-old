@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { knx, roleMappings } from '../index.js';
-import { getPermittedFields, setupBatchRequest } from '../helpers.js';
-import { remove } from '../misc.js';
+import { setupBatchRequest } from '../helpers/batchRequests.js';
+import { getPermittedFields } from '../helpers/helpers.js';
+import { remove } from '../helpers/misc.js';
 
 const timetable = Router({ mergeParams: false });
 

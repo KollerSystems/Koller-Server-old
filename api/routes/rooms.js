@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { knx, roleMappings } from '../index.js';
-import { classicErrorSend, filterByPermission, getPermittedFields, setupBatchRequest } from '../helpers.js';
-import { isEmptyObject } from '../misc.js';
+import { setupBatchRequest } from '../helpers/batchRequests.js';
+import { classicErrorSend, getPermittedFields, filterByPermission } from '../helpers/helpers.js';
+import { isEmptyObject } from '../helpers/misc.js';
 
 const rooms = Router({ mergeParams: false });
 

@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { knx, roleMappings } from '../index.js';
-import { addCoalesces, classicErrorSend, filterByPermission, getPermittedFields, selectCoalesce, setupBatchRequest } from '../helpers.js';
-import { isEmptyObject } from '../misc.js';
+import { addCoalesces, classicErrorSend, filterByPermission, getPermittedFields, selectCoalesce } from '../helpers/helpers.js';
+import { setupBatchRequest } from '../helpers/batchRequests.js';
+import { isEmptyObject } from '../helpers/misc.js';
 
 const users = Router({ mergeParams: false });
 

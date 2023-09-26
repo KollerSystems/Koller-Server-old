@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { knx, options } from '../index.js';
-import { generateUniqueToken, classicErrorSend } from '../helpers.js';
+import { generateUniqueToken, classicErrorSend } from '../helpers/helpers.js';
 
 const oauth = Router();
 

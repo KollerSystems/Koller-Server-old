@@ -1,5 +1,5 @@
 import { knx, permMappings, roleMappings } from './index.js';
-import { has } from './misc.js';
+import { has } from './helpers/misc.js';
 const perms = [ 'Read', 'Write' ];
 
 function setIfMissingKey(obj, key, defaultValue = {}) {

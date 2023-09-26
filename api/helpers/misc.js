@@ -1,4 +1,4 @@
-import { options } from './index.js';
+import { options } from '../index.js';
 
 function randomNum(to) { // nem inklúzív
   return Math.floor((Math.random() * to));

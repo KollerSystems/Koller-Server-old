@@ -1,5 +1,5 @@
 import { knx, options, crossEvent } from './index.js';
-import { parseJSON, isEmptyObject } from './misc.js';
+import { parseJSON, isEmptyObject } from './helpers/misc.js';
 // import { Buffer } from 'node:Buffer';
 
 function handleWebsocket(ws) {
