@@ -77,7 +77,7 @@ const routeAccess = treeifyMaps(await knx('route_access').select('*'), 'routes')
 if (options.api.extendPermissions) await extendMissingPermissions();
 
 
-let server = app.listen(80, async err => {
+let server = app.listen(options.api.port, async err => {
   if (err) {
     await server.close(() => console.error('Server terminated - unable to start listening due to error:'));
     console.error(err);
