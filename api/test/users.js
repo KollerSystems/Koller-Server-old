@@ -115,17 +115,15 @@ describe('Requesting users with various tokens', function() {
         }).end(done);
     });
 
-    it(`GET /users?role=teacher - (${parameter})`, done => {
+    it(`GET /users?Role=2 - (${parameter})`, done => {
       request
-        .get('?role=teacher&sort=GuardianPhone&nulls=last')
+        .get('?Role=2')
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(200)
         .expect(res => {
           expect(res.body).to.be.an('array').and.to.have.lengthOf.at.most(options.api.batchRequests.defaultLimit);
-          let GuardianPhones = [];
-          for (let user of res.body) GuardianPhones.push(typeof user.GuardianPhone);
-          expect(GuardianPhones).to.not.have.a('string');
+          expect(res.body.some(elem => elem.Role == 1)).to.be.false;
         }).end(done);
     });
     it(`GET /users?offset=-${parameters.api.parameters.all.hugeInt} - (${parameter})`, done => {
@@ -169,9 +167,9 @@ describe('Requesting users with various tokens', function() {
       ).end(done);
     });
 
-    it('GET /users?role=student&sort=Class.ID:desc', done => {
+    it(`GET /users?Role=1&sort=Class.ID:desc  - (${parameter})`, done => {
       request
-        .get('?role=student&Class.ID:desc')
+        .get('?Role=1&Class.ID:desc')
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(200)
@@ -180,6 +178,31 @@ describe('Requesting users with various tokens', function() {
           for (let i = 1; i < res.body.length; i++) {
             expect(res.body[i-1].Class.ID).to.be.at.most(res.body[i].Class.ID);
           }
+        }).end(done);
+    });
+
+    it(`GET /users?Class.ID={1}  - (${parameter})`, done => {
+      request
+        .get(`?Class.ID=${parameters.api.parameters.user.deepFilterValue}`)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.be.an('array').and.to.have.lengthOf.at.most(options.api.batchRequests.defaultLimit);
+          expect(res.body.every(elem => elem.Class.ID == parameters.api.parameters.user.deepFilterValue)).to.be.true;
+        }).end(done);
+    });
+
+    it(`GET /users - (${parameter})`, done => {
+      request
+        .get('/')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.be.an('array').and.to.have.lengthOf.at.most(options.api.batchRequests.defaultLimit);
+          expect(res.body.some(elem => elem.Role == 1) && res.body.some(elem => elem.Role == 2)).to.be.true;
+          expect(res.body.some(elem => elem.Class?.ID ?? '')).to.be.true;
         }).end(done);
     });
   }

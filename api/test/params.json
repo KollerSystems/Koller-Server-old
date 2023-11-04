@@ -22,10 +22,17 @@
         "studentID": 4,
         "teacherID": 5,
         "permDifferenceOn": "GuardianName",
-        "lastID": 7
+        "lastID": 7,
+        "deepFilterValue": 1
       },
       "rooms": {
         "roomID": 131
+      },
+      "timetable": {
+        "correctYear": "2023",
+        "correctMonth": "09",
+        "correctDay": "20",
+        "failYear": "2024"
       }
     },
     "users": {

@@ -105,5 +105,40 @@ describe('Requesting timetables and lessons with various tokens', function() {
           }
         }).end(done);
     });
+
+    const params = parameters.api.parameters.timetable;
+    it(`GET /timetable/mandatory?Date=${params.failYear} - (${parameter})`, done => {
+      request
+        .get(`/mandatory?Date=${params.failYear}`)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('array');
+          expect(res.body).to.have.a.lengthOf(0);
+        }).end(done);
+    });
+    let yearRound = 0;
+    it(`GET /timetable/mandatory?Date=${params.correctYear} - (${parameter})`, done => {
+      request
+        .get(`/mandatory?Date=${params.correctYear}`)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('array').and.to.have.a.lengthOf.at.least(1);
+          yearRound = res.body.length;
+        }).end(done);
+    });
+    it(`GET /timetable/mandatory?Date=${params.correctYear}-${params.correctMonth}-${params.correctDay} - (${parameter})`, done => {
+      request
+        .get(`/mandatory?Date=${params.correctYear}-${params.correctMonth}-${params.correctDay}`)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('array').and.to.have.a.lengthOf.at.most(yearRound);
+        }).end(done);
+    });
   }
 });
