@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS `mandatory_programs` (
   `Lesson` tinyint unsigned NOT NULL,
   `Length` tinyint unsigned NOT NULL DEFAULT 1,
   PRIMARY KEY (`ID`),
-  UNIQUE KEY Class (`TypeID`, `Date`, `ClassID`),
+  UNIQUE KEY Class (`TypeID`, `Date`, `ClassID`, `Lesson`),
   FOREIGN KEY (`ClassID`) REFERENCES class(`ID`)
 ) DEFAULT COLLATE=utf8_bin;
 
