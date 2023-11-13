@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { knx, roleMappings } from '../index.js';
 import { setupBatchRequest } from '../helpers/batchRequests.js';
 import { getPermittedFields } from '../helpers/helpers.js';
-import { remove } from '../helpers/misc.js';
+import { remove, weekRange } from '../helpers/misc.js';
 
 const timetable = Router({ mergeParams: false });
 
@@ -20,8 +20,8 @@ timetable.get('/mandatory', async (req, res, next) => {
   const query = knx('mandatory_program_types').joinRaw('NATURAL JOIN mandatory_programs');
   query.select(mandatoryProgramFields.concat(mandatoryProgramTypeFields)).where('ClassID', userClassID);
 
-  // Nem kell, hiszen azt lehet tudni hogy a felhasználó melyik osztályba jár.
-  const mandatoryPrograms = await setupBatchRequest(query, req.query, req.url);
+  // Nem kell, hiszen azt lehet tudni hogy a felhasználó melyik osztályba jár. // ?
+  const mandatoryPrograms = await setupBatchRequest(query, req.query, req.url, [], {}, { 'Date': q => q.whereBetween('Date', weekRange()) });
 
   res.header('Content-Type', 'application/json').status(200).send(mandatoryPrograms).end();
 

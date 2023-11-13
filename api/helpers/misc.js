@@ -81,4 +81,16 @@ function findIndecies(arr, callback) {
   return found;
 }
 
-export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, cmp, remove, deleteProperty, tryparse, findIndecies };
+function losePrecision(datetime) {
+  const dayInNum = 86400000;
+  return Math.floor(datetime / dayInNum) * dayInNum;
+}
+function weekRange(date = (new Date()), precision = false) {
+  const dayInNum = 86400000; // 24 * 60 * 60 * 1000
+  const day = ( d => (d - 1 == -1) ? 6 : d - 1 )( date.getDay() );
+  const startDate = (date.getTime() - day*dayInNum);
+  const endDate = startDate + 6*dayInNum;
+  return [ new Date(precision ? startDate : losePrecision(startDate)), new Date(precision ? endDate : losePrecision(endDate)) ];
+}
+
+export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, cmp, remove, deleteProperty, tryparse, findIndecies, weekRange };

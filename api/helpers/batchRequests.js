@@ -286,7 +286,7 @@ function traverse(obj, map, tillValue = true) {
   }
   return c;
 }
-async function setupBatchRequest(query, urlparams, rawUrl, mounts = [], renames = {}) {
+async function setupBatchRequest(query, urlparams, rawUrl, mounts = [], renames = {}, overrideables = {}) {
   const limit = (() => {
     let l = parseInt(urlparams.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || options.api.batchRequests.defaultLimit;
     return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
@@ -311,6 +311,13 @@ async function setupBatchRequest(query, urlparams, rawUrl, mounts = [], renames 
   }
 
   const filterparams = handleFilterParams(rawUrl, getSelectFields(query), translation);
+
+  for (let key in overrideables) {
+    const index = filterparams.immediate.findIndex(obj => obj.field == key);
+    if (index != -1) continue;
+    overrideables[key](query);
+  }
+
   attachFilters(query, filterparams.immediate, columns);
 
   let sortparams = handleSortParams(urlparams, getSelectFields(query), translation);
