@@ -82,6 +82,8 @@ describe('Requesting timetables and lessons with various tokens', function() {
 
     if (fail) continue;
 
+    let ID = -1, TypeID = -1;
+
     it(`GET /timetable/mandatory?sort=Date,Lesson - (${parameter})`, done => {
       request
         .get('/mandatory?sort=Date,Lesson')
@@ -90,6 +92,7 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect(codes[parameter])
         .expect(res => {
           expect(res.body).to.be.an('array');
+          ({ ID, TypeID } = res.body[Math.floor(Math.random() * res.body.length)]);
           let prevLesson = res.body[0].Lesson;
           for (let i = 1; i < res.body.length; i++) {
             expect(Date.parse(res.body[i-1].Date)).to.be.at.most(Date.parse(res.body[i].Date));
@@ -138,6 +141,42 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect(codes[parameter])
         .expect(res => {
           expect(res.body).to.be.an('array').and.to.have.a.lengthOf.at.most(yearRound);
+        }).end(done);
+    });
+
+    it(`GET /timetable/mandatory/{ID} - (${parameter})`, done => {
+      request
+        .get(`/mandatory/${ID}`)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'TypeID', 'Date', 'ClassID', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body.ID === ID);
+          expect(res.body.TypeID === TypeID);
+        }).end(done);
+    });
+    it(`GET /timetable/mandatory/types - (${parameter})`, done => {
+      request
+        .get('/mandatory/types/')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('array');
+          if (res.body.length < 0) return;
+          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'TypeID', 'Topic', 'RID', 'TUID' ]);
+        }).end(done);
+    });
+    it(`GET /timetable/mandatory/types/{ID} - (${parameter})`, done => {
+      request
+        .get(`/mandatory/types/${TypeID}`)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('object').and.to.have.keys([ 'TypeID', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body.TypeID === TypeID);
         }).end(done);
     });
   }

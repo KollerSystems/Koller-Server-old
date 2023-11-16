@@ -175,6 +175,12 @@ INSERT INTO `route_access` VALUES (1, '/api/timetable', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/timetable', b'0', b'1');
 INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/timetable/mandatory', b'0', b'1');
+INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory/:id', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/timetable/mandatory/:id', b'0', b'1');
+INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory/types', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/timetable/mandatory/types', b'1', b'0');
+INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory/types/:id', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/timetable/mandatory/types/:id', b'1', b'0');
 
 
 INSERT INTO `mifare_tags` (UID, Bytes) VALUES (1, x'b69f6669d72c5ce0f0c4bac027cd961c9c9ad06fdaf5e93244297a64fc555a7a');

@@ -110,6 +110,12 @@ INSERT INTO `route_access` VALUES (1, '/api/timetable', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/timetable', b'0', b'1');
 INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory', b'1', b'0');
 INSERT INTO `route_access` VALUES (2, '/api/timetable/mandatory', b'0', b'1');
+INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory/:id', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/timetable/mandatory/:id', b'0', b'1');
+INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory/types', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/timetable/mandatory/types', b'1', b'0');
+INSERT INTO `route_access` VALUES (1, '/api/timetable/mandatory/types/:id', b'1', b'0');
+INSERT INTO `route_access` VALUES (2, '/api/timetable/mandatory/types/:id', b'1', b'0');
 
 
 
