@@ -61,6 +61,8 @@ app.use('/', logRequest);
 const knx = knex({
   client: 'mysql',
   connection: {
+    host: options.databaseLoginData.host,
+    port: options.databaseLoginData.port,
     user: options.databaseLoginData.user,
     password: options.databaseLoginData.password,
     database: 'kollegium'

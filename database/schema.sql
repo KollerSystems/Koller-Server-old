@@ -134,13 +134,20 @@ CREATE TABLE IF NOT EXISTS `student` (
   `Address` int(10) unsigned DEFAULT NULL,
   `Floor` int(11) unsigned DEFAULT NULL,
   `Door` int(11) unsigned DEFAULT NULL,
+  `ContactID` int(15) unsigned,
+  PRIMARY KEY (`UID`) USING BTREE,
+  FOREIGN KEY (`UID`) REFERENCES user(`UID`),
+  FOREIGN KEY (`ClassID`) REFERENCES class(`ID`),
+  FOREIGN KEY (`ContactID`) REFERENCES contacts(`ID`)
+) DEFAULT COLLATE=utf8_bin;
+
+CREATE TABLE IF NOT EXISTS `contacts` (
+  `ID` int(15) unsigned NOT NULL,
   `Discord` tinytext DEFAULT NULL,
   `Facebook` tinytext DEFAULT NULL,
   `Instagram` tinytext DEFAULT NULL,
   `Email` tinytext DEFAULT NULL,
-  PRIMARY KEY (`UID`) USING BTREE,
-  FOREIGN KEY (`UID`) REFERENCES user(`UID`),
-  FOREIGN KEY (`ClassID`) REFERENCES class(`ID`)
+  PRIMARY KEY (`ID`)
 ) DEFAULT COLLATE=utf8_bin;
 
 CREATE TABLE IF NOT EXISTS `teacher` (

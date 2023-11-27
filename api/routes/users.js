@@ -39,9 +39,14 @@ users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
 
   const userData = await knx(roleMappings.byID[user.Role]).first('*').where('UID', user.UID);
   const filteredData = filterByPermission(userData, roleMappings.byID[user.Role], roleMappings.byID[res.locals.roleID]);
+
   const classdata = await knx('class').first('*').where('ID', userData.ClassID ?? -1);
   if (userData.ClassID ?? '') filteredData.Class = classdata;
   delete filteredData.ClassID;
+
+  const contactdata = knx('contacts').first(getPermittedFields('contacts', roleMappings.byID[res.locals.roleID])).where('ID', userData.ContactID ?? -1);
+  if (userData.ContactID ?? '') filteredData.Contacts = await contactdata;
+  delete filteredData.ContactID;
 
   if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, 'Forbidden!');
   res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
@@ -61,7 +66,10 @@ users.get('/', async (req, res, next) => {
   addCoalesces(query, fields.coalesces);
   query.select(...fields.selects).leftJoin('student', 'student.UID', 'user.UID').leftJoin('teacher', 'teacher.UID', 'user.UID');
 
-  let users = await setupBatchRequest(query, req.query, req.url, [ { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } } ], { 'ClassID': undefined });
+  let users = await setupBatchRequest(query, req.query, req.url, [
+    { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } },
+    { 'flexible': true, 'point': 'Contacts', 'join': [ 'ContactID', 'ID' ], 'query': { 'fields': getPermittedFields('contacts', roleMappings.byID[res.locals.roleID], false), 'table': 'contacts' } }
+  ], { 'ClassID': undefined, 'ContactID': undefined });
   for (let i = 0; i < users.length; i++) {
     Object.keys(users[i]).forEach((k) => users[i][k] == null && delete users[i][k]);
   }

@@ -37,13 +37,16 @@ INSERT INTO `login_data` (`UID`, `Username`, `Password`) VALUES
 
 INSERT INTO `teacher` VALUES (5, 'Dobos József', '72237485955');
 
-INSERT INTO `student` (`UID`, `OM`, `Name`, `Gender`, `Picture`, `Group`, `ClassID`, `School`, `Birthplace`, `Birthdate`, `GuardianName`, `GuardianPhone`, `RID`, `Country`, `City`, `Street`, `PostCode`, `Address`, `Floor`, `Door`) VALUES
-	(1, '73454685362', 'Várnagy Miklós Tamás', b'1', NULL, 'F8', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2023-02-26', 'Papp Lajos', '36 64 865 3423', 172, 'Új-Zéland', 'Hamilton', 'Clarkin Road', 3214, 2, NULL, NULL),
-	(2, '72745678344', 'Katona Márton Barnabás', b'1', NULL, 'F8', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-07-22', 'Kis Gazsiné', '213 676 33 87 93', 172, 'Afganistan', 'Kabul', 'Asmayi Road', 553, 8, 3, NULL),
-	(3, '74583725375', 'Bende Ákos György', b'1', NULL, 'F1', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-08-15', 'Kalapos József', '43 673 527890180', 131, 'Austria', 'Graz', 'Plüddemanngasse', 8010, 62, 32, 3),
-	(4, '72345456628', 'Bencsik Gergő', b'1', NULL, 'F1', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-02-28', 'Tóth András', '36 90 343 5454', 131, 'Uganda', 'Kampala', 'Kabalega Close', NULL, 16, NULL, NULL),
-	(6, '77685796872', 'Varró Liza', b'0', NULL, 'F3', 2, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2008-07-08', 'Magyar Béla', '36 20 387 5254', 17, 'Dél-Kórea', 'Seoul', 'Opaesan-ro', NULL, 11, NULL, NULL),
-	(7, '77348695718', 'Páter Zsófia Édua', b'0', NULL, 'F3', 3, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-11-30', 'Kisfaludy Zoltán', '36 70 322 9834', 17, 'Japán', 'Tokió', 'Sekiguchi', NULL, 3, NULL, NULL);
+INSERT INTO `contacts` VALUES
+	(7773, 'TheBigVMT', 'Várnagy Miklós Tamás', '@Josh', 'xdxd1243@gmail.com');
+
+INSERT INTO `student` (`UID`, `OM`, `Name`, `Gender`, `Picture`, `Group`, `ClassID`, `School`, `Birthplace`, `Birthdate`, `GuardianName`, `GuardianPhone`, `RID`, `Country`, `City`, `Street`, `PostCode`, `Address`, `Floor`, `Door`, `ContactID`) VALUES
+	(1, '73454685362', 'Várnagy Miklós Tamás', b'1', NULL, 'F8', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2023-02-26', 'Papp Lajos', '36 64 865 3423', 172, 'Új-Zéland', 'Hamilton', 'Clarkin Road', 3214, 2, NULL, NULL, 7773),
+	(2, '72745678344', 'Katona Márton Barnabás', b'1', NULL, 'F8', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-07-22', 'Kis Gazsiné', '213 676 33 87 93', 172, 'Afganistan', 'Kabul', 'Asmayi Road', 553, 8, 3, NULL, NULL),
+	(3, '74583725375', 'Bende Ákos György', b'1', NULL, 'F1', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2005-08-15', 'Kalapos József', '43 673 527890180', 131, 'Austria', 'Graz', 'Plüddemanngasse', 8010, 62, 32, 3, NULL),
+	(4, '72345456628', 'Bencsik Gergő', b'1', NULL, 'F1', 1, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-02-28', 'Tóth András', '36 90 343 5454', 131, 'Uganda', 'Kampala', 'Kabalega Close', NULL, 16, NULL, NULL, NULL),
+	(6, '77685796872', 'Varró Liza', b'0', NULL, 'F3', 2, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2008-07-08', 'Magyar Béla', '36 20 387 5254', 17, 'Dél-Kórea', 'Seoul', 'Opaesan-ro', NULL, 11, NULL, NULL, NULL),
+	(7, '77348695718', 'Páter Zsófia Édua', b'0', NULL, 'F3', 3, 'BMSZC Puskás Tivadar Távközlési Technikum', 'Budapest', '2004-11-30', 'Kisfaludy Zoltán', '36 70 322 9834', 17, 'Japán', 'Tokió', 'Sekiguchi', NULL, 3, NULL, NULL, NULL);
 
 INSERT INTO `resident` VALUES
 	(1, 172, 0),
@@ -71,12 +74,19 @@ INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'ClassID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'School', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'RID', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'ContactID', b'1');
 
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'Birthdate', b'0');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'GuardianName', b'0');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'GuardianPhone', b'0');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'Country', b'0');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'student', 'City', b'0');
+
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'contacts', 'ID', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'contacts', 'Discord', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'contacts', 'Facebook', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'contacts', 'Instagram', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'contacts', 'Email', b'1');
 
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'teacher', 'UID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (1, 'teacher', 'Name', b'1');
@@ -117,12 +127,19 @@ INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'ClassID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'School', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'RID', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'ContactID', b'1');
 
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'Birthdate', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'GuardianName', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'GuardianPhone', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'Country', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'student', 'City', b'1');
+
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'contacts', 'ID', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'contacts', 'Discord', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'contacts', 'Facebook', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'contacts', 'Instagram', b'1');
+INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'contacts', 'Email', b'1');
 
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'teacher', 'UID', b'1');
 INSERT INTO `permissions` (`Role`, `Table`, `Field`, `Read`) VALUES (2, 'teacher', 'Name', b'1');
