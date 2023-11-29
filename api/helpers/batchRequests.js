@@ -48,7 +48,12 @@ function getFromFields(query) {
 function handleSortParams(urlparams, allowedFields, translation) {
   if (!(urlparams.sort ?? '')) return [];
 
-  const isCertain = field => allowedFields.all.includes(field) || (traverse(translation, field.split('.')) != undefined);
+  const isCertain = field => {
+    if (allowedFields.all.includes(field)) return true;
+    const traversed = traverse(translation, field.split('.'));
+    if (traversed != undefined && !(traversed instanceof Object)) return true;
+    return false;
+  };
 
   let sortparams = urlparams.sort.replace(', ', ',').split(',');
   let orderparams = urlparams.order?.replace(', ', ',').split(',');
@@ -110,11 +115,13 @@ function handleFilterParams(urlparams, allowedFields, translation) {
     const index = filterType(filtersMap, field).findIndex(v => v.field == field && v.operator == operator);
     if (index == -1) {
       let traversed = traverse(translation, field.split('.'));
+      if (traversed instanceof Object) return;
 
       filterType(filtersMap, field).push({ field, operator });
       filterType(filters, field).push({ 'field': traversed || allowedFields.coalesce[field] || field, value, operator });
     } else {
       let traversed = traverse(translation, field.split('.'));
+      if (traversed instanceof Object) return;
 
       const valueAtIndex = filterType(filters, field)[index];
       if (Array.isArray(valueAtIndex)) filterType(filters, field)[index].push({ 'field': traversed || allowedFields.coalesce[field] || field, value, operator });

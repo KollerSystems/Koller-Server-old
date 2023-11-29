@@ -193,6 +193,17 @@ describe('Requesting users with various tokens', function() {
         }).end(done);
     });
 
+    it(`GET /users?Class={1}&sort=Contacts  - (${parameter})`, done => {
+      request
+        .get('?Class=1&sort=Contacts')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.be.an('array').and.to.have.lengthOf.at.most(options.api.batchRequests.defaultLimit);
+        }).end(done);
+    });
+
     it(`GET /users - (${parameter})`, done => {
       request
         .get('/')
