@@ -11,37 +11,6 @@ API forráskódja és adatbázis séma a Koller-hez.
 
 Az API dokumentálását az [API.md](docs/API.md) fájlban lehet megtalálni.
 
-### Adatbázis beállítása
-
-A fejlesztés során a **MariaDB Community 10.10.3**-as verziójával dolgozunk, ami letölthető manuálisan a [MariaDB hivatalos oldaláról](https://mariadb.com/downloads/community/), vagy a használt diszribúció csomagkezelőjének segítségével.
-
-MariaDB szerver futtatásához fordulj a hivatalos oldalukhoz, illetve a diszribúció wiki-jéhez!
-
-Parancssorból importáljuk a táblákat a `schema.sql` fájl segítségével (a database mappából):
-```
-mariadb < schema.sql
-```
-
-Ez a fájl tartalmazza az adatbázis sémáját, de fel szükséges tölteni alapvető információkkal, mint például engedélyekkel.
-
-Ha más felhasználónak hoztuk létre az adatbázist, akkor annak a felhasználónak az adatbázisába töltsük be.
-
-Az adatbázisból való "dump"-olásról, és az sql fájl betöltéséről a [MariaDB weboldalán olvashatunk](https://mariadb.com/kb/en/mariadb-dumpmysqldump/).
-
-Nyissuk meg az api mappán belül található `options.json` fájlt egy szövegszerkesztő programmal, és írjuk át a `user` értékét a felhasználónevünkre (ha más felhasználónak hoztuk létre az adatbázist akkor annak a nevére), illetve a `password` értékét a jelszóra, ha be lett állítva, egyébként maradjon üresen.
-
-### mifare olvasó beállítása
-
-Az olvasóhoz írt programkód egy **Waveshare PN532 NFC HAT**-hez lett írva, így egy raspberry pi is kell hozzá.
-
-A HAT-et fel kell konfigurálni *SPI* használatára, ehhez a [weboldalukon](https://www.waveshare.com/wiki/PN532_NFC_HAT) utasítások találhatók. A használt raspberry pi-n engedélyezni kell az *SPI*-t.
-
-Ezek után klónozzuk a raspberry pi-n ebből a repository-ból a reader mappát, és a `config.json` fájlban állítsuk be a szükséges értékeket, hogy a raspberry pi az API szerverrel *websocket* kapcsolaton keresztük kommunikálhasson, illetve a használandó A&B kulcsokat amiket használni fog működése során.
-
-A két fájl, `setupTags.py` és `resetTags.py` segítheti az mifare biléták beállítását, illetve *transport* konfigurációba való helyezését. Beállításhoz futtatni kell a `setupTags.py` fájlt, és megadni egy *csv* formátumú fájl elérési útvonalát. Ebben a fájlban a kulcsok sorrendjében írja a bilétákat, amelyek *transport* konfigurációban vannak.
-
-Az olvasó használatához ezek után futtatni kell a `main.py` fájlt, de csak miután **fut az API szerver**.
-
 ### API szerver lokális futtatása teszteléshez
 
 Az API szerver a **Node.js 19.2.0**-ás verziójában lett fejlesztve és tesztelve, az újabb verziók nagy eséllyel nem okoznak gondot, régebbi verziókkal is működik valószínűleg (de eddig csak a **v18.16.1** került tesztelésre), de mindenképp *ajánlott* Node.js v16-nál újabbat használni.

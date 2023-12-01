@@ -1,9 +1,5 @@
 .vscode
 setupServer.sh
 
-api/package-lock.json
-api/node_modules
-
-reader/__pycache__
-reader/pn532/__pycache__
-reader/*.py[cod]
+package-lock.json
+node_modules
