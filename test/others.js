@@ -57,17 +57,16 @@ describe('Requesting various endpoints', function () {
     const userdata = parameters.api.users[parameter];
 
     const codes = { 'fake': 401, 'teacher': 200, 'student': 200 };
-    it(`${[ 'fake' ].includes(parameter) ? 'FAIL: ' : ''}GET /school - (${parameter})`, done => {
+    it(`${[ 'fake' ].includes(parameter) ? 'FAIL: ' : ''}GET /institution - (${parameter})`, done => {
       request
-        .get('/school')
+        .get('/institution')
         .set('Authorization', 'Bearer ' + userdata.access_token)
         .expect('Content-Type', /json/)
         .expect(codes[parameter])
         .expect(res => {
           expect(res.body).to.be.an('object');
           if (parameter != 'fake') {
-            expect(res.body).to.have.a.property('Groups').which.is.an('array');
-            expect(res.body).to.have.a.property('Classes').which.is.an('array');
+            expect(res.body).to.be.an('object').and.not.to.have.a.property('error');
           } else {
             expect(res.body).to.have.a.property('error');
           }
@@ -75,5 +74,61 @@ describe('Requesting various endpoints', function () {
     });
 
     if (parameter == 'fake') continue;
+
+    it(`${[ 'fake' ].includes(parameter) ? 'FAIL: ' : ''}GET /institution - (${parameter})`, done => {
+      request
+        .get('/institution')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('object');
+          if (parameter != 'fake') {
+            expect(res.body).to.be.an('object').and.not.to.have.a.property('error');
+          } else {
+            expect(res.body).to.have.a.property('error');
+          }
+        }).end(done);
+    });
+
+    it(`GET /institution/groups - (${parameter})`, done => {
+      request
+        .get('/institution/groups')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200).expect(res => {
+          expect(res.body).to.be.an('array');
+        }).end(done);
+    });
+    it(`GET /institution/groups/:id - (${parameter})`, done => {
+      request
+        .get('/institution/groups/' + parameters.api.parameters.others.institution.groupID)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200).expect(res => {
+          expect(res.body).to.be.an('object');
+          expect(res.body.ID).to.equal(parameters.api.parameters.others.institution.groupID);
+        }).end(done);
+    });
+
+    it(`GET /institution/classes - (${parameter})`, done => {
+      request
+        .get('/institution/classes')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200).expect(res => {
+          expect(res.body).to.be.an('array');
+        }).end(done);
+    });
+    it(`GET /institution/classes/:id - (${parameter})`, done => {
+      request
+        .get('/institution/classes/' + parameters.api.parameters.others.institution.classID)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200).expect(res => {
+          expect(res.body).to.be.an('object');
+          expect(res.body.ID).to.equal(parameters.api.parameters.others.institution.classID);
+        }).end(done);
+    });
   }
 });

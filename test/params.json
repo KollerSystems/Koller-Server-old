@@ -33,6 +33,12 @@
         "correctMonth": "09",
         "correctDay": "20",
         "failYear": "2024"
+      },
+      "others": {
+        "institution": {
+          "groupID": 2,
+          "classID": 2
+        }
       }
     },
     "users": {

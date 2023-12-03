@@ -10,7 +10,7 @@ import { users } from './routes/users.js';
 import { crossings } from './routes/crossings.js';
 import { rooms } from './routes/rooms.js';
 import { timetable } from './routes/timetable.js';
-import { school } from './routes/school.js';
+import { institution } from './routes/insitution.js';
 
 import { checkToken, handleNotFound, logRequest, handleRouteAccess, classicErrorSend } from './helpers/helpers.js';
 import { treeifyMaps, extendMissingPermissions } from './startup.js';
@@ -54,7 +54,7 @@ api.use('/users', users);
 api.use('/crossings', crossings);
 api.use('/rooms', rooms);
 api.use('/timetable', timetable);
-api.use('/school', school);
+api.use('/institution', institution);
 
 app.use('/', handleNotFound);
 app.use('/', logRequest);
