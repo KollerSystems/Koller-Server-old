@@ -40,7 +40,7 @@ async function verify(authField) {
   }
 
   result.issue = 'Access token expired.';
-  if (authEntry.expired[0]) return result; // ? // ?
+  if (authEntry.expired) return result; // ? // ?
   if (authEntry.issued.getTime() + (authEntry.expires * 1000) < Date.now()) {
     knx('auth').where('access_token', bearer).limit(1).update('expired', 1);
     return result;

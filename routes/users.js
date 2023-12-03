@@ -27,8 +27,14 @@ users.post('/mifare', async (req, res, next) => {
 users.get('/me', async (req, res, next) => {
   const userdata = await knx(roleMappings.byID[res.locals.roleID]).first('*').where('UID', res.locals.UID);
   const classdata = await knx('class').first('*').where('ID', userdata.ClassID ?? -1);
+  const groupdata = await knx('group').first('*').where('ID', userdata.GroupID ?? -1);
+  const contactdata = await knx('contacts').first('*').where('ID', userdata.ContactID ?? -1);
   if (userdata.ClassID ?? '') userdata.Class = classdata;
+  if (userdata.GroupID ?? '') userdata.Group = groupdata;
+  if (userdata.ContactID ?? '') userdata.Contacts = contactdata;
   delete userdata.ClassID;
+  delete userdata.GroupID;
+  delete userdata.ContactID;
   res.header('Content-Type', 'application/json').status(200).send(userdata).end();
   next();
 });
@@ -40,9 +46,13 @@ users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
   const userData = await knx(roleMappings.byID[user.Role]).first('*').where('UID', user.UID);
   const filteredData = filterByPermission(userData, roleMappings.byID[user.Role], roleMappings.byID[res.locals.roleID]);
 
-  const classdata = await knx('class').first('*').where('ID', userData.ClassID ?? -1);
+  const classdata = await knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', userData.ClassID ?? -1);
   if (userData.ClassID ?? '') filteredData.Class = classdata;
   delete filteredData.ClassID;
+
+  const groupdata = await knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', userData.GroupID ?? -1);
+  if (userData.GroupID ?? '') filteredData.Group = groupdata;
+  delete filteredData.GroupID;
 
   const contactdata = knx('contacts').first(getPermittedFields('contacts', roleMappings.byID[res.locals.roleID])).where('ID', userData.ContactID ?? -1);
   if (userData.ContactID ?? '') filteredData.Contacts = await contactdata;
@@ -68,8 +78,9 @@ users.get('/', async (req, res, next) => {
 
   let users = await setupBatchRequest(query, req.query, req.url, [
     { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } },
+    { 'flexible': true, 'point': 'Group', 'join': [ 'GroupID', 'ID' ], 'query': { 'fields': getPermittedFields('group', roleMappings.byID[res.locals.roleID], false), 'table': 'group' } },
     { 'flexible': true, 'point': 'Contacts', 'join': [ 'ContactID', 'ID' ], 'query': { 'fields': getPermittedFields('contacts', roleMappings.byID[res.locals.roleID], false), 'table': 'contacts' } }
-  ], { 'ClassID': undefined, 'ContactID': undefined });
+  ], { 'ClassID': undefined, 'GroupID': undefined,  'ContactID': undefined });
   for (let i = 0; i < users.length; i++) {
     Object.keys(users[i]).forEach((k) => users[i][k] == null && delete users[i][k]);
   }

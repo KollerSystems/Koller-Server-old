@@ -22,7 +22,9 @@ timetable.get('/mandatory', async (req, res, next) => {
   query.select(mandatoryProgramFields.concat(mandatoryProgramTypeFields)).where('ClassID', userClassID);
 
   // Nem kell, hiszen azt lehet tudni hogy a felhasználó melyik osztályba jár. // ?
-  const mandatoryPrograms = await setupBatchRequest(query, req.query, req.url, [], {} /* , { 'Date': q => q.whereBetween('Date', weekRange()) } */ );
+  const mandatoryPrograms = await setupBatchRequest(query, req.query, req.url, [
+    { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } }
+  ], { 'ClassID': undefined } /* , { 'Date': q => q.whereBetween('Date', weekRange()) } */ );
 
   res.header('Content-Type', 'application/json').status(200).send(mandatoryPrograms).end();
 

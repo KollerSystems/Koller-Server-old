@@ -10,6 +10,7 @@ import { users } from './routes/users.js';
 import { crossings } from './routes/crossings.js';
 import { rooms } from './routes/rooms.js';
 import { timetable } from './routes/timetable.js';
+import { school } from './routes/school.js';
 
 import { checkToken, handleNotFound, logRequest, handleRouteAccess, classicErrorSend } from './helpers/helpers.js';
 import { treeifyMaps, extendMissingPermissions } from './startup.js';
@@ -53,6 +54,7 @@ api.use('/users', users);
 api.use('/crossings', crossings);
 api.use('/rooms', rooms);
 api.use('/timetable', timetable);
+api.use('/school', school);
 
 app.use('/', handleNotFound);
 app.use('/', logRequest);
@@ -65,7 +67,13 @@ const knx = knex({
     port: options.databaseLoginData.port,
     user: options.databaseLoginData.user,
     password: options.databaseLoginData.password,
-    database: 'kollegium'
+    database: 'kollegium',
+    typeCast: function(field, next) {
+      if (field.type == 'BIT' && field.length == 1) {
+        return (field.string() == '\x00' ? 0 : 1);
+      }
+      return next();
+    }
   }
 });
 

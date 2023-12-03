@@ -15,7 +15,7 @@ function treeifyMaps(arr, mapType = 'perms') {
       setIfMissingKey(tree[row.Table], row.Field);
       setIfMissingKey(tree[row.Table][row.Field], row.Role);
       for (let perm of perms)
-        tree[row.Table][row.Field][row.Role][perm.toLowerCase()] = Boolean(row[perm][0]);
+        tree[row.Table][row.Field][row.Role][perm.toLowerCase()] = Boolean(row[perm]);
     }
 
     /* User központú mapping
@@ -36,8 +36,8 @@ function treeifyMaps(arr, mapType = 'perms') {
     for (let row of arr) {
       setIfMissingKey(tree, row.Route);
       setIfMissingKey(tree[row.Route], row.Role);
-      tree[row.Route][row.Role].accessible = Boolean(row.Accessible[0]);
-      tree[row.Route][row.Role].hide = Boolean(row.Hide[0]);
+      tree[row.Route][row.Role].accessible = Boolean(row.Accessible);
+      tree[row.Route][row.Role].hide = Boolean(row.Hide);
     }
   }
 
