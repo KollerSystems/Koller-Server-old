@@ -1,4 +1,4 @@
-import { knx, logFileStream, options, permMappings, routeAccess } from '../index.js';
+import { knx, logFileStream, options, permMappings, routeAccess, errors } from '../index.js';
 import { intoTimestamp, generateToken } from './misc.js';
 
 /*
@@ -20,45 +20,33 @@ function toLowerKeys(req, res, next) {
 */
 
 async function verify(authField) {
-  let result = { 'UID': undefined, 'roleID': -1, 'issue': '', 'code': 0 };
-  result.code = 400;
-  if (authField == undefined) {
-    result.issue = 'Authorization header field not present!';
-    return result;
-  }
-  if (!authField.startsWith('Bearer')) {
-    result.issue = 'Authorization isn\'t prefixed by "Bearer".';
-    return result;
-  }
+  let result = { 'UID': undefined, 'roleID': -1 };
+  if (authField == undefined)
+    return 'missing_auth_field';
+  if (!authField.startsWith('Bearer'))
+    return 'missing_bearer_prefix';
 
   const bearer = authField.slice(7); // "Bearer " utáni karakterek
-  result.code = 401;
   let authEntry = await knx.first('*').from('auth').where('access_token', bearer);
-  if (!authEntry) {
-    result.issue = 'Invalid access token!';
-    return result;
-  }
+  if (!authEntry)
+    return 'invalid_token';
 
-  result.issue = 'Access token expired.';
-  if (authEntry.expired) return result; // ? // ?
+  if (authEntry.expired) return 'token_expired';
   if (authEntry.issued.getTime() + (authEntry.expires * 1000) < Date.now()) {
     knx('auth').where('access_token', bearer).limit(1).update('expired', 1);
-    return result;
+    return 'token_expired';
   }
 
   let userEntry = await knx('user').first('UID', 'Role').where('UID', authEntry.UID);
 
-  result.code = 0;
-  result.issue = '';
   result.UID = authEntry.UID;
   result.roleID = userEntry.Role;
   return result;
 }
 async function checkToken(req, res, next) {
   const verRes = await verify(req.get('Authorization'));
-  if (verRes.code != 0) {
-    classicErrorSend(res, verRes.code, verRes.issue);
-    return;
+  if (typeof verRes == 'string') {
+    return classicErrorSend(res, verRes);
   }
   res.set('Cache-Control', 'no-store');
   res.locals.UID = verRes.UID;
@@ -102,9 +90,9 @@ async function generateUniqueToken() {
   return { 'access_token': accessToken, 'refresh_token': refreshToken };
 }
 
-function classicErrorSend(res, code, text) {
+function classicErrorSend(res, keyword, code=errors[keyword].code, description=errors[keyword].description) {
   // console.log(res);
-  res.header('Content-Type', 'application/json').status(code).send({ 'error': text }).end();
+  res.header('Content-Type', 'application/json').status(code).send({ 'error': keyword, 'status_code': code, 'error_description': description }).end();
   logRequest(res.req, res);
 }
 
@@ -130,8 +118,8 @@ function handleRouteAccess(req, res, next) {
   if (!(url in routeAccess)) return next();
 
   if (routeAccess[url][res.locals.roleID].accessible) next();
-  else if (routeAccess[url][res.locals.roleID].hide) classicErrorSend(res, 404, 'Page not found!');
-  else classicErrorSend(res, 403, 'Not permitted!');
+  else if (routeAccess[url][res.locals.roleID].hide) classicErrorSend(res, 'missing_resource');
+  else classicErrorSend(res, 'missing_permissions');
 }
 
 

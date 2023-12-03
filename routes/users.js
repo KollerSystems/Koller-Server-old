@@ -11,12 +11,12 @@ users.post('/mifare', async (req, res, next) => {
   if (req.get('Content-Type') != 'application/octet-stream') return classicErrorSend(res, 400, 'Invalid Content-Type used on resource!');
 
   const permittedFields = getPermittedFields('mifare_tags', roleMappings.byID[res.locals.roleID]);
-  if (permittedFields.length == 0) return classicErrorSend(res, 403, 'Forbidden!');
-  if (isEmptyObject(req.body)) return classicErrorSend(res, 400, 'No tag data provided!');
+  if (permittedFields.length == 0) return classicErrorSend(res, 'missing_permissions');
+  if (isEmptyObject(req.body)) return classicErrorSend(res, 'missing_data');
 
   const tag = await knx('mifare_tags').first(permittedFields).where('Bytes', req.body);
 
-  if (tag == undefined) return classicErrorSend(res, 404, 'No such tag found!');
+  if (tag == undefined) return classicErrorSend(res, 'missing_resource');
 
   tag.Bytes = tag.Bytes.toJSON().data;
   res.header('Content-Type', 'application/json').status(200).send(tag).end();
@@ -41,7 +41,7 @@ users.get('/me', async (req, res, next) => {
 
 users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
   const user = await knx('user').first('*').where('UID', req.params.id);
-  if (user == undefined) return classicErrorSend(res, 404, 'There is no user with specified ID!');
+  if (user == undefined) return classicErrorSend(res, 'missing_resource');
 
   const userData = await knx(roleMappings.byID[user.Role]).first('*').where('UID', user.UID);
   const filteredData = filterByPermission(userData, roleMappings.byID[user.Role], roleMappings.byID[res.locals.roleID]);
@@ -58,7 +58,7 @@ users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
   if (userData.ContactID ?? '') filteredData.Contacts = await contactdata;
   delete filteredData.ContactID;
 
-  if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, 'Forbidden!');
+  if (isEmptyObject(filteredData)) return classicErrorSend(res, 'missing_permissions');
   res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
 
   next();

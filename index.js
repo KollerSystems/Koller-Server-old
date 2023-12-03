@@ -33,14 +33,14 @@ const api = express.Router();
 app.use('/', (req, res, next) => {
   res.locals.incomingTime = new Date();
   if ([ 'POST', 'PUT', 'PATCH' ].includes(req.method) && req.get('Content-Type') == undefined)
-    return classicErrorSend(res, 400, 'Invalid Content-Type value or header missing!');
+    return classicErrorSend(res, 'Invalid Content-Type value or header missing!');
   next();
 });
 
 app.use(express.raw());
 app.use(express.json({ 'type': 'application/json' }));
 app.use((err, req, res, _next) => {
-  classicErrorSend(res, 400, 'Invalid data in body!');
+  classicErrorSend(res, 'invalid_data');
 });
 app.use(express.urlencoded({ extended: true }));
 
@@ -83,6 +83,7 @@ roleMappings.byID = (await knx('role_name').select('Role', 'Table')).reduce((map
 roleMappings.byRole = Object.fromEntries(Object.entries(roleMappings.byID).map(([ k, v ]) => [ v, k ]));
 const permMappings = treeifyMaps(await knx('permissions').select('*'), 'perms');
 const routeAccess = treeifyMaps(await knx('route_access').select('*'), 'routes');
+const errors = treeifyMaps(await knx('errors').select('*'), 'errors');
 
 if (options.api.extendPermissions) await extendMissingPermissions();
 
@@ -121,4 +122,4 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-export { knx, options, roleMappings, permMappings, routeAccess, logFileStream, crossEvent };
+export { knx, options, roleMappings, permMappings, routeAccess, errors, logFileStream, crossEvent };

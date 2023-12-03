@@ -81,7 +81,7 @@ describe('Requesting users with various tokens', function() {
           .expect(401)
           .expect(res => {
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.a.property('error');
+            expect(res.body).to.have.all.keys(parameters.api.errorFields);
           }).end(done);
       });
     }

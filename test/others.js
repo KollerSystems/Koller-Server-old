@@ -68,7 +68,7 @@ describe('Requesting various endpoints', function () {
           if (parameter != 'fake') {
             expect(res.body).to.be.an('object').and.not.to.have.a.property('error');
           } else {
-            expect(res.body).to.have.a.property('error');
+            expect(res.body).to.have.all.keys(parameters.api.errorFields);
           }
         }).end(done);
     });
@@ -86,7 +86,7 @@ describe('Requesting various endpoints', function () {
           if (parameter != 'fake') {
             expect(res.body).to.be.an('object').and.not.to.have.a.property('error');
           } else {
-            expect(res.body).to.have.a.property('error');
+            expect(res.body).to.have.all.keys(parameters.api.errorFields);
           }
         }).end(done);
     });

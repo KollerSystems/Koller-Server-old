@@ -59,7 +59,8 @@
         "UID": 2,
         "access_token": "L~nL4d2YH46iHM.~euD_FL6q4kS_C7qG"
       }
-    }
+    },
+    "errorFields": ["error", "error_description", "status_code"]
   },
   "config": {
     "tree": {

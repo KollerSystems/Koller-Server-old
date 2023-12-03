@@ -75,7 +75,7 @@ describe('Requesting timetables and lessons with various tokens', function() {
               }
             }
           } else {
-            expect(res.body).to.have.a.property('error');
+            expect(res.body).to.have.all.keys(parameters.api.errorFields);
           }
         }).end(done);
     });

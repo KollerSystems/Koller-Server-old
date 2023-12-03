@@ -39,6 +39,10 @@ function treeifyMaps(arr, mapType = 'perms') {
       tree[row.Route][row.Role].accessible = Boolean(row.Accessible);
       tree[row.Route][row.Role].hide = Boolean(row.Hide);
     }
+  } else if (mapType == 'errors') {
+    for (let row of arr) {
+      tree[row.Keyword] = { 'code': row.Code, 'description': row.Description };
+    }
   }
 
 

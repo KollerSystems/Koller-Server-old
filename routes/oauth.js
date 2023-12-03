@@ -6,58 +6,47 @@ const oauth = Router();
 
 
 function standardResultObj() {
-  return { 'credentialsOK': false, 'data': undefined, 'issue': '' };
+  return { 'credentialsOK': false, 'data': undefined };
 }
 
 async function passwordGrant(body) {
   const response = standardResultObj();
 
-  if (body.username == undefined) response.issue = 'Username parameter missing!';
-  else if (body.password == undefined) response.issue = 'Password parameter missing!';
-  if (response.issue != '') return response;
+  if ([ body.username, body.password ].includes(undefined)) return 'missing_credentials';
 
   let userCredentials;
   if (/^\d+$/.test(body.username)) {
     userCredentials = await knx.union([ knx('student').first('UID', { 'isStudent': 1 }).where('OM', body.username), knx('teacher').first('UID', 0).where('OM', body.username) ], true);
-    if (!userCredentials || userCredentials.length == 0) {
-      response.issue = `No user with OM: "${body.username}"!`;
-      return response;
-    }
+    if (!userCredentials || userCredentials.length == 0) return 'invalid_username';
+
     userCredentials = await knx('login_data').first('*').where('UID', userCredentials[0].UID);
   } else {
     userCredentials = await knx('login_data').first('*').where('Username', body.username);
   }
 
-  if (!userCredentials) {
-    response.issue = `No user with username: "${body.username}"!`;
-    return response;
-  }
+  if (!userCredentials)
+    return 'invalid_username';
 
   response.data = userCredentials.UID;
   response.credentialsOK = userCredentials.Password == body.password;
 
-  if (!response.credentialsOK) response.issue = 'Incorrect password!';
+  if (!response.credentialsOK) return 'invalid_password';
   return response;
 }
 
 async function refreshGrant(body) {
   const response = standardResultObj();
 
-  if (body['refresh_token'] == undefined) {
-    response.issue = 'A valid refresh token is required!';
-    return response;
-  }
+  if (body['refresh_token'] == undefined)
+    return 'invalid_token';
 
   const token = await knx('auth').first('*').where('refresh_token', body['refresh_token']);
-  if (!token) {
-    response.issue = 'Invalid refresh token!';
-    return response;
-  }
+  if (!token)
+    return 'invalid_token';
 
   if ((token.issued.getTime() + options.authorization.expiry.refreshToken * 1000) < Date.now()) {
-    response.issue = 'Refresh token expired!';
     knx('auth').where('refresh_token', body['refresh_token']).delete();
-    return response;
+    return 'token_expired';
   }
 
   response.credentialsOK = true;
@@ -73,15 +62,14 @@ const handleGrant = {
 
 oauth.post('/token', async (req, res, next) => {
   if (!('grant_type' in req.body) || !(req.body?.grant_type in handleGrant)) {
-    classicErrorSend(res, 400, 'Grant type parameter missing or type not allowed!');
+    classicErrorSend(res, 'invalid_grant');
     return;
   }
 
   const grantResult = await handleGrant[req.body.grant_type](req.body);
 
-  if (grantResult.issue != '') {
-    classicErrorSend(res, 400, grantResult.issue);
-    return;
+  if (typeof grantResult == 'string') {
+    return classicErrorSend(res, grantResult);
   }
 
   const { access_token, refresh_token } = await generateUniqueToken();

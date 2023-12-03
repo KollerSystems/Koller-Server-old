@@ -42,10 +42,10 @@ rooms.get('/me', async (req, res, next) => {
 
 rooms.get('/:id(-?\\d+)', async (req, res, next) => {
   const data = await knx('dorm_room').first('*').where('RID', req.params.id);
-  if (data == undefined) return classicErrorSend(res, 404, 'There is no room with the specified ID!');
+  if (data == undefined) return classicErrorSend(res, 'missing_resource');
 
   const filteredData = filterByPermission(data, 'dorm_room', roleMappings.byID[res.locals.roleID]);
-  if (isEmptyObject(filteredData)) return classicErrorSend(res, 403, 'Forbidden!');
+  if (isEmptyObject(filteredData)) return classicErrorSend(res, 'missing_permissions');
 
   const groupdata = await knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', filteredData.GroupID ?? -1);
   if (filteredData.GroupID ?? '') filteredData.Group = groupdata;

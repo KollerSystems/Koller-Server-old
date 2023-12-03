@@ -84,7 +84,7 @@ describe('Getting token & refreshing it with various credentials', function () {
           if (parameter.succeed) {
             expect(res.body).to.have.keys('access_token', 'refresh_token', 'token_type', 'expires_in');
             refresh_token = res.body.refresh_token;
-          } else expect(res.body).to.have.a.key('error');
+          } else expect(res.body).to.have.all.keys(parameters.api.errorFields);
         }).end(done);
     });
 
@@ -99,7 +99,7 @@ describe('Getting token & refreshing it with various credentials', function () {
           expect(res.body).to.be.an('object');
           if (parameter.succeed)
             expect(res.body).to.have.keys('access_token', 'refresh_token', 'token_type', 'expires_in');
-          else expect(res.body).to.have.a.key('error');
+          else expect(res.body).to.have.all.keys(parameters.api.errorFields);
         }).end(done);
     });
 
@@ -130,7 +130,7 @@ describe('Getting token & refreshing it with various credentials', function () {
           .expect(400)
           .expect(res => {
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.a.key('error');
+            expect(res.body).to.have.all.keys(parameters.api.errorFields);
           }).end(done);
       });
     }

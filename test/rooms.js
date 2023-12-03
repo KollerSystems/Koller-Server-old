@@ -69,7 +69,7 @@ describe('Requesting rooms with various tokens', function() {
             expect(res.body).to.have.a.property('UID', userdata.UID);
             expect(res.body).to.have.a.property('Residents').which.is.an('array');
           } else {
-            expect(res.body).to.have.a.property('error');
+            expect(res.body).to.have.all.keys(parameters.api.errorFields);
           }
         }).end(done);
     });
@@ -98,7 +98,7 @@ describe('Requesting rooms with various tokens', function() {
         .expect('Content-Type', /json/)
         .expect(404)
         .expect(res => {
-          expect(res.body).to.be.an('object').and.to.have.a.property('error');
+          expect(res.body).to.have.all.keys(parameters.api.errorFields);
         }).end(done);
     });
 

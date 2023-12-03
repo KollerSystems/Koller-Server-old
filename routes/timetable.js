@@ -37,7 +37,7 @@ timetable.get('/mandatory/:id(-?\\d+)', async (req, res, next) => {
   const permittedFields = getPermittedFields('mandatory_program_types', roleMappings.byID[res.locals.roleID]).concat(getPermittedFields('mandatory_programs', roleMappings.byID[res.locals.roleID]));
   const data = await knx('mandatory_program_types').joinRaw('NATURAL JOIN mandatory_programs').first(permittedFields).where('ID', req.params.id).where('ClassID', userClassID);
 
-  if (data == undefined) return classicErrorSend(res, 404, 'There is no mandatory program with the specified ID!');
+  if (data == undefined) return classicErrorSend(res, 'missing_resource');
   res.header('Content-Type', 'application/json').status(200).send(data).end();
 
   next();
@@ -58,7 +58,7 @@ timetable.get('/mandatory/types/:id(-?\\d+)', async (req, res, next) => {
   const permittedFields = getPermittedFields('mandatory_program_types', roleMappings.byID[res.locals.roleID]);
   const data = await knx('mandatory_program_types').first(permittedFields).where('TypeID', req.params.id);
 
-  if (data == undefined) return classicErrorSend(res, 404, 'There is no mandatory program type with the specified ID!');
+  if (data == undefined) return classicErrorSend(res, 'missing_resource');
   res.header('Content-Type', 'application/json').status(200).send(data).end();
 
   next();
