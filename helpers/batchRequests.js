@@ -136,7 +136,8 @@ function handleFilterParams(urlparams, allowedFields, translation) {
     'gt': '>',
     'lte': '<=',
     'gte': '>=',
-    'eq': '='
+    'eq': '=',
+    'reg': 'REGEXP'
   };
 
   urlparams = parse(urlparams).query;
@@ -166,7 +167,11 @@ function handleFilterParams(urlparams, allowedFields, translation) {
           operator = operators[operator[0]];
         if (operator == undefined) operator = operators['eq'];
 
-        pushTo(field, value, operator);
+        const regexp = value.match(/(?<=\/).+(?=\/)/g);
+        if (regexp ?? '') {
+          pushTo(field, regexp[0], operators['reg']);
+        } else
+          pushTo(field, value, operator);
       }
     } else {
       if ([ 'limit', 'offset', 'sort', 'order', 'nulls' ].includes(key)) continue;
@@ -189,7 +194,11 @@ function handleFilterParams(urlparams, allowedFields, translation) {
 
         pushTo(key, tryparse(val), operators[operator]);
       } else {
-        pushTo(key, tryparse(value), operators['eq']);
+        const regexp = value.match(/(?<=\/).+(?=\/)/g);
+        if (regexp ?? '') {
+          pushTo(key, regexp[0], operators['reg']);
+        } else
+          pushTo(key, tryparse(value), operators['eq']);
       }
     }
   }

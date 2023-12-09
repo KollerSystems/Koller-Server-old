@@ -216,5 +216,27 @@ describe('Requesting users with various tokens', function() {
           expect(res.body.some(elem => elem.Class?.ID ?? '')).to.be.true;
         }).end(done);
     });
+
+    it(`GET /users?Name=/Miklós/ - (${parameter})`, done => {
+      request
+        .get('?Name=/Miklós/')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.be.an('array').and.to.have.lengthOf(1);
+          expect(res.body[0].Name).to.be.equal('Várnagy Miklós Tamás');
+        }).end(done);
+    });
+    it(`GET /users?Name=/\\d/ - (${parameter})`, done => {
+      request
+        .get('?Name=/\\d/')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.be.empty;
+        }).end(done);
+    });
   }
 });
