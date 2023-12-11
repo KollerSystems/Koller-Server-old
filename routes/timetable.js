@@ -52,23 +52,63 @@ timetable.get('/mandatory/:id(-?\\d+)', async (req, res, next) => {
   next();
 });
 
-timetable.get('/mandatory/types', async (req, res, next) => {
-  const query = knx('program_types').select(getPermittedFields('program_types', roleMappings.byID[res.locals.roleID])).where('Type', 1);
+timetable.get('/studygroup', async (req, res, next) => {
+  const fields = [].concat(
+    getPermittedFields('study_group_program', roleMappings.byID[res.locals.roleID], true),
+    remove(getPermittedFields('program_types', roleMappings.byID[res.locals.roleID], true), 'program_types.ID'),
+    remove(getPermittedFields('program_time', roleMappings.byID[res.locals.roleID], true), 'program_time.ID')
+  );
 
-  const mandatoryTypes = await setupBatchRequest(query, req.query, req.url);
+  const studyGroupID = (await knx('study_group_attendees').first('GroupID').where('UID', res.locals.UID))?.GroupID;
+  const query = knx('study_group_program').select(fields).leftJoin('program_types', 'program_types.ID', 'study_group_program.ProgramID').leftJoin('program_time', 'program_time.ID', 'TimeID').where('program_types.ID', studyGroupID);
 
-  res.header('Content-Type', 'application/json').status(200).send(mandatoryTypes).end();
+  const studyGroups = await setupBatchRequest(query, req.query, req.url);
+
+  res.header('Content-Type', 'application/json').status(200).send(studyGroups).end();
 
   next();
 });
 
-timetable.get('/mandatory/types/:id(-?\\d+)', async (req, res, next) => {
-  const query = await knx('program_types').first(getPermittedFields('program_types', roleMappings.byID[res.locals.roleID])).where('Type', 1).where('ID', req.params.id);
+timetable.get('/studygroup/:id(-?\\d+)', async (req, res, next) => {
+  const fields = [].concat(
+    getPermittedFields('study_group_program', roleMappings.byID[res.locals.roleID], true),
+    remove(getPermittedFields('program_types', roleMappings.byID[res.locals.roleID], true), 'program_types.ID'),
+    remove(getPermittedFields('program_time', roleMappings.byID[res.locals.roleID], true), 'program_time.ID')
+  );
+
+  const studyGroupID = (await knx('study_group_attendees').first('GroupID').where('UID', res.locals.UID))?.GroupID;
+  const query = await knx('study_group_program').first(fields).leftJoin('program_types', 'program_types.ID', 'study_group_program.ProgramID').leftJoin('program_time', 'program_time.ID', 'TimeID').where('program_types.ID', studyGroupID).where('study_group_program.ID', req.params.id);
 
   if (query == undefined) return classicErrorSend(res, 'missing_resource');
+
   res.header('Content-Type', 'application/json').status(200).send(query).end();
 
   next();
 });
+
+const handletypes = async (req, res, type) => {
+  const fields = getPermittedFields('program_types', roleMappings.byID[res.locals.roleID]);
+  let query = knx('program_types').where('Type', type);
+  if (req.params.id ?? '') {
+    query.first(fields).where('ID', req.params.id);
+  } else {
+    query.select(fields);
+    query = setupBatchRequest(query, req.query, req.url);
+  }
+  query = await query;
+
+  if (query == undefined) {
+    classicErrorSend(res, 'missing_resource');
+    return false;
+  }
+  res.header('Content-Type', 'application/json').status(200).send(query).end();
+  return true;
+};
+
+timetable.get('/mandatory/types', async (req, res, next) => { if (await handletypes(req, res, 1)) next(); });
+timetable.get('/mandatory/types/:id(-?\\d+)', async (req, res, next) => { if (await handletypes(req, res, 1)) next(); });
+
+timetable.get('/studygroup/types', async (req, res, next) => { if (await handletypes(req, res, 2)) next(); });
+timetable.get('/studygroup/types/:id(-?\\d+)', async (req, res, next) => { if (await handletypes(req, res, 2)) next(); });
 
 export { timetable };

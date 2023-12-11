@@ -179,5 +179,53 @@ describe('Requesting timetables and lessons with various tokens', function() {
           expect(res.body.TypeID === ProgramID);
         }).end(done);
     });
+
+    it(`GET /timetable/studygroup - (${parameter})`, done => {
+      request
+        .get('/studygroup')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('array');
+          expect(res.body, 'this student does not have any programs, pick one that has').to.have.a.lengthOf.at.least(1);
+          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'TimeID', 'Date', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
+          ({ ID, ProgramID } = res.body[Math.floor(Math.random() * res.body.length)]);
+        }).end(done);
+    });
+    it(`GET /timetable/studygroup/{ID} - (${parameter})`, done => {
+      request
+        .get(`/studygroup/${ID}`)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'TimeID', 'Date', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
+        }).end(done);
+    });
+    it(`GET /timetable/studygroup/types - (${parameter})`, done => {
+      request
+        .get('/studygroup/types/')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('array');
+          if (res.body.length < 0) return;
+          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'Topic', 'RID', 'TUID' ]);
+        }).end(done);
+    });
+    it(`GET /timetable/studygroup/types/{ID} - (${parameter})`, done => {
+      request
+        .get(`/studygroup/types/${ProgramID}`)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(codes[parameter])
+        .expect(res => {
+          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body.TypeID === ProgramID);
+        }).end(done);
+    });
   }
 });
