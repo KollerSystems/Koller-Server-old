@@ -43,6 +43,9 @@ function parseJSON(json) {
 function has(obj, value) {
   return (value in obj);
 }
+function setIfMissingKey(obj, key, defaultValue = {}) {
+  if (!has(obj, key)) obj[key] = defaultValue;
+}
 
 function cmp(a, b, inv, undefinedLast, comparator) {
   if (a == undefined) return undefinedLast ? 1 : -1;
@@ -93,4 +96,4 @@ function weekRange(date = (new Date()), precision = false) {
   return [ new Date(precision ? startDate : losePrecision(startDate)), new Date(precision ? endDate : losePrecision(endDate)) ];
 }
 
-export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, cmp, remove, deleteProperty, tryparse, findIndecies, weekRange };
+export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, setIfMissingKey, cmp, remove, deleteProperty, tryparse, findIndecies, weekRange };

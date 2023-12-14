@@ -1,10 +1,6 @@
 import { knx, permMappings, roleMappings } from './index.js';
-import { has } from './helpers/misc.js';
+import { setIfMissingKey } from './helpers/misc.js';
 const perms = [ 'Read', 'Write' ];
-
-function setIfMissingKey(obj, key, defaultValue = {}) {
-  if (!has(obj, key)) obj[key] = defaultValue;
-}
 
 function treeifyMaps(arr, mapType = 'perms') {
   const tree = {};
