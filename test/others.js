@@ -91,6 +91,17 @@ describe('Requesting various endpoints', function () {
         }).end(done);
     });
 
+    it(`GET /anything - (${parameter})`, done => {
+      request
+        .get('/anything')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(404).expect(res => {
+          expect(res.body).to.be.an('object').that.has.all.keys([ 'error', 'error_description', 'status_code' ]);
+          expect(res.body.error).to.be.equal('missing_resource');
+        }).end(done);
+    });
+
     it(`GET /institution/groups - (${parameter})`, done => {
       request
         .get('/institution/groups')

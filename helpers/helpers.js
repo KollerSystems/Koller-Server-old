@@ -56,7 +56,7 @@ async function checkToken(req, res, next) {
 
 function handleNotFound(req, res, next) {
   if (!res.headersSent)
-    res.header('Content-Type', 'application/json').status(404).send({ 'error': 'Page not found!' });
+    classicErrorSend(res, 'missing_resource');
   next();
 }
 
