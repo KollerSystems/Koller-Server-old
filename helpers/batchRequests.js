@@ -302,12 +302,12 @@ function traverse(obj, map, tillValue = true) {
   }
   return c;
 }
-async function setupBatchRequest(query, urlparams, rawUrl, mounts = [], renames = {}, overrideables = {}) {
+async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts = [], renames = {}, overrideables = {}) {
   const limit = (() => {
-    let l = parseInt(urlparams.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || options.api.batchRequests.defaultLimit;
+    let l = parseInt(urlparams.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm')))?.at(0), 10) || options.api.batchRequests.defaultLimit;
     return (l > options.api.batchRequests.maxLimit ? options.api.batchRequests.maxLimit : l);
   })();
-  const offset = parseInt(urlparams.offset?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm'))).at(0), 10) || 0;
+  const offset = parseInt(urlparams.offset?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm')))?.at(0), 10) || 0;
 
   let translation = {};
   for (let mount of mounts) {
@@ -348,7 +348,9 @@ async function setupBatchRequest(query, urlparams, rawUrl, mounts = [], renames 
     }
   }
 
-  const data = query.offset(offset).limit(limit);
+  let data = query;
+  if (!params.ignoreLimit) data = data.limit(limit);
+  if (!params.ignoreOffset) data = data.offset(offset);
   attachSorts(data, immediateSort);
 
   if (mounts.length == 0) return await data;

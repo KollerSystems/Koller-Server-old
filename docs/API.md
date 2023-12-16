@@ -102,9 +102,11 @@ Az előző kettővel megegyező az eredménye.
 
 Szűrni ezek mellett lehetséges _reguláris kifejezés_-sel is, abban az esetben, ha az operátor egyenlőségre(*eq*) van állítva(azaz el van hagyva), és a hasonlítandó érték két `/` jel között lévő *reguláris kifejezés*.
 
-```GET /api/users?UID=/.+Gergő.+/```
+```GET /api/users?UID=/Gergő/```
 
 Minden olyan diákot visszaad, akinek nevében szerepel a Gergő keresztnév.
+
+Amennyiben a teljes kifejezésnek kell megfelelni, érdemes a `^` és `$` jelek közé zárni, ezáltal kifejezve, hogy kezdődni és végződni is a kifejezéssel kell.
 
 ### Megjegyzések
 
@@ -186,13 +188,13 @@ Felépítése:
 			- `/`
 			- `/:id`
 			- `/types`
-				- `/`		
+				- `/`
 				- `/:pid`
 		- `/studygroup`
 			- `/`
 			- `/:id`
 			- `/types`
-				- `/`		
+				- `/`
 				- `/:pid`
 	- `/institution`
 		- `/`

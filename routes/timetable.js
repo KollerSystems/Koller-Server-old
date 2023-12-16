@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { knx, roleMappings } from '../index.js';
 import { setupBatchRequest } from '../helpers/batchRequests.js';
 import { addCoalesces, classicErrorSend, getPermittedFields, selectCoalesce } from '../helpers/helpers.js';
-import { remove, setIfMissingKey } from '../helpers/misc.js';
+import { deleteProperty, remove } from '../helpers/misc.js';
 
 const timetable = Router({ mergeParams: false });
 
@@ -21,19 +21,19 @@ timetable.get('/', async (req, res, next) => {
   addCoalesces(query, fields.coalesces);
   query.select(...fields.selects).leftJoin('mandatory_program', 'mandatory_program.ID', 'program.ID').leftJoin('study_group_program', 'study_group_program.ID', 'program.ID').leftJoin('program_types', 'program_types.ID', 'ProgramID').where(builder => builder.where('program_types.ID', studyGroupID).orWhere('ClassID', userClassID));
 
-  const timetable = await setupBatchRequest(query, req.query, req.url, [
-    { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } }
-  ], { 'ClassID': undefined });
+  let batchTimetable = await setupBatchRequest(knx('program').distinct('Date'), req.query, req.url, {}, [
+    { 'flexible': false, 'point': 'Day', 'callback': parent => {
+      return parent.Date.toLocaleString('default', { weekday: 'long' });
+    } },
+    { 'flexible': false, 'point': 'Data', 'callback': async parent => {
+      let query = knx('program');
+      addCoalesces(query, fields.coalesces);
+      query.select(...fields.selects).leftJoin('mandatory_program', 'mandatory_program.ID', 'program.ID').leftJoin('study_group_program', 'study_group_program.ID', 'program.ID').leftJoin('program_types', 'program_types.ID', 'ProgramID').where(builder => builder.where('program_types.ID', studyGroupID).orWhere('ClassID', userClassID)).where('program.Date', parent.Date);
+      return await setupBatchRequest(query, req.query, req.url, { 'ignoreLimit': true, 'ignoreOffset': true }, [ { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } } ], { 'ClassID': undefined, 'Date': undefined });
+    } }
+  ]);
 
-  let result = {};
-  for (let data of timetable) {
-    const date = data.Date;
-    const dateString = date.toISOString();
-    delete data.Date;
-    if (data.ClassID == null) delete data.ClassID;
-    setIfMissingKey(result, dateString, { 'Day': date.toLocaleString('default', { weekday: 'long' }), 'Data': [] });
-    result[dateString].Data.push(data);
-  }
+  const result = batchTimetable.reduce((obj, cur) => ({ ...obj, [cur.Date.toISOString()]: deleteProperty(cur, 'Date') }), {});
 
   res.header('Content-Type', 'application/json').status(200).send(result).end();
 
@@ -51,7 +51,7 @@ timetable.get('/mandatory', async (req, res, next) => {
   const userClassID = (await knx(roleMappings.byID[res.locals.roleID]).first('ClassID').where('UID', res.locals.UID)).ClassID;
   const query = knx('mandatory_program').select(fields).leftJoin('program', 'program.ID', 'mandatory_program.ID').leftJoin('program_types', 'program_types.ID', 'program.ProgramID').where('ClassID', userClassID);
 
-  const mandatoryPrograms = await setupBatchRequest(query, req.query, req.url, [
+  const mandatoryPrograms = await setupBatchRequest(query, req.query, req.url, {}, [
     { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } }
   ], { 'ClassID': undefined  } /* , { 'Date': q => q.whereBetween('Date', weekRange()) } */ );
 

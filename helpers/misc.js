@@ -59,15 +59,19 @@ function cmp(a, b, inv, undefinedLast, comparator) {
 }
 
 function remove(array, item) {
-  const i = array.indexOf(item);
-  if (i > -1) array.splice(i, 1);
+  let items = [];
+  if (item.length == undefined) items.push(item);
+  else items = item;
+  for (let elem of items) {
+    const i = array.indexOf(elem);
+    if (i > -1) array.splice(i, 1);
+  }
   return array;
 }
 
 function deleteProperty(obj, key) {
-  let v = obj[key];
   delete obj[key];
-  return v;
+  return obj;
 }
 
 function tryparse(str) {
