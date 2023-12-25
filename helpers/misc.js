@@ -60,7 +60,7 @@ function cmp(a, b, inv, undefinedLast, comparator) {
 
 function remove(array, item) {
   let items = [];
-  if (item.length == undefined) items.push(item);
+  if (item.length == undefined || typeof item != 'object') items.push(item);
   else items = item;
   for (let elem of items) {
     const i = array.indexOf(elem);

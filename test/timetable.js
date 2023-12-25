@@ -151,7 +151,7 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect('Content-Type', /json/)
         .expect(codes[parameter])
         .expect(res => {
-          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'Class', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'DayTypeID', 'Class', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
           expect(res.body.ID === ID);
           expect(res.body.TypeID === ProgramID);
         }).end(done);
@@ -189,7 +189,7 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect(res => {
           expect(res.body).to.be.an('array');
           expect(res.body, 'this student does not have any programs, pick one that has').to.have.a.lengthOf.at.least(1);
-          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'DayTypeID', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
           ({ ID, ProgramID } = res.body[Math.floor(Math.random() * res.body.length)]);
         }).end(done);
     });
@@ -201,7 +201,7 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect(codes[parameter])
         .expect(res => {
           expect(res.body).to.be.an('object');
-          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'DayTypeID', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
         }).end(done);
     });
     it(`GET /timetable/studygroup/types - (${parameter})`, done => {
@@ -238,7 +238,7 @@ describe('Requesting timetables and lessons with various tokens', function() {
           expect(res.body).to.be.an('object');
           expect(Object.keys(res.body).every(v => v.match(/\d+-\d+-\d+T\d+:\d+:\d+.\d+Z/)), 'object keys are in ISO timestamp').to.be.true;
           for (let body of Object.values(res.body)) {
-            expect(body).to.have.a.key([ 'Day', 'Data' ]);
+            expect(body).to.have.a.key([ 'Day', 'Data', 'DayTypeID' ]);
             expect([ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ].includes(body.Day)).to.be.true;
 
             for (let data of body.Data) {

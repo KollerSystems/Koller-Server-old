@@ -111,7 +111,7 @@ describe('Requesting various endpoints', function () {
           expect(res.body).to.be.an('array');
         }).end(done);
     });
-    it(`GET /institution/groups/:id - (${parameter})`, done => {
+    it(`GET /institution/groups/{ID} - (${parameter})`, done => {
       request
         .get('/institution/groups/' + parameters.api.parameters.others.institution.groupID)
         .set('Authorization', 'Bearer ' + userdata.access_token)
@@ -131,7 +131,7 @@ describe('Requesting various endpoints', function () {
           expect(res.body).to.be.an('array');
         }).end(done);
     });
-    it(`GET /institution/classes/:id - (${parameter})`, done => {
+    it(`GET /institution/classes/{ID} - (${parameter})`, done => {
       request
         .get('/institution/classes/' + parameters.api.parameters.others.institution.classID)
         .set('Authorization', 'Bearer ' + userdata.access_token)
@@ -139,6 +139,31 @@ describe('Requesting various endpoints', function () {
         .expect(200).expect(res => {
           expect(res.body).to.be.an('object');
           expect(res.body.ID).to.equal(parameters.api.parameters.others.institution.classID);
+        }).end(done);
+    });
+
+    it(`GET /institution/daytypes/ - (${parameter})`, done => {
+      request
+        .get('/institution/daytypes/')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200).expect(res => {
+          expect(res.body).to.be.an('array');
+          expect(res.body[0]).to.have.keys([ 'ID', 'DayStart', 'RoomRating', 'MiddayAttendance', 'DayArrival', 'NightArrivalRed', 'NightArrivalYellow', 'NightEnd', 'EveningAttendance', 'BreakfastStart', 'BreakfastEnd', 'DinnerStart', 'DinnerEnd', 'SupperStart', 'SupperEnd', 'ActiveOn', 'DayName', 'Lessons' ]);
+          expect(res.body[0].Lessons).to.be.an('array');
+          expect(res.body[0].Lessons[0]).to.have.keys([ 'VersionID', 'LessonNum', 'StartTime', 'EndTime' ]);
+        }).end(done);
+    });
+    it(`GET /institution/daytypes/{ID} - (${parameter})`, done => {
+      request
+        .get('/institution/daytypes/' + parameters.api.parameters.others.institution.dayTypeID)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200).expect(res => {
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.have.keys([ 'ID', 'DayStart', 'RoomRating', 'MiddayAttendance', 'DayArrival', 'NightArrivalRed', 'NightArrivalYellow', 'NightEnd', 'EveningAttendance', 'BreakfastStart', 'BreakfastEnd', 'DinnerStart', 'DinnerEnd', 'SupperStart', 'SupperEnd', 'ActiveOn', 'DayName', 'Lessons' ]);
+          expect(res.body.Lessons).to.be.an('array');
+          expect(res.body.Lessons[0]).to.have.keys([ 'VersionID', 'LessonNum', 'StartTime', 'EndTime' ]);
         }).end(done);
     });
   }

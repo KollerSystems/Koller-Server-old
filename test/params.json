@@ -37,7 +37,8 @@
       "others": {
         "institution": {
           "groupID": 2,
-          "classID": 2
+          "classID": 2,
+          "dayTypeID": 1
         }
       }
     },
