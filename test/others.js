@@ -12,7 +12,7 @@ const parameters = JSON.parse(
 );
 
 import supertest from 'supertest';
-let request = supertest(`localhost:${options.api.port}/api/`);
+const request = supertest(`localhost:${options.api.port}/api`);
 import { expect } from 'chai';
 
 

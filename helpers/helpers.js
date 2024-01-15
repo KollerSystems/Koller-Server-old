@@ -117,8 +117,8 @@ function handleRouteAccess(req, res, next) {
 
   if (!(url in routeAccess)) return next();
 
-  if (routeAccess[url][res.locals.roleID].accessible) next();
-  else if (routeAccess[url][res.locals.roleID].hide) classicErrorSend(res, 'missing_resource');
+  if (routeAccess[url][res.locals.roleID]?.accessible) next();
+  else if (routeAccess[url][res.locals.roleID]?.hide) classicErrorSend(res, 'missing_resource');
   else classicErrorSend(res, 'missing_permissions');
 }
 

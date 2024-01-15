@@ -29,10 +29,10 @@
         "roomID": 131
       },
       "timetable": {
-        "correctYear": "2023",
+        "correctYear": "2024",
         "correctMonth": "09",
         "correctDay": "20",
-        "failYear": "2024"
+        "failYear": "2040"
       },
       "others": {
         "institution": {

@@ -45,7 +45,7 @@ function getFromFields(query) {
   return froms;
 }
 
-function handleSortParams(urlparams, allowedFields, translation) {
+function handleSortParams(urlparams, allowedFields, translation, renames) {
   if (!(urlparams.sort ?? '')) return [];
 
   const isCertain = field => {
@@ -73,6 +73,7 @@ function handleSortParams(urlparams, allowedFields, translation) {
       } else
         obj.order = (obj.order[0] == '+' ? 'asc' : 'desc');
 
+      obj.column = renames[obj.column] || obj.column;
       if (obj.column != undefined) sort.push(obj);
     }
   } else {
@@ -83,6 +84,7 @@ function handleSortParams(urlparams, allowedFields, translation) {
 
       obj.order = orderparams[i] == undefined ? 'asc' : orderparams[i];
 
+      obj.column = renames[obj.column] || obj.column;
       if (obj.column != undefined) sort.push(obj);
     }
   }
@@ -100,7 +102,7 @@ function handleSortParams(urlparams, allowedFields, translation) {
   return sort;
 }
 
-function handleFilterParams(urlparams, allowedFields, translation) {
+function handleFilterParams(urlparams, allowedFields, translation, renames) {
   /* styles:
    * ?RID[lte]=17
    * ?RID=lte:17
@@ -112,6 +114,7 @@ function handleFilterParams(urlparams, allowedFields, translation) {
   const isCertain = field => allowedFields.all.includes(field) || (traverse(translation, field.split('.')) ?? '');
   const filterType = (obj, field) => obj[isCertain(field) ? 'immediate' : 'postquery'];
   const pushTo = (field, value, operator) => {
+    field = renames[field] || field;
     const index = filterType(filtersMap, field).findIndex(v => v.field == field && v.operator == operator);
     if (index == -1) {
       let traversed = traverse(translation, field.split('.'));
@@ -326,7 +329,14 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
     columns = { ...columns, ... cInfo };
   }
 
-  const filterparams = handleFilterParams(rawUrl, getSelectFields(query), translation);
+  const trueRenames = {};
+  for (let key in renames) {
+    if (renames[key] ?? '') {
+      trueRenames[renames[key]] = key;
+    }
+  }
+
+  const filterparams = handleFilterParams(rawUrl, getSelectFields(query), translation, trueRenames);
 
   for (let key in overrideables) {
     const index = filterparams.immediate.findIndex(obj => obj.field == key);
@@ -336,7 +346,7 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
 
   attachFilters(query, filterparams.immediate, columns);
 
-  let sortparams = handleSortParams(urlparams, getSelectFields(query), translation);
+  let sortparams = handleSortParams(urlparams, getSelectFields(query), translation, trueRenames);
   let immediateSort = [];
 
   for (let i = 0; i < sortparams.length; i++) {

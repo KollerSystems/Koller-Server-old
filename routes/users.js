@@ -80,7 +80,7 @@ users.get('/', async (req, res, next) => {
     { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } },
     { 'flexible': true, 'point': 'Group', 'join': [ 'GroupID', 'ID' ], 'query': { 'fields': getPermittedFields('group', roleMappings.byID[res.locals.roleID], false), 'table': 'group' } },
     { 'flexible': true, 'point': 'Contacts', 'join': [ 'ContactID', 'ID' ], 'query': { 'fields': getPermittedFields('contacts', roleMappings.byID[res.locals.roleID], false), 'table': 'contacts' } }
-  ], { 'ClassID': undefined, 'GroupID': undefined,  'ContactID': undefined });
+  ], { 'ClassID': undefined, 'GroupID': undefined, 'ContactID': undefined });
   for (let i = 0; i < users.length; i++) {
     Object.keys(users[i]).forEach((k) => users[i][k] == null && delete users[i][k]);
   }
