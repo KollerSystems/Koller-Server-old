@@ -26,15 +26,22 @@ users.post('/mifare', async (req, res, next) => {
 
 users.get('/me', async (req, res, next) => {
   const userdata = await knx(roleMappings.byID[res.locals.roleID]).first('*').where('UID', res.locals.UID);
-  const classdata = await knx('class').first('*').where('ID', userdata.ClassID ?? -1);
-  const groupdata = await knx('group').first('*').where('ID', userdata.GroupID ?? -1);
-  const contactdata = await knx('contacts').first('*').where('ID', userdata.ContactID ?? -1);
+
+  const [ classdata, groupdata, contactdata ] = await Promise.all([
+    knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', userdata.ClassID ?? -1),
+    knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', userdata.GroupID ?? -1),
+    knx('contacts').first(getPermittedFields('contacts', roleMappings.byID[res.locals.roleID])).where('ID', userdata.ContactID ?? -1)
+  ]);
+
   if (userdata.ClassID ?? '') userdata.Class = classdata;
-  if (userdata.GroupID ?? '') userdata.Group = groupdata;
-  if (userdata.ContactID ?? '') userdata.Contacts = contactdata;
   delete userdata.ClassID;
+
+  if (userdata.GroupID ?? '') userdata.Group = groupdata;
   delete userdata.GroupID;
+
+  if (userdata.ContactID ?? '') userdata.Contacts = await contactdata;
   delete userdata.ContactID;
+
   res.header('Content-Type', 'application/json').status(200).send(userdata).end();
   next();
 });
@@ -46,15 +53,18 @@ users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
   const userData = await knx(roleMappings.byID[user.Role]).first('*').where('UID', user.UID);
   const filteredData = filterByPermission(userData, roleMappings.byID[user.Role], roleMappings.byID[res.locals.roleID]);
 
-  const classdata = await knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', userData.ClassID ?? -1);
+  const [ classdata, groupdata, contactdata ] = await Promise.all([
+    knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', userData.ClassID ?? -1),
+    knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', userData.GroupID ?? -1),
+    knx('contacts').first(getPermittedFields('contacts', roleMappings.byID[res.locals.roleID])).where('ID', userData.ContactID ?? -1)
+  ]);
+
   if (userData.ClassID ?? '') filteredData.Class = classdata;
   delete filteredData.ClassID;
 
-  const groupdata = await knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', userData.GroupID ?? -1);
   if (userData.GroupID ?? '') filteredData.Group = groupdata;
   delete filteredData.GroupID;
 
-  const contactdata = knx('contacts').first(getPermittedFields('contacts', roleMappings.byID[res.locals.roleID])).where('ID', userData.ContactID ?? -1);
   if (userData.ContactID ?? '') filteredData.Contacts = await contactdata;
   delete filteredData.ContactID;
 

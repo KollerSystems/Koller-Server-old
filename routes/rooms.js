@@ -14,10 +14,11 @@ rooms.get('/', async (req, res, next) => {
 
   data = await setupBatchRequest(data, req.query, req.url, {}, [
     { 'flexible': true, 'point': 'Group', 'join': [ 'GroupID', 'ID' ], 'query': { 'fields': getPermittedFields('group', roleMappings.byID[res.locals.roleID], false), 'table': 'group' } },
+    { 'flexible': true, 'point': 'Annexe', 'join': [ 'AID', 'ID' ], 'query': { 'fields': getPermittedFields('annexe', roleMappings.byID[res.locals.roleID], false), 'table': 'annexe' } },
     { 'flexible': false, 'point': 'Residents', 'callback': async parent => {
       return await knx('resident').select(fieldsPermitted).joinRaw('natural join student').join('class', 'class.ID', 'student.ClassID').where('RID', parent.RID);
     } }
-  ], { 'GroupID': undefined });
+  ], { 'GroupID': undefined, 'AID': undefined });
 
   res.header('Content-Type', 'application/json').status(200).send(data).end();
 
@@ -29,9 +30,16 @@ rooms.get('/me', async (req, res, next) => {
   let data = await knx('dorm_room').first(getPermittedFields('dorm_room', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
   const postquery = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat('Name', 'Class')).joinRaw('natural join student').join('class', 'class.ID', 'student.ClassID').where('RID', prequery.RID);
 
-  const groupdata = await knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', data.GroupID ?? -1);
+  const [ groupdata, annexdata ] = await Promise.all( [
+    knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', data.GroupID ?? -1),
+    knx('annexe').first(getPermittedFields('annexe', roleMappings.byID[res.locals.roleID])).where('ID', data.AID ?? -1)
+  ] );
+
   if (data.GroupID ?? '') data.Group = groupdata;
   delete data.GroupID;
+
+  if (data.AID ?? '') data.Annexe = annexdata;
+  delete data.AID;
 
   data.Residents = postquery;
   data.UID = parseInt(res.locals.UID, 10);
@@ -47,9 +55,16 @@ rooms.get('/:id(-?\\d+)', async (req, res, next) => {
   const filteredData = filterByPermission(data, 'dorm_room', roleMappings.byID[res.locals.roleID]);
   if (isEmptyObject(filteredData)) return classicErrorSend(res, 'missing_permissions');
 
-  const groupdata = await knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', filteredData.GroupID ?? -1);
+  const [ groupdata, annexdata ] = await Promise.all([
+    knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', filteredData.GroupID ?? -1),
+    knx('annexe').first(getPermittedFields('annexe', roleMappings.byID[res.locals.roleID])).where('ID', filteredData.AID ?? -1)
+  ]);
+
   if (filteredData.GroupID ?? '') filteredData.Group = groupdata;
   delete filteredData.GroupID;
+
+  if (filteredData.AID ?? '') filteredData.Annexe = annexdata;
+  delete filteredData.AID;
 
   filteredData.Residents = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat([ 'Name', 'Picture', 'Class' ])).joinRaw('natural join student').join('class', 'class.ID', 'student.ClassID').where('RID', req.params.id);
   res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
