@@ -68,6 +68,10 @@ describe('Requesting rooms with various tokens', function() {
             expect(res.body).to.have.a.property('RID', userdata.RID);
             expect(res.body).to.have.a.property('UID', userdata.UID);
             expect(res.body).to.have.a.property('Residents').which.is.an('array');
+            if (res.body.Residents.length > 0) {
+              expect(res.body.Residents[0]).to.have.keys([ 'UID', 'BedNum', 'Name', 'Picture', 'Class' ]);
+              expect(res.body.Residents[0].Class).to.be.an('object').that.has.keys([ 'ID', 'Class', 'Old' ]);
+            }
             expect(res.body).to.have.a.property('Group').which.is.an('object').that.has.keys([ 'ID', 'Group', 'Old', 'HeadTUID' ]);
             expect(res.body).to.have.a.property('Annexe').which.is.an('object').that.has.keys([ 'ID', 'Annexe', 'Gender' ]);
           } else {
@@ -88,6 +92,10 @@ describe('Requesting rooms with various tokens', function() {
           expect(res.body).to.be.an('object');
           expect(res.body).to.have.a.property('RID', parameters.api.parameters.rooms.roomID);
           expect(res.body).to.have.a.property('Residents').which.is.an('array');
+          if (res.body.Residents.length > 0) {
+            expect(res.body.Residents[0]).to.have.keys([ 'UID', 'BedNum', 'Name', 'Picture', 'Class' ]);
+            expect(res.body.Residents[0].Class).to.be.an('object').that.has.keys([ 'ID', 'Class', 'Old' ]);
+          }
           expect(res.body).to.have.a.property('Group').which.is.an('object').that.has.keys([ 'ID', 'Group', 'Old', 'HeadTUID' ]);
           expect(res.body).to.have.a.property('Annexe').which.is.an('object').that.has.keys([ 'ID', 'Annexe', 'Gender' ]);
           let RIDsOfResidents = [];
