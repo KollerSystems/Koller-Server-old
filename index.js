@@ -1,6 +1,7 @@
 import express from 'express';
 import knex from 'knex';
-import { createWriteStream } from 'fs';
+import { createWriteStream, readFileSync } from 'fs';
+import { createServer } from 'https';
 import { WebSocketServer } from 'ws';
 import process from 'node:process';
 import EventEmitter from 'node:events';
@@ -87,15 +88,23 @@ const errors = treeifyMaps(await knx('errors').select('*'), 'errors');
 
 if (options.api.extendPermissions) await extendMissingPermissions();
 
-
-let server = app.listen(options.api.port, async err => {
+const startHandler = async err => {
   if (err) {
-    await server.close(() => console.error('Server terminated - unable to start listening due to error:'));
+    await servers.at(-1).close(() => console.error('Server terminated - unable to start listening due to error:'));
     console.error(err);
     process.exit(1);
   }
-  console.log(`Server started listening on port ${options.api.port}!`);
-});
+  console.log('Server started listening!');
+};
+
+const servers = [];
+
+const httpsConfig = {};
+for (let item of [ 'cert', 'ca', 'key' ]) {
+  if (options.api.https[item + 'Path'] ?? '') httpsConfig[item] = readFileSync(options.api.https[item + 'Path']);
+}
+if (options.api.https.use) servers.push(createServer(httpsConfig, app).listen(options.api.https.port, startHandler));
+if (!options.api.https.require) servers.push(app.listen(options.api.port, startHandler));
 
 
 const websocketServer = new WebSocketServer({ 'port': options.readerConnection.websocket.port, 'path': options.readerConnection.websocket.path });
@@ -103,23 +112,31 @@ websocketServer.on('connection', handleWebsocket);
 
 const crossEvent = new EventEmitter();
 
-server.on('close', () => {
-  setTimeout(() => {
-    console.log('Server terminated - timeout!');
-    process.exit(1);
-  }, options.api.exitTimeout);
+servers.forEach(server => {
+  server.on('close', () => {
+    setTimeout(() => {
+      console.log('Server terminated - timeout!');
+      process.exit(1);
+    }, options.api.exitTimeout);
 
-  server.closeAllConnections();
-  for (const client of websocketServer.clients) {
-    client.close(1012);
-  }
-  if (logFileStream ?? '') logFileStream.destroy();
-  knx.destroy();
+    server.closeAllConnections();
+    for (const client of websocketServer.clients) {
+      client.close(1012);
+    }
+    if (logFileStream ?? '') logFileStream.destroy();
+    knx.destroy();
+  });
 });
 
 process.on('SIGINT', async () => {
-  await server.close(() => console.log('Server terminated - SIGINT!'));
-  process.exit(0);
+  let terminated = Array(servers.length).fill(false);
+  for (let i = 0, server = servers[i]; i < servers.length; server = servers[++i]) {
+    server?.close(() => {
+      console.log('Server terminated - SIGINT!');
+      terminated[i] = true;
+      if (terminated.every(v => v)) process.exit(0);
+    });
+  }
 });
 
 export { knx, options, roleMappings, permMappings, routeAccess, errors, logFileStream, crossEvent };

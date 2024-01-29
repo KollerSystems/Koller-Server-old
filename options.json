@@ -25,6 +25,14 @@
     },
     "SSE": {
       "clientRetryInterval": 500
+    },
+    "https": {
+      "use": false,
+      "require": false,
+      "port": 443,
+      "certPath": "",
+      "caPath": "",
+      "keyPath": ""
     }
   },
   "readerConnection": {

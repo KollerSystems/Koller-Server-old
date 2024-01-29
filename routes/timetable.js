@@ -7,7 +7,6 @@ import { deleteProperty, remove } from '../helpers/misc.js';
 const timetable = Router({ mergeParams: false });
 
 timetable.get('/', async (req, res, next) => {
-  const studyGroupID = (await knx('study_group_attendees').first('GroupID').where('UID', res.locals.UID))?.GroupID;
   const userClassID = (await knx(roleMappings.byID[res.locals.roleID]).first('ClassID').where('UID', res.locals.UID)).ClassID;
 
   const fields = selectCoalesce([
@@ -19,7 +18,7 @@ timetable.get('/', async (req, res, next) => {
 
   let query = knx('program');
   addCoalesces(query, fields.coalesces);
-  query.select(...fields.selects).leftJoin('mandatory_program', 'mandatory_program.ID', 'program.ID').leftJoin('study_group_program', 'study_group_program.ID', 'program.ID').leftJoin('program_types', 'program_types.ID', 'ProgramID').where(builder => builder.where('program_types.ID', studyGroupID).orWhere('ClassID', userClassID));
+  query.select(...fields.selects).leftJoin('mandatory_program', 'mandatory_program.ID', 'program.ID').leftJoin('study_group_program', 'study_group_program.ID', 'program.ID').leftJoin('program_types', 'program_types.ID', 'ProgramID').leftJoin('study_group_attendees', 'study_group_attendees.GroupID', 'program_types.ID').where(builder => builder.where('study_group_attendees.UID', res.locals.UID).orWhere('ClassID', userClassID));
 
   let batchTimetable = await setupBatchRequest(knx('program').distinct('program.Date').select('program.Date', getPermittedFields('date', roleMappings.byID[res.locals.roleID], false).filter(v => v == 'DayTypeID')?.[0]).leftJoin('date', 'program.Date', 'date.DateID'), req.query, req.url, {}, [
     { 'flexible': false, 'point': 'Day', 'callback': parent => {
@@ -28,7 +27,7 @@ timetable.get('/', async (req, res, next) => {
     { 'flexible': false, 'point': 'Data', 'callback': async parent => {
       let query = knx('program');
       addCoalesces(query, fields.coalesces);
-      query.select(...fields.selects).leftJoin('mandatory_program', 'mandatory_program.ID', 'program.ID').leftJoin('study_group_program', 'study_group_program.ID', 'program.ID').leftJoin('program_types', 'program_types.ID', 'ProgramID').where(builder => builder.where('program_types.ID', studyGroupID).orWhere('ClassID', userClassID)).where('program.Date', parent.Date);
+      query.select(...fields.selects).leftJoin('mandatory_program', 'mandatory_program.ID', 'program.ID').leftJoin('study_group_program', 'study_group_program.ID', 'program.ID').leftJoin('program_types', 'program_types.ID', 'ProgramID').leftJoin('study_group_attendees', 'study_group_attendees.GroupID', 'program_types.ID').where(builder => builder.where('study_group_attendees.UID', res.locals.UID).orWhere('ClassID', userClassID)).where('program.Date', parent.Date);
       return await setupBatchRequest(query, req.query, req.url, { 'ignoreLimit': true, 'ignoreOffset': true }, [ { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } } ], { 'ClassID': undefined, 'Date': undefined });
     } }
   ]);
@@ -92,8 +91,7 @@ timetable.get('/studygroup', async (req, res, next) => {
     remove(getPermittedFields('date', roleMappings.byID[res.locals.roleID], true), 'date.DateID')
   );
 
-  const studyGroupID = (await knx('study_group_attendees').first('GroupID').where('UID', res.locals.UID))?.GroupID;
-  const query = knx('study_group_program').select(fields).leftJoin('program', 'program.ID', 'study_group_program.ID').leftJoin('program_types', 'program_types.ID', 'program.ProgramID').leftJoin('date', 'date.DateID', 'program.Date').where('program_types.ID', studyGroupID);
+  const query = knx('study_group_program').select(fields).leftJoin('program', 'program.ID', 'study_group_program.ID').leftJoin('program_types', 'program_types.ID', 'program.ProgramID').leftJoin('date', 'date.DateID', 'program.Date').leftJoin('study_group_attendees', 'study_group_attendees.GroupID', 'program_types.ID').where('study_group_attendees.UID', res.locals.UID);
 
   const studyGroups = await setupBatchRequest(query, req.query, req.url);
 
@@ -110,8 +108,7 @@ timetable.get('/studygroup/:id(-?\\d+)', async (req, res, next) => {
     remove(getPermittedFields('date', roleMappings.byID[res.locals.roleID], true), 'date.DateID')
   );
 
-  const studyGroupID = (await knx('study_group_attendees').first('GroupID').where('UID', res.locals.UID))?.GroupID;
-  const query = await knx('study_group_program').first(fields).leftJoin('program', 'program.ID', 'study_group_program.ID').leftJoin('program_types', 'program_types.ID', 'program.ProgramID').leftJoin('date', 'date.DateID', 'program.Date').where('program_types.ID', studyGroupID).where('study_group_program.ID', req.params.id);
+  const query = await knx('study_group_program').first(fields).leftJoin('program', 'program.ID', 'study_group_program.ID').leftJoin('program_types', 'program_types.ID', 'program.ProgramID').leftJoin('date', 'date.DateID', 'program.Date').leftJoin('study_group_attendees', 'study_group_attendees.GroupID', 'program_types.ID').where('study_group_attendees.UID', res.locals.UID).where('study_group_program.ID', req.params.id);
 
   if (query == undefined) return classicErrorSend(res, 'missing_resource');
 
