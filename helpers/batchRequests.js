@@ -1,5 +1,5 @@
 import { knx, options } from '../index.js';
-import { tryparse } from './misc.js';
+import { isEmptyObject, tryparse } from './misc.js';
 import { parse } from 'node:url';
 
 function getSelectFields(query) {
@@ -115,6 +115,14 @@ function handleFilterParams(urlparams, allowedFields, translation, renames) {
   const filterType = (obj, field) => obj[isCertain(field) ? 'immediate' : 'postquery'];
   const pushTo = (field, value, operator) => {
     field = renames[field] || field;
+    if (operator == 'REGEXP') {
+      try {
+        new RegExp(value);
+      } catch (err) {
+        value = '';
+      }
+    }
+
     const index = filterType(filtersMap, field).findIndex(v => v.field == field && v.operator == operator);
     if (index == -1) {
       let traversed = traverse(translation, field.split('.'));
@@ -153,7 +161,7 @@ function handleFilterParams(urlparams, allowedFields, translation, renames) {
     if (key == undefined || value == undefined) continue;
 
     if ([ 'filter', 'filters' ].includes(key)) {
-      const fieldPattern = new RegExp(/([A-Z]|[a-z])+((?=\[(lte?|gte?|eq)\]:)|(?=:))/g),
+      const fieldPattern = new RegExp(/([A-Z]|[a-z]|\.)+((?=\[(lte?|gte?|eq)\]:)|(?=:))/g),
         operatorPattern = new RegExp(/(?<=\[)gte?|lte?|eq(?=\])/g),
         valuePattern = new RegExp(/(?<=:).+/g);
       let filterValues = value.replace(', ', ',').split(',');
@@ -305,6 +313,16 @@ function traverse(obj, map, tillValue = true) {
   }
   return c;
 }
+
+function initializeOrAdd(obj, key, value) {
+  if (value?.length >= 0 && typeof value == 'object') {
+    if (obj[key] == undefined) obj[key] = [];
+    obj[key] = [ ...obj[key], ...value ];
+  } else if (typeof value == 'object')
+    obj[key] = { ...obj[key], ...value };
+  else
+    obj[key] = value;
+}
 async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts = [], renames = {}, overrideables = {}) {
   const limit = (() => {
     let l = parseInt(urlparams.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm')))?.at(0), 10) || options.api.batchRequests.defaultLimit;
@@ -317,7 +335,7 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
     if (!mount.flexible) continue;
 
     query.leftJoin(mount.query.table, mount.join[0], mount.query.table + '.' + mount.join[1]);
-    translation[mount.point] = {};
+    if (!(translation[mount.point] ?? '')) translation[mount.point] = {};
     for (let field of mount.query.fields)
       translation[mount.point][field] = mount.query.table + '.' + field;
   }
@@ -370,10 +388,13 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
   for (let obj of finalData) {
     for (let mount of mounts) {
       if (mount.flexible) {
-        obj[mount.point] = await knx(mount.query.table).first(mount.query.fields).where(mount.join[1], obj[mount.join[0]]);
+        const mountedObj = await knx(mount.query.table).first(mount.query.fields).where(mount.join[1], obj[mount.join[0]]);
+        initializeOrAdd(obj, mount.point, mountedObj);
       } else {
-        obj[mount.point] = await mount.callback(obj);
+        const mountedObj = await mount.callback(obj);
+        initializeOrAdd(obj, mount.point, mountedObj);
       }
+      if (obj[mount.point] != undefined && isEmptyObject(obj[mount.point])) obj[mount.point] = undefined;
     }
     for (let field in renames) {
       let traversePath = field.split('.');

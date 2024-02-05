@@ -192,6 +192,17 @@ describe('Requesting users with various tokens', function() {
           expect(res.body.every(elem => elem.Class.ID == parameters.api.parameters.user.deepFilterValue)).to.be.true;
         }).end(done);
     });
+    it(`GET /users?filters=Class.ID:{1}  - (${parameter})`, done => {
+      request
+        .get(`?filters=Class.ID:${parameters.api.parameters.user.deepFilterValue}`)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.be.an('array').and.to.have.lengthOf.at.most(options.api.batchRequests.defaultLimit);
+          expect(res.body.every(elem => elem.Class.ID == parameters.api.parameters.user.deepFilterValue)).to.be.true;
+        }).end(done);
+    });
 
     it(`GET /users?Class={1}&sort=Contacts  - (${parameter})`, done => {
       request
@@ -236,6 +247,16 @@ describe('Requesting users with various tokens', function() {
         .expect(200)
         .expect(res => {
           expect(res.body).to.be.empty;
+        }).end(done);
+    });
+    it(`GET /users?Name=/\\/ - (${parameter})`, done => {
+      request
+        .get('?Name=/\\/')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).not.to.be.empty;
         }).end(done);
     });
   }

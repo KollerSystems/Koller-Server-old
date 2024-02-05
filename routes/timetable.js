@@ -52,8 +52,10 @@ timetable.get('/mandatory', async (req, res, next) => {
   const query = knx('mandatory_program').select(fields).leftJoin('program', 'program.ID', 'mandatory_program.ID').leftJoin('program_types', 'program_types.ID', 'program.ProgramID').leftJoin('date', 'date.DateID', 'program.Date').where('ClassID', userClassID);
 
   const mandatoryPrograms = await setupBatchRequest(query, req.query, req.url, {}, [
-    { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } }
-  ], { 'ClassID': undefined  } /* , { 'Date': q => q.whereBetween('Date', weekRange()) } */ );
+    { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } },
+    { 'flexible': true, 'point': 'Teacher', 'join': [ 'TUID', 'UID' ], 'query': { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' } },
+    { 'flexible': true, 'point': 'Teacher', 'join': [ 'TUID', 'UID' ], 'query': { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' } }
+  ], { 'ClassID': undefined, 'TUID': undefined } /* , { 'Date': q => q.whereBetween('Date', weekRange()) } */ );
 
   res.header('Content-Type', 'application/json').status(200).send(mandatoryPrograms).end();
 
@@ -74,9 +76,19 @@ timetable.get('/mandatory/:id(-?\\d+)', async (req, res, next) => {
 
   if (query == undefined) return classicErrorSend(res, 'missing_resource');
 
+  const selects = selectCoalesce([].concat(
+    { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' },
+    { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' }
+  ));
+  let teacherUser = knx('teacher').first(...selects.selects, ...selects.coalesces).where('teacher.UID', query.TUID).leftJoin('user', 'user.UID', 'teacher.UID');
+  addCoalesces(teacherUser, selects.coalesces);
+  teacherUser = await teacherUser;
+
+  query.Teacher = teacherUser;
   query.Class = userClass;
   delete query.ClassID;
   delete query.Class.ClassID;
+  delete query.TUID;
 
   res.header('Content-Type', 'application/json').status(200).send(query).end();
 
@@ -93,7 +105,10 @@ timetable.get('/studygroup', async (req, res, next) => {
 
   const query = knx('study_group_program').select(fields).leftJoin('program', 'program.ID', 'study_group_program.ID').leftJoin('program_types', 'program_types.ID', 'program.ProgramID').leftJoin('date', 'date.DateID', 'program.Date').leftJoin('study_group_attendees', 'study_group_attendees.GroupID', 'program_types.ID').where('study_group_attendees.UID', res.locals.UID);
 
-  const studyGroups = await setupBatchRequest(query, req.query, req.url);
+  const studyGroups = await setupBatchRequest(query, req.query, req.url, {}, [
+    { 'flexible': true, 'point': 'Teacher', 'join': [ 'TUID', 'UID' ], 'query': { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' } },
+    { 'flexible': true, 'point': 'Teacher', 'join': [ 'TUID', 'UID' ], 'query': { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' } }
+  ], { 'TUID': undefined });
 
   res.header('Content-Type', 'application/json').status(200).send(studyGroups).end();
 
@@ -112,6 +127,17 @@ timetable.get('/studygroup/:id(-?\\d+)', async (req, res, next) => {
 
   if (query == undefined) return classicErrorSend(res, 'missing_resource');
 
+  const selects = selectCoalesce([].concat(
+    { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' },
+    { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' }
+  ));
+  let teacherUser = knx('teacher').first(...selects.selects, ...selects.coalesces).where('teacher.UID', query.TUID).leftJoin('user', 'user.UID', 'teacher.UID');
+  addCoalesces(teacherUser, selects.coalesces);
+  teacherUser = await teacherUser;
+
+  query.Teacher = teacherUser;
+  delete query.TUID;
+
   res.header('Content-Type', 'application/json').status(200).send(query).end();
 
   next();
@@ -124,7 +150,10 @@ const handletypes = async (req, res, type) => {
     query.first(fields).where('ID', req.params.id);
   } else {
     query.select(fields);
-    query = setupBatchRequest(query, req.query, req.url);
+    query = setupBatchRequest(query, req.query, req.url, {}, [
+      { 'flexible': true, 'point': 'Teacher', 'join': [ 'TUID', 'UID' ], 'query': { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' } },
+      { 'flexible': true, 'point': 'Teacher', 'join': [ 'TUID', 'UID' ], 'query': { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' } }
+    ], { 'TUID': undefined });
   }
   query = await query;
 
@@ -132,6 +161,19 @@ const handletypes = async (req, res, type) => {
     classicErrorSend(res, 'missing_resource');
     return false;
   }
+
+  if (req.params.id ?? '') {
+    const selects = selectCoalesce([].concat(
+      { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' },
+      { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' }
+    ));
+    let teacherUser = knx('teacher').first(...selects.selects, ...selects.coalesces).where('teacher.UID', query.TUID).leftJoin('user', 'user.UID', 'teacher.UID');
+    addCoalesces(teacherUser, selects.coalesces);
+
+    query.Teacher = await teacherUser;
+    delete query.TUID;
+  }
+
   res.header('Content-Type', 'application/json').status(200).send(query).end();
   return true;
 };

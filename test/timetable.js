@@ -151,7 +151,7 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect('Content-Type', /json/)
         .expect(codes[parameter])
         .expect(res => {
-          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'DayTypeID', 'Class', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'DayTypeID', 'Class', 'Lesson', 'Length', 'Topic', 'RID', 'Teacher' ]);
           expect(res.body.ID === ID);
           expect(res.body.TypeID === ProgramID);
         }).end(done);
@@ -165,7 +165,7 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect(res => {
           expect(res.body).to.be.an('array');
           if (res.body.length < 0) return;
-          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'Topic', 'RID', 'Teacher' ]);
         }).end(done);
     });
     it(`GET /timetable/mandatory/types/{ID} - (${parameter})`, done => {
@@ -175,7 +175,7 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect('Content-Type', /json/)
         .expect(codes[parameter])
         .expect(res => {
-          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'Topic', 'RID', 'Teacher' ]);
           expect(res.body.TypeID === ProgramID);
         }).end(done);
     });
@@ -189,7 +189,9 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect(res => {
           expect(res.body).to.be.an('array');
           expect(res.body, 'this student does not have any programs, pick one that has').to.have.a.lengthOf.at.least(1);
-          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'DayTypeID', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'DayTypeID', 'Lesson', 'Length', 'Topic', 'RID', 'Teacher' ]);
+          expect(res.body[0].Teacher).to.be.an('object');
+
           ({ ID, ProgramID } = res.body[Math.floor(Math.random() * res.body.length)]);
         }).end(done);
     });
@@ -200,8 +202,8 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect('Content-Type', /json/)
         .expect(codes[parameter])
         .expect(res => {
-          expect(res.body).to.be.an('object');
-          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'DayTypeID', 'Lesson', 'Length', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'ProgramID', 'Date', 'DayTypeID', 'Lesson', 'Length', 'Topic', 'RID', 'Teacher' ]);
+          expect(res.body.Teacher).to.be.an('object');
         }).end(done);
     });
     it(`GET /timetable/studygroup/types - (${parameter})`, done => {
@@ -213,7 +215,8 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect(res => {
           expect(res.body).to.be.an('array');
           if (res.body.length < 0) return;
-          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body[0]).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'Topic', 'RID', 'Teacher' ]);
+          expect(res.body[0].Teacher).to.be.an('object');
         }).end(done);
     });
     it(`GET /timetable/studygroup/types/{ID} - (${parameter})`, done => {
@@ -223,7 +226,8 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect('Content-Type', /json/)
         .expect(codes[parameter])
         .expect(res => {
-          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'Topic', 'RID', 'TUID' ]);
+          expect(res.body).to.be.an('object').and.to.have.keys([ 'ID', 'Type', 'Topic', 'RID', 'Teacher' ]);
+          expect(res.body.Teacher).to.be.an('object');
           expect(res.body.TypeID === ProgramID);
         }).end(done);
     });
