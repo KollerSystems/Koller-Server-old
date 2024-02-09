@@ -16,7 +16,7 @@ async function passwordGrant(body) {
 
   let userCredentials;
   if (/^\d+$/.test(body.username)) {
-    userCredentials = await knx.union([ knx('student').first('UID', { 'isStudent': 1 }).where('OM', body.username), knx('teacher').first('UID', 0).where('OM', body.username) ], true);
+    userCredentials = await knx.union([ knx('student').first('user.UID', { 'isStudent': 1 }).where('OM', body.username).leftJoin('user', 'user.UID', 'student.UID'), knx('teacher').first('user.UID', 0).where('OM', body.username).leftJoin('user', 'user.UID', 'teacher.UID') ], true);
     if (!userCredentials || userCredentials.length == 0) return 'invalid_username';
 
     userCredentials = await knx('login_data').first('*').where('UID', userCredentials[0].UID);

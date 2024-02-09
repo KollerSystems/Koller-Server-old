@@ -73,7 +73,7 @@ describe('Requesting rooms with various tokens', function() {
               expect(res.body.Residents[0].Class).to.be.an('object').that.has.keys([ 'ID', 'Class', 'Old' ]);
             }
             expect(res.body).to.have.a.property('Group').which.is.an('object').that.has.keys([ 'ID', 'Group', 'Old', 'HeadTUID' ]);
-            expect(res.body).to.have.a.property('Annexe').which.is.an('object').that.has.keys([ 'ID', 'Annexe', 'Gender' ]);
+            expect(res.body).to.have.a.property('Annexe').which.is.an('object').that.has.keys([ 'ID', 'Annexe' ]);
           } else {
             expect(res.body).to.have.all.keys(parameters.api.errorFields);
           }
@@ -97,7 +97,7 @@ describe('Requesting rooms with various tokens', function() {
             expect(res.body.Residents[0].Class).to.be.an('object').that.has.keys([ 'ID', 'Class', 'Old' ]);
           }
           expect(res.body).to.have.a.property('Group').which.is.an('object').that.has.keys([ 'ID', 'Group', 'Old', 'HeadTUID' ]);
-          expect(res.body).to.have.a.property('Annexe').which.is.an('object').that.has.keys([ 'ID', 'Annexe', 'Gender' ]);
+          expect(res.body).to.have.a.property('Annexe').which.is.an('object').that.has.keys([ 'ID', 'Annexe' ]);
           let RIDsOfResidents = [];
           for (let resident of res.body.Residents) RIDsOfResidents.push(typeof resident.RID);
           expect(RIDsOfResidents).to.not.have.a('number');

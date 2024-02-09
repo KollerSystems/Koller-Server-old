@@ -272,10 +272,7 @@ function attachFilters(query, filters, columns) {
 }
 
 function attachSorts(query, sorts) {
-  const simplesorts = sorts.filter(v => !v.complex);
-  query.orderBy(simplesorts);
   for (let sort of sorts) {
-    if (!sort.complex) continue;
     query.orderBy(knx.raw(sort.column), sort.order);
   }
 }

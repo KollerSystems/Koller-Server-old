@@ -40,6 +40,21 @@ institution.get('/classes/:id(-?\\d+)', async (req, res, next) => {
   next();
 });
 
+institution.get('/annexes', async (req, res, next) => {
+  const data = await knx('annexe').select(getPermittedFields('annexe', roleMappings.byID[res.locals.roleID]));
+  if (data == undefined) return classicErrorSend(res, 'missing_resource');
+  res.header('Content-Type', 'application/json').status(200).send(data).end();
+
+  next();
+});
+institution.get('/annexes/:id(-?\\d+)', async (req, res, next) => {
+  const data = await knx('annexe').first(getPermittedFields('annexe', roleMappings.byID[res.locals.roleID])).where('ID', req.params.id);
+  if (data == undefined) return classicErrorSend(res, 'missing_resource');
+  res.header('Content-Type', 'application/json').status(200).send(data).end();
+
+  next();
+});
+
 institution.get('/daytypes', async (req, res, next) => {
   const fields = [].concat(
     getPermittedFields('day_type', roleMappings.byID[res.locals.roleID], true),

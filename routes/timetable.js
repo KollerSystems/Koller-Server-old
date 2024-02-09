@@ -80,7 +80,7 @@ timetable.get('/mandatory/:id(-?\\d+)', async (req, res, next) => {
     { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' },
     { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' }
   ));
-  let teacherUser = knx('teacher').first(...selects.selects, ...selects.coalesces).where('teacher.UID', query.TUID).leftJoin('user', 'user.UID', 'teacher.UID');
+  let teacherUser = knx('teacher').first(...selects.selects).where('teacher.UID', query.TUID).leftJoin('user', 'user.UID', 'teacher.UID');
   addCoalesces(teacherUser, selects.coalesces);
   teacherUser = await teacherUser;
 
@@ -131,7 +131,7 @@ timetable.get('/studygroup/:id(-?\\d+)', async (req, res, next) => {
     { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' },
     { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' }
   ));
-  let teacherUser = knx('teacher').first(...selects.selects, ...selects.coalesces).where('teacher.UID', query.TUID).leftJoin('user', 'user.UID', 'teacher.UID');
+  let teacherUser = knx('teacher').first(...selects.selects).where('teacher.UID', query.TUID).leftJoin('user', 'user.UID', 'teacher.UID');
   addCoalesces(teacherUser, selects.coalesces);
   teacherUser = await teacherUser;
 
@@ -167,7 +167,7 @@ const handletypes = async (req, res, type) => {
       { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' },
       { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' }
     ));
-    let teacherUser = knx('teacher').first(...selects.selects, ...selects.coalesces).where('teacher.UID', query.TUID).leftJoin('user', 'user.UID', 'teacher.UID');
+    let teacherUser = knx('teacher').first(...selects.selects).where('teacher.UID', query.TUID).leftJoin('user', 'user.UID', 'teacher.UID');
     addCoalesces(teacherUser, selects.coalesces);
 
     query.Teacher = await teacherUser;

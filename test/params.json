@@ -38,7 +38,8 @@
         "institution": {
           "groupID": 2,
           "classID": 2,
-          "dayTypeID": 1
+          "dayTypeID": 1,
+          "annexeID": 1
         }
       }
     },

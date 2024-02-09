@@ -142,6 +142,27 @@ describe('Requesting various endpoints', function () {
         }).end(done);
     });
 
+    it(`GET /institution/annexes - (${parameter})`, done => {
+      request
+        .get('/institution/annexes')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200).expect(res => {
+          expect(res.body).to.be.an('array');
+        }).end(done);
+    });
+    it(`GET /institution/annexes/{ID} - (${parameter})`, done => {
+      request
+        .get('/institution/annexes/' + parameters.api.parameters.others.institution.annexeID)
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200).expect(res => {
+          expect(res.body).to.be.an('object');
+          expect(res.body.ID).to.equal(parameters.api.parameters.others.institution.annexeID);
+          expect(res.body).to.have.keys([ 'ID', 'Annexe' ]);
+        }).end(done);
+    });
+
     it(`GET /institution/daytypes/ - (${parameter})`, done => {
       request
         .get('/institution/daytypes/')

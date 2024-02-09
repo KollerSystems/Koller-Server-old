@@ -16,12 +16,15 @@ rooms.get('/', async (req, res, next) => {
     { 'flexible': false, 'point': 'Residents', 'callback': async parent => {
       const fields = selectCoalesce([
         { 'fields': getPermittedFields('resident', roleMappings.byID[res.locals.roleID], false), 'table': 'resident' },
-        { 'fields': [ 'Name', 'ClassID' ], 'table': 'student' },
+        { 'fields': [ 'ClassID' ], 'table': 'student' },
+        { 'fields': [ 'Name' ], 'table': 'user' },
         { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' }
       ]);
-      const query = knx('resident').select(...fields.selects).join('student', 'student.UID', 'resident.UID').where('resident.RID', parent.RID);
+      const query = knx('resident').select(...fields.selects).join('student', 'student.UID', 'resident.UID').join('user', 'user.UID', 'resident.UID').where('resident.RID', parent.RID);
       addCoalesces(query, fields.coalesces);
-      return await setupBatchRequest(query, {}, '', { 'ignoreLimit': true, 'ignoreOffset': true }, [ { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } } ], { 'ClassID': undefined, 'ID': undefined, 'Old': undefined });
+      return await setupBatchRequest(query, {}, '', { 'ignoreLimit': true, 'ignoreOffset': true }, [
+        { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } }
+      ], { 'ClassID': undefined, 'ID': undefined, 'Old': undefined });
       // return await knx('resident').select(fieldsPermitted).joinRaw('natural join student').join('class', 'class.ID', 'student.ClassID').where('RID', parent.RID);
     } }
   ], { 'GroupID': undefined, 'AID': undefined });
@@ -34,7 +37,7 @@ rooms.get('/', async (req, res, next) => {
 rooms.get('/me', async (req, res, next) => {
   const prequery = await knx('student').first('RID').where('UID', res.locals.UID); // kell lennie UIDnak, nem kell check
   let data = await knx('dorm_room').first(getPermittedFields('dorm_room', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
-  const postquery = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat([ 'Name', 'Picture', 'ClassID' ])).joinRaw('natural join student').where('RID', prequery.RID);
+  const postquery = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID], true).concat([ 'Name', 'Picture', 'ClassID' ])).leftJoin('user', 'user.UID', 'resident.UID').leftJoin('student', 'student.UID', 'resident.UID').where('resident.RID', prequery.RID);
   for (let i = 0; i < postquery.length; i++) {
     postquery[i].Class = await knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', postquery[i]?.ClassID);
     delete postquery[i].ClassID;
@@ -77,7 +80,7 @@ rooms.get('/:id(-?\\d+)', async (req, res, next) => {
   delete filteredData.AID;
 
 
-  const residents = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID]).concat([ 'Name', 'Picture', 'ClassID' ])).joinRaw('natural join student').where('RID', req.params.id);
+  const residents = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID], true).concat([ 'Name', 'Picture', 'ClassID' ])).leftJoin('user', 'user.UID', 'resident.UID').leftJoin('student', 'student.UID', 'resident.UID').where('resident.RID', req.params.id);
   for (let i = 0, resident = residents[i]; i < residents.length; resident = residents[++i]) {
     resident.Class = await knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', resident?.ClassID);
     delete resident.ClassID;
