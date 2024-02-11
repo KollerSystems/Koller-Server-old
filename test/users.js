@@ -259,5 +259,16 @@ describe('Requesting users with various tokens', function() {
           expect(res.body).not.to.be.empty;
         }).end(done);
     });
+
+    it(`GET /users?Name=/(?i)^b/ - (${parameter})`, done => {
+      request
+        .get('?Name=/(?i)^b/')
+        .set('Authorization', 'Bearer ' + userdata.access_token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.be.an('array').and.to.have.a.lengthOf.below(parameters.api.parameters.user.lastID + 1).but.to.have.a.lengthOf.above(0);
+        }).end(done);
+    });
   }
 });

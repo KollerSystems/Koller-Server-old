@@ -1,3 +1,4 @@
+import XRegExp from 'xregexp';
 import { knx, options } from '../index.js';
 import { isEmptyObject, tryparse } from './misc.js';
 import { parse } from 'node:url';
@@ -113,11 +114,11 @@ function handleFilterParams(urlparams, allowedFields, translation, renames) {
 
   const isCertain = field => allowedFields.all.includes(field) || (traverse(translation, field.split('.')) ?? '');
   const filterType = (obj, field) => obj[isCertain(field) ? 'immediate' : 'postquery'];
-  const pushTo = (field, value, operator) => {
+  const pushTo = (field, value, operator, optionals = {}) => {
     field = renames[field] || field;
     if (operator == 'REGEXP') {
       try {
-        new RegExp(value);
+        new XRegExp(value, optionals.flags);
       } catch (err) {
         value = '';
       }
@@ -180,7 +181,7 @@ function handleFilterParams(urlparams, allowedFields, translation, renames) {
 
         const regexp = value.match(/(?<=\/).+(?=\/)/g);
         if (regexp ?? '') {
-          pushTo(field, regexp[0], operators['reg']);
+          pushTo(field, regexp[0], operators['reg'], { 'flags': value.match(/[gimsuy]+$/gi)?.[0] || '' });
         } else
           pushTo(field, value, operator);
       }
@@ -207,7 +208,7 @@ function handleFilterParams(urlparams, allowedFields, translation, renames) {
       } else {
         const regexp = value.match(/(?<=\/).+(?=\/)/g);
         if (regexp ?? '') {
-          pushTo(key, regexp[0], operators['reg']);
+          pushTo(key, regexp[0], operators['reg'], { 'flags': value.match(/[gimsuy]+$/gi)?.[0] || '' });
         } else
           pushTo(key, tryparse(value), operators['eq']);
       }
@@ -254,17 +255,23 @@ function attachFilters(query, filters, columns) {
     return [ filter.field, filter.operator, filter.value ];
   };
 
+  const addWhere = (root, f, or = false) => {
+    if (f.operator == 'REGEXP')
+      root.whereRaw(`${f.field} REGEXP ?`, [ f.value ]);
+    else
+      root[or ? 'orWhere' : 'where'](...fieldValues(f));
+  };
   for (let filter of filters) {
     if (Array.isArray(filter)) {
       query.where(builder => {
         for (let f of filter)
-          builder.orWhere(...fieldValues(f));
+          addWhere(builder, f, true);
       });
     } else {
       if (filter.value == 'null')
         query.whereNull(filter.field);
       else
-        query.where(...fieldValues(filter));
+        addWhere(query, filter);
     }
 
   }
