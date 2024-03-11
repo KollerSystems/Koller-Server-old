@@ -14,7 +14,7 @@ import { timetable } from './routes/timetable.js';
 import { institution } from './routes/insitution.js';
 
 import { checkToken, handleNotFound, logRequest, handleRouteAccess, classicErrorSend } from './helpers/helpers.js';
-import { treeifyMaps, extendMissingPermissions } from './startup.js';
+import { treeifyMaps, extendMissingPermissions, mountTree } from './startup.js';
 import { handleWebsocket } from './reader.js';
 
 import { readFile } from 'fs/promises';
@@ -49,13 +49,20 @@ app.use(express.urlencoded({ extended: true }));
 api.use(checkToken);
 api.use(handleRouteAccess);
 
-app.use('/oauth', oauth);
-app.use('/api', api);
-api.use('/users', users);
-api.use('/crossings', crossings);
-api.use('/rooms', rooms);
-api.use('/timetable', timetable);
-api.use('/institution', institution);
+const routeTree = {
+  '/': app,
+  '/oauth': oauth,
+  '/api': {
+    '/': api,
+    '/users': users,
+    '/crossings': crossings,
+    '/rooms': rooms,
+    '/timetable': timetable,
+    '/institution': institution
+  }
+};
+
+mountTree(routeTree);
 
 app.use('/', handleNotFound);
 app.use('/', logRequest);
@@ -64,10 +71,7 @@ app.use('/', logRequest);
 const knx = knex({
   client: 'mysql',
   connection: {
-    host: options.databaseLoginData.host,
-    port: options.databaseLoginData.port,
-    user: options.databaseLoginData.user,
-    password: options.databaseLoginData.password,
+    ...options.databaseLoginData,
     database: 'kollegium',
     typeCast: function(field, next) {
       if (field.type == 'BIT' && field.length == 1) {

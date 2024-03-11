@@ -77,4 +77,16 @@ async function extendMissingPermissions() {
   }*/
 }
 
-export { treeifyMaps, extendMissingPermissions };
+function mountTree(tree) {
+  for (let routeName in tree) {
+    if (routeName == '/') continue;
+    if (typeof tree[routeName] == 'function')
+      tree['/'].use(routeName, tree[routeName]);
+    else {
+      tree['/'].use(routeName, tree[routeName]['/']);
+      mountTree(tree[routeName]);
+    }
+  }
+}
+
+export { treeifyMaps, extendMissingPermissions, mountTree };
