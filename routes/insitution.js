@@ -12,48 +12,37 @@ institution.get('/', async (req, res, next) => {
   next();
 });
 
-institution.get('/groups', async (req, res, next) => {
-  const data = await knx('group').select(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('Old', 0);
-  res.header('Content-Type', 'application/json').status(200).send(data).end();
 
-  next();
-});
-institution.get('/groups/:id(-?\\d+)', async (req, res, next) => {
-  const data = await knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', req.params.id).where('Old', 0);
+const handleBasicRequest = async (req, res, next) => {
+  const routeTranslation = {
+    'groups': 'group',
+    'classes': 'class',
+    'annexes': 'annexe'
+  };
+  const splitroute = req.route.path.split('/');
+  const db = routeTranslation[splitroute[1]];
+  const single = splitroute.length == 3;
+
+  let data = knx(db)[single ? 'first' : 'select'](getPermittedFields(db, roleMappings.byID[res.locals.roleID]));
+
+  if (single) data.where('ID', req.params.id);
+  if (db != 'annexe') data.where('Old', 0);
+
+  data = await data;
   if (data == undefined) return classicErrorSend(res, 'missing_resource');
+
   res.header('Content-Type', 'application/json').status(200).send(data).end();
-
   next();
-});
+};
 
-institution.get('/classes', async (req, res, next) => {
-  const data = await knx('class').select(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('Old', 0);
-  res.header('Content-Type', 'application/json').status(200).send(data).end();
+institution.get('/groups', handleBasicRequest);
+institution.get('/groups/:id(-?\\d+)', handleBasicRequest);
 
-  next();
-});
-institution.get('/classes/:id(-?\\d+)', async (req, res, next) => {
-  const data = await knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', req.params.id).where('Old', 0);
-  if (data == undefined) return classicErrorSend(res, 'missing_resource');
-  res.header('Content-Type', 'application/json').status(200).send(data).end();
+institution.get('/classes', handleBasicRequest);
+institution.get('/classes/:id(-?\\d+)', handleBasicRequest);
 
-  next();
-});
-
-institution.get('/annexes', async (req, res, next) => {
-  const data = await knx('annexe').select(getPermittedFields('annexe', roleMappings.byID[res.locals.roleID]));
-  if (data == undefined) return classicErrorSend(res, 'missing_resource');
-  res.header('Content-Type', 'application/json').status(200).send(data).end();
-
-  next();
-});
-institution.get('/annexes/:id(-?\\d+)', async (req, res, next) => {
-  const data = await knx('annexe').first(getPermittedFields('annexe', roleMappings.byID[res.locals.roleID])).where('ID', req.params.id);
-  if (data == undefined) return classicErrorSend(res, 'missing_resource');
-  res.header('Content-Type', 'application/json').status(200).send(data).end();
-
-  next();
-});
+institution.get('/annexes', handleBasicRequest);
+institution.get('/annexes/:id(-?\\d+)', handleBasicRequest);
 
 institution.get('/daytypes', async (req, res, next) => {
   const fields = [].concat(

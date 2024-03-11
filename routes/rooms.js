@@ -34,15 +34,8 @@ rooms.get('/', async (req, res, next) => {
   next();
 });
 
-rooms.get('/me', async (req, res, next) => {
-  const prequery = await knx('student').first('RID').where('UID', res.locals.UID); // kell lennie UIDnak, nem kell check
-  let data = await knx('dorm_room').first(getPermittedFields('dorm_room', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
-  const postquery = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID], true).concat([ 'Name', 'Picture', 'ClassID' ])).leftJoin('user', 'user.UID', 'resident.UID').leftJoin('student', 'student.UID', 'resident.UID').where('resident.RID', prequery.RID);
-  for (let i = 0; i < postquery.length; i++) {
-    postquery[i].Class = await knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', postquery[i]?.ClassID);
-    delete postquery[i].ClassID;
-  }
 
+const mountWhenPossible = async (res, data) => {
   const [ groupdata, annexdata ] = await Promise.all( [
     knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', data.GroupID ?? -1),
     knx('annexe').first(getPermittedFields('annexe', roleMappings.byID[res.locals.roleID])).where('ID', data.AID ?? -1)
@@ -53,9 +46,22 @@ rooms.get('/me', async (req, res, next) => {
 
   if (data.AID ?? '') data.Annexe = annexdata;
   delete data.AID;
+};
 
-  data.Residents = postquery;
+rooms.get('/me', async (req, res, next) => {
+  const prequery = await knx('student').first('RID').where('UID', res.locals.UID); // kell lennie UIDnak, nem kell check
+  let data = await knx('dorm_room').first(getPermittedFields('dorm_room', roleMappings.byID[res.locals.roleID])).where('RID', prequery.RID);
+
+  await mountWhenPossible(res, data);
+
   data.UID = parseInt(res.locals.UID, 10);
+
+  const postquery = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID], true).concat([ 'Name', 'Picture', 'ClassID' ])).leftJoin('user', 'user.UID', 'resident.UID').leftJoin('student', 'student.UID', 'resident.UID').where('resident.RID', prequery.RID);
+  for (let i = 0; i < postquery.length; i++) {
+    postquery[i].Class = await knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', postquery[i]?.ClassID);
+    delete postquery[i].ClassID;
+  }
+  data.Residents = postquery;
 
   res.header('Content-Type', 'application/json').status(200).send(data).end();
   next();
@@ -68,27 +74,16 @@ rooms.get('/:id(-?\\d+)', async (req, res, next) => {
   const filteredData = filterByPermission(data, 'dorm_room', roleMappings.byID[res.locals.roleID]);
   if (isEmptyObject(filteredData)) return classicErrorSend(res, 'missing_permissions');
 
-  const [ groupdata, annexdata ] = await Promise.all([
-    knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', filteredData.GroupID ?? -1),
-    knx('annexe').first(getPermittedFields('annexe', roleMappings.byID[res.locals.roleID])).where('ID', filteredData.AID ?? -1)
-  ]);
-
-  if (filteredData.GroupID ?? '') filteredData.Group = groupdata;
-  delete filteredData.GroupID;
-
-  if (filteredData.AID ?? '') filteredData.Annexe = annexdata;
-  delete filteredData.AID;
-
+  await mountWhenPossible(res, filteredData);
 
   const residents = await knx('resident').select(getPermittedFields('resident', roleMappings.byID[res.locals.roleID], true).concat([ 'Name', 'Picture', 'ClassID' ])).leftJoin('user', 'user.UID', 'resident.UID').leftJoin('student', 'student.UID', 'resident.UID').where('resident.RID', req.params.id);
   for (let i = 0, resident = residents[i]; i < residents.length; resident = residents[++i]) {
     resident.Class = await knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', resident?.ClassID);
     delete resident.ClassID;
   }
-
   filteredData.Residents = residents;
-  res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
 
+  res.header('Content-Type', 'application/json').status(200).send(filteredData).end();
   next();
 });
 
