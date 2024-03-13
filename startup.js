@@ -89,4 +89,19 @@ function mountTree(tree) {
   }
 }
 
-export { treeifyMaps, extendMissingPermissions, mountTree };
+async function queryTableColumns(tablesArr) {
+  if (tablesArr == undefined) tablesArr = [];
+  if (tablesArr?.length == 0) {
+    const query = await knx.raw('show tables');
+    for (let rowObj of query[0]) {
+      tablesArr.push(Object.values(rowObj)[0]);
+    }
+  }
+
+  const tables = {};
+  for (let table of tablesArr)
+    tables[table] = await knx(table).columnInfo();
+  return tables;
+}
+
+export { treeifyMaps, extendMissingPermissions, mountTree, queryTableColumns };

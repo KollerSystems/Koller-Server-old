@@ -1,5 +1,5 @@
 import XRegExp from 'xregexp';
-import { knx, options } from '../index.js';
+import { knx, options, tableColumns } from '../index.js';
 import { isEmptyObject, tryparse } from './misc.js';
 import { parse } from 'node:url';
 
@@ -347,8 +347,7 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
   const tables = getFromFields(query);
   let columns = {};
   for (let table of tables) {
-    const cInfo = await knx(table).columnInfo();
-    columns = { ...columns, ... cInfo };
+    columns = { ...columns, ...tableColumns[table] };
   }
 
   const trueRenames = {};
