@@ -7,9 +7,11 @@
 [![Google Code Style](https://img.shields.io/badge/Code%20Style-Google-4086f4)](https://google.github.io/styleguide/jsguide.html)
 -->
 
-API forráskódja és adatbázis séma a Koller-hez.
+API forráskódja a Koller-hez.
 
-Az API dokumentálását az [API.md](docs/API.md) fájlban lehet megtalálni.
+Az API dokumentálását az [API.md](/docs/API.md) fájlban lehet megtalálni.
+
+A közreműködéssel(contributing) kapcsolatos információk a [CONTRIBUTING.md](/docs/CONTRIBUTING.md) fájlban találhatóak.
 
 ### Előkészületek a futtatáshoz
 
