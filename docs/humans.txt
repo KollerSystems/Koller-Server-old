@@ -1,0 +1,50 @@
+     :::::::::::::.           
+    #@@@@@@@@@@@@@@=====:     
+    %@@+========%@@@@@@@@+    
+    %@@.        %@@=..#@@+    
+    %@@.        %@@-  #@@+    :::    :::  ::::::::  :::        :::        :::::::::: :::::::::                 ::::::::  :::::::::: :::::::::  :::     ::: :::::::::: :::::::::  
+    %@@.        %@@-  #@@+    :+:   :+:  :+:    :+: :+:        :+:        :+:        :+:    :+:               :+:    :+: :+:        :+:    :+: :+:     :+: :+:        :+:    :+: 
+    %@@.   .--  %@@-  #@@+    +:+  +:+   +:+    +:+ +:+        +:+        +:+        +:+    +:+               +:+        +:+        +:+    +:+ +:+     +:+ +:+        +:+    +:+ 
+    %@@.   +@@- %@@-  #@@+    +#++:++    +#+    +:+ +#+        +#+        +#++:++#   +#++:++#:  +#++:++#++:++ +#++:++#++ +#++:++#   +#++:++#:  +#+     +:+ +#++:++#   +#++:++#:  
+    %@@.    ..  %@@-  #@@+    +#+  +#+   +#+    +#+ +#+        +#+        +#+        +#+    +#+                      +#+ +#+        +#+    +#+  +#+   +#+  +#+        +#+    +#+ 
+    %@@.        %@@-  #@@+    #+#   #+#  #+#    #+# #+#        #+#        #+#        #+#    #+#               #+#    #+# #+#        #+#    #+#   #+#+#+#   #+#        #+#    #+# 
+    %@@.        %@@-  #@@+    ###    ###  ########  ########## ########## ########## ###    ###                ########  ########## ###    ###     ###     ########## ###    ### 
+    %@@.        %@@-  #@@+    
+.+**@@@#********@@@-  #@@%**- 
+-%%%%%%%%%%%%%%%%%#.  =%%%%%* 
+                              
+
+/* EMBEREK */
+
+	PM: Marci599
+	Időpontok: kezdetek ---> jelen
+	Oldal: marci599.github.io
+	Elérhetőség: katona.m.b [kukac] gmail.com
+	Twitter: K_Marci599
+	Hely: AU/HU
+
+	Admin + Maintainer: TheBlueLines
+	Időpontok: '23/05 ---> jelen
+	Oldal: nzx.hu
+	Elérhetőség: davidfeher42 [kukac] gmail.com
+	Twitter: TheBlueLines
+	Hely: HU
+
+	Lead Dev: lolfail
+	Időpontok: kezdetek ---> jelen
+	Elérhetőség: bencsikgergo08 [kukac] gmail.com
+	Hely: HU
+
+	DB Specialist: IronNight007
+	Időpontok: kezdetek ---> jelen
+	Hely: HU
+
+	Admin + DB Specialist: sambuca1g
+	Időpontok: kezdetek ---> jelen
+	Hely: HU
+
+/* KÖSZÖNET */
+   # Kedvezők a kedvezőtlenben!
+	Radványi Patrik Tamás
+	Kaczur Sándor
+	Norbert (Attila)

@@ -11,7 +11,7 @@
     "rules": {
         "newline-per-chained-call": ["off", { "ignoreChainWithDepth": 2 }],
         "no-magic-numbers": ["off", { "ignore": [1], "ignoreArrayIndexes": true, "ignoreDefaultValues": true, "enforceConst": true }],
-        "camelcase": "off",
+        "camelcase": "warn",
         "indent": [
             "error",
             2,
@@ -64,6 +64,10 @@
             { "argsIgnorePattern": "^_" }
         ],
         "default-param-last": "error",
-        "spaced-comment": "error"
+        "spaced-comment": "error",
+        "no-empty": [
+            "error",
+            { "allowEmptyCatch": true }
+        ]
     }
 }
