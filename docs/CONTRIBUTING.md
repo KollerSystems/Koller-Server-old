@@ -186,7 +186,7 @@ logLineByLine(fibonacci.numbers);
 
 > _Min dolgozzak?_
 
-A nyitott issue-k közül bátran lehet válogatni. Amin a csapat már dolgozik, így nem érdemes elkezdeni, azt `In progress` státusszal látjuk el. Refaktorálást is tárt karokkal várjuk egy-egy rosszabbul írt függvényen, kódrészleten.
+A nyitott issue-k közül bátran lehet válogatni. Amin a csapat már dolgozik, azt `In progress` státusszal látjuk el, abba nem érdemes belekezdeni. Refaktorálást is tárt karokkal várjuk egy-egy rosszabbul írt függvényen, kódrészleten.
 
 > _Hol tudok segítséget kérni?_
 

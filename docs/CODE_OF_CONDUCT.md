@@ -61,7 +61,7 @@ kijelölt képviselőként egy online vagy offline eseményen történő részv�
 ## Végrehajtás
 
 Bántalmazó, zaklató vagy általában elfogadhatatlan viselkedést a végrehajtásért
-felelős közösségi vezetőnek lehet jelenteni a(z) [INSERT EMAIL ADDRESS] címen.
+felelős közösségi vezetőnek lehet jelenteni a(z) katona.m.b@gmail.com címen.
 Minden panasz azonnal és tisztességesen felülvizsgálatra, és kivizsgálásra kerül.
 
 Minden közösségi vezető köteles tiszteletben tartani az incidens bejelentőjének 
