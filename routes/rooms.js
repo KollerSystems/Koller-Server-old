@@ -34,7 +34,11 @@ rooms.get('/', async (req, res, next) => {
   next();
 });
 
-
+/**
+ * Repetíciót elkerülő specifikus függvény. Lekérés eredményére mount-ol Group és Annexe adatokat.
+ * @param {import('express').Response} res
+ * @param {object} data módosítandó lekérési eredmény
+ */
 const mountWhenPossible = async (res, data) => {
   const [ groupdata, annexdata ] = await Promise.all( [
     knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', data.GroupID ?? -1),

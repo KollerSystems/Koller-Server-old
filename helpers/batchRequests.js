@@ -3,6 +3,33 @@ import { knx, options, tableColumns } from '../index.js';
 import { isEmptyObject, tryparse } from './misc.js';
 import { parse } from 'node:url';
 
+/**
+ * lekérdezés objektum
+ * @typedef {import('knex').Knex.QueryBuilder} QueryBuilder
+ */
+
+/**
+ * Olyan objektum, amely szétválasztva tartalmazza az összes és összevonandó mezőneveket.
+ * @typedef {Object} FilteredSelect
+ * @property {string[]} all Az összes említett mezőnév(coalesce-ben használtak is).
+ * @property {Object.<string, string>} coalesce Objektum, amely tartalmazza az összevonandó mezőneveket és a kifejezést amely által ez elérhető.
+ */
+
+/**
+ * Olyan objektum, mely kulcsai az eredeti mezőnevek, az értékek pedig az újak.
+ * @typedef {Object.<string, string>} DefinedRenames
+ */
+
+/**
+ * Objektum, ami megmutatja a mount-olandó objektumok egyes értékei hol találhatók. Táblát és mezőt is megmutatja (Table.Field).
+ * @typedef {Object.<string, Object.<string, string>>} Translation
+ */
+
+/**
+ * SELECT statement vizsgálatából az azonos nevű mezők kiszűrése és különválasztása COALESCE-el való használatra.
+ * @param {QueryBuilder} query
+ * @returns {FilteredSelect} különválasztott objektum
+ */
 function getSelectFields(query) {
   let selectParams = query.toSQL().sql.match(/(?<=select ).+(?= from)/g);
   if (selectParams != null)
@@ -30,6 +57,11 @@ function getSelectFields(query) {
 
   return fields;
 }
+/**
+ * Egy kérésből megszerzi az érintett(FROM-mal használt) táblák neveit.
+ * @param {QueryBuilder} query
+ * @returns {string[]} használt táblanevekből array
+ */
 function getFromFields(query) {
   let froms = [];
   const sql = query.toSQL().sql;
@@ -46,6 +78,14 @@ function getFromFields(query) {
   return froms;
 }
 
+/**
+ * Szortírozás-specifikus query paraméterek értelmezése.
+ * @param {object} urlparams Express által parsolt query(többnyire ami request objektumon query néven elérhető): objektum querystringből parsolva.
+ * @param {FilteredSelect} allowedFields
+ * @param {Translation} translation
+ * @param {DefinedRenames} renames
+ * @returns {{'column': string, 'order': 'desc'|'asc', 'immediate': boolean, 'complex': boolean}[]} szortírozás körülményei és sorrendje
+ */
 function handleSortParams(urlparams, allowedFields, translation, renames) {
   if (!(urlparams.sort ?? '')) return [];
 
@@ -103,6 +143,17 @@ function handleSortParams(urlparams, allowedFields, translation, renames) {
   return sort;
 }
 
+/**
+ * @typedef {{'field': string, 'value': any, 'operator': '<'|'>'|'<='|'>='|'='|'REGEXP'}} WhereObject
+ */
+/**
+ * Szűrési query paraméterek értelmezése.
+ * @param {object} urlparams Express által parsolt query(többnyire ami request objektumon query néven elérhető): objektum querystringből parsolva.
+ * @param {FilteredSelect} allowedFields
+ * @param {Translation} translation
+ * @param {DefinedRenames} renames
+ * @returns {{'immediate': WhereObject[], 'postquery': WhereObject[]}} Szűrési beállítások, kérésre rakhatók és utólagos szűrésekként szétválasztva.
+ */
 function handleFilterParams(urlparams, allowedFields, translation, renames) {
   /* styles:
    * ?RID[lte]=17
@@ -218,6 +269,13 @@ function handleFilterParams(urlparams, allowedFields, translation, renames) {
   return filters;
 }
 
+/**
+ * Rárakja a kérésre a megadott szűréseket. Dátumok esetében speciálisan kezeli. Ha többször is van ugyanolyan mező említve speciálisan kezeli.
+ * @param {QueryBuilder} query
+ * @param {WhereObject[]} filters Kérésre rakható "értelmezett" szűrési paraméterek.
+ * @param {import('knex').Knex.ColumnInfo[]} columns Minden értintett mező columnInfo-ja.
+ * @returns {QueryBuilder} query
+ */
 function attachFilters(query, filters, columns) {
   const prettifyDateArr = (arr, extend = false) => {
     let str = arr[0].toString();
@@ -278,12 +336,24 @@ function attachFilters(query, filters, columns) {
   return query;
 }
 
+/**
+ * Módosítja a kérést, rátéve a megadott szűréseket.
+ * @param {QueryBuilder} query
+ * @param {{column: string, order: 'desc'|'asc', immediate?: true, complex: boolean}[]} sorts Azonnal kérésre tehető szortírozási beállítások.
+ */
 function attachSorts(query, sorts) {
   for (let sort of sorts) {
     query.orderBy(knx.raw(sort.column), sort.order);
   }
 }
 
+/**
+ * Összehasonlít két értéket egy megadott operációval.
+ * @param {any} a hasonlított
+ * @param {any} b hasonlító
+ * @param {'='|'>'|'<'|'>='|'<='} op komparálási operáció
+ * @returns {boolean} hasonlítás eredménye
+ */
 function compareStringOp(a, b, op) {
   switch (op) {
     case '=':
@@ -298,16 +368,30 @@ function compareStringOp(a, b, op) {
       return a <= b;
   }
 }
+/**
+ * Összehasonlít minden comparesArray-ben levő értéket a value-vel. Ha valamelyik hasonlítás értéke true, akkor a kimenet is true.
+ * @param {WhereObject[]} comparesArray
+ * @param {any} value hasonlító érték
+ * @returns {boolean | undefined} eredménye
+ */
 function compareMultiple(comparesArray, value) {
   let c;
   for (let compare of comparesArray) {
     let v = parseInt(compare.value, 10);
     compare.value = Number.isNaN(v) ? compare.value : v;
     c = c || compareStringOp(compare.value, value, compare.operator);
+    // if (c) return c;
   }
   return c;
 }
 
+/**
+ * Egy objektum kulcsain végigkúszik, visszaadván az elért kulcsot.
+ * @param {object} obj Az objektum.
+ * @param {string[]} map Kulcsok neveiből álló array, "mélységi" sorrendben.
+ * @param {boolean} [tillValue=true] Teljesen végigmenjen-e, vagy utolsó előtti értékig.
+ * @returns {any | object} elért érték
+ */
 function traverse(obj, map, tillValue = true) {
   let c = obj;
   for (let i = 0; i < map.length; i++) {
@@ -318,6 +402,12 @@ function traverse(obj, map, tillValue = true) {
   return c;
 }
 
+/**
+ * Egy objektumra rak értéket. Ha az érték array, akkor hozzáfűzi. Amennyiben objektum, rárakja. Hogyha primitív, akkor beállítja. Ha nem létezett, létrehozza.
+ * @param {object} obj objektum
+ * @param {string} key Kulcs ami alá kerüljön.
+ * @param {any | object | any[]} value érték
+ */
 function initializeOrAdd(obj, key, value) {
   if (value?.length >= 0 && typeof value == 'object') {
     if (obj[key] == undefined) obj[key] = [];
@@ -327,6 +417,41 @@ function initializeOrAdd(obj, key, value) {
   else
     obj[key] = value;
 }
+
+/**
+ * @typedef {Object} FlexibleMount Query-vel mount-olt, gyorsabb megoldás.
+ * @property {true} flexible
+ * @property {string} point Kulcs neve, ahová mountolja.
+ * @property {string[2]} join Kétértékes array. Két mezőnév amit összefűzzőn a lekérésben.
+ * @property {{fields: string[], table: string}} query Kérés paraméterei, visszaadható értékek(mezőnevek) és táblája.
+ *
+ * @callback MountCallback
+ * @param {object} parent Az az objektum, amire mount-olva lesz a függvény kimenetele.
+ * @returns {any | Promise<any>}
+ *
+ * @typedef {Object} NonFlexibleMount Query-vel nem megoldható mount-olási megoldás.
+ * @property {false} flexible
+ * @property {string} point Kulcs neve, ahová mountolja.
+ * @property {MountCallback} callback Függvény, ami belsőleg meg lesz hívva, és a kimenetelét mount-olja.
+ *
+ * @typedef {FlexibleMount | NonFlexibleMount} MountParameter
+ * @property {boolean} flexible
+ */
+/**
+ * @callback OverrideCallback
+ * @param {QueryBuilder} query
+ * @returns {void}
+ */
+/**
+ * @param {QueryBuilder} query
+ * @param {object} urlparams Express által parsolt query(többnyire ami request objektumon query néven elérhető): objektum querystringből parsolva.
+ * @param {string} rawUrl Querystring /?-el előtte.
+ * @param {{ignoreLimit?: boolean, ignoreOffset?: boolean} =} params Egyéb paraméterek objektumban.
+ * @param {MountParameter[] =} mounts Összetett objektum kialakításához paraméterek, ahol a kimenetre más objektumokat helyez, mélységet elérve.
+ * @param {Object.<string, string | undefined> =} renames Átnevezések, amikor az érték string. Törlések amikor undefined. Kulcs az eredeti mezőnév.
+ * @param {Object.<string, OverrideCallback> =} overrideables Ha nincs a kulcsnév azonnal szűrt mezőnevek közt, akkor meghívja a függvényt, beadva a lekérést paraméterként.
+ * @returns {Promise<object[]>} Egy promise, értéke array lekért adatokkal, a beállított paramétereknek megfelelően.
+ */
 async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts = [], renames = {}, overrideables = {}) {
   const limit = (() => {
     let l = parseInt(urlparams.limit?.match((new RegExp(`\\d{1,${options.api.maxDigits}}`, 'm')))?.at(0), 10) || options.api.batchRequests.defaultLimit;
@@ -357,8 +482,8 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
     }
   }
 
-  const filterparams = handleFilterParams(rawUrl, getSelectFields(query), translation, trueRenames);
-
+  const selectFields = getSelectFields(query);
+  const filterparams = handleFilterParams(rawUrl, selectFields, translation, trueRenames);
   for (let key in overrideables) {
     const index = filterparams.immediate.findIndex(obj => obj.field == key);
     if (index != -1) continue;
@@ -367,7 +492,7 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
 
   attachFilters(query, filterparams.immediate, columns);
 
-  let sortparams = handleSortParams(urlparams, getSelectFields(query), translation, trueRenames);
+  let sortparams = handleSortParams(urlparams, selectFields, translation, trueRenames);
   let immediateSort = [];
 
   for (let i = 0; i < sortparams.length; i++) {
@@ -379,12 +504,12 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
     }
   }
 
-  let data = query;
-  if (!params.ignoreLimit) data = data.limit(limit);
-  if (!params.ignoreOffset) data = data.offset(offset);
-  attachSorts(data, immediateSort);
 
-  if (mounts.length == 0) return await data;
+  if (!params.ignoreLimit) query = query.limit(limit);
+  if (!params.ignoreOffset) query = query.offset(offset);
+  attachSorts(query, immediateSort);
+
+  if (mounts.length == 0) return await query;
 
   let finalData = await query;
 

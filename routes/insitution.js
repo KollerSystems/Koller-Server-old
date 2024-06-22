@@ -12,7 +12,13 @@ institution.get('/', async (req, res, next) => {
   next();
 });
 
-
+/**
+ * Endpoint callback-je ként megadható függvény. Batchrequest-et nem igénylő, "szimpla", egyértékű(ID alapú) és többértékes lekérések kezelése. Request kontextusából eldönti a kezelés menetét.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ * @returns {Promise<void>}
+ */
 const handleBasicRequest = async (req, res, next) => {
   const routeTranslation = {
     'groups': 'group',

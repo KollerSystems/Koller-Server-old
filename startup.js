@@ -2,6 +2,12 @@ import { knx, permMappings, roleMappings } from './index.js';
 import { setIfMissingKey } from './helpers/misc.js';
 const perms = [ 'Read', 'Write' ];
 
+/**
+ * Adatbázis bejegyzésekből egy fastruktúrát alakít ki (objektumokból).
+ * @param {object[]} arr RowDataPacket-eket tartalmazó array
+ * @param {'perms'|'routes'|'errors'} mapType feldolgozás módszere, feldolgozandó adat típusa
+ * @returns {object} Fastrukturált objektum, a paramétereknek megfelelő módon.
+ */
 function treeifyMaps(arr, mapType = 'perms') {
   const tree = {};
   if (mapType == 'perms') {
@@ -44,6 +50,9 @@ function treeifyMaps(arr, mapType = 'perms') {
 
   return tree;
 }
+/**
+ * Permissziós táblában nem megnevezett mezők engedélyeinek alapértelmezettre állítása.
+ */
 async function extendMissingPermissions() {
   const permColumnInfo = await knx('permissions').columnInfo();
 
@@ -76,7 +85,10 @@ async function extendMissingPermissions() {
     }
   }*/
 }
-
+/**
+ * Rekurzívan mountol egy fastruktúrált objektumot, mely kulcsnevei az endpointok, értékei a router-ek.
+ * @param {object} tree Fastruktúrált objektum. Ha kulcshoz tartozó érték egy objektum, akkor a fő route-ot azon belül '/' kulccsal jelöljük.
+ */
 function mountTree(tree) {
   for (let routeName in tree) {
     if (routeName == '/') continue;
@@ -89,6 +101,11 @@ function mountTree(tree) {
   }
 }
 
+/**
+ * ColumnInfo-k lekérdezése.
+ * @param {string[]} tablesArr Lekérdezendő táblák nevei. Üres lista vagy undefined ha minden.
+ * @returns {Promise<Object.<string, import('knex').Knex.ColumnInfo>>} Objektumba rendezve, kulcsok a táblanevek, értékek a ColumnInfo-k.
+ */
 async function queryTableColumns(tablesArr) {
   if (tablesArr == undefined) tablesArr = [];
   if (tablesArr?.length == 0) {
@@ -101,6 +118,7 @@ async function queryTableColumns(tablesArr) {
   const tables = {};
   for (let table of tablesArr)
     tables[table] = await knx(table).columnInfo();
+
   return tables;
 }
 

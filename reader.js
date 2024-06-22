@@ -2,6 +2,10 @@ import { knx, options, crossEvent } from './index.js';
 import { parseJSON, isEmptyObject } from './helpers/misc.js';
 // import { Buffer } from 'node:Buffer';
 
+/**
+ * Websocket kommunikáció kezelése.
+ * @param {import('ws').WebSocketServer} ws A websocket szerver, amit callback paraméterként kap.
+ */
 function handleWebsocket(ws) {
   let authenticated = false;
   let ID = -1;

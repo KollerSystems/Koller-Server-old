@@ -202,4 +202,4 @@ Igen, azonban az elvárások ezekkel kapcsolatban nem olyan egyértelműek.
 
 > _[JSDoc](https://jsdoc.app/) kommentek?_
 
-Jelenleg nem kötelező így dokumentálni, azonban a jövőben feltehetőleg az lesz. Már most is hasznos.
+A projektben főként segédfüggvények esetében használjuk. Jobb editor suggestion-ök és dokumentálás érdekében is hasznos.

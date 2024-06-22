@@ -143,6 +143,13 @@ timetable.get('/studygroup/:id(-?\\d+)', async (req, res, next) => {
   next();
 });
 
+/**
+ * Specifikus függvény egyes programtípusok lekérésének kezelésére. Request kontextus alapján dolgozik. Ha szükséges hibát is visszaküld.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {1 | 2} type program típusának száma
+ * @returns {Promise<boolean>} rendben végére ért-e
+ */
 const handletypes = async (req, res, type) => {
   const fields = getPermittedFields('program_types', roleMappings.byID[res.locals.roleID]);
   let query = knx('program_types').where('Type', type);
