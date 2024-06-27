@@ -25,6 +25,12 @@ users.post('/mifare', async (req, res, next) => {
 });
 
 
+/**
+ * Specifikus függvény. Forrásobjektum ID-jei alapján adatok lekérése és mount-olása célobjektumra.
+ * @param {import('express').Response} res
+ * @param {object} srcdata forrásobjektum ID-kal
+ * @param {object} destdata célobjektum
+ */
 const mountWhenPossible = async (res, srcdata, destdata) => {
   const [ rootdata, classdata, groupdata, contactdata ] = await Promise.all([
     knx('user').first(getPermittedFields('user', roleMappings.byID[res.locals.roleID])).where('UID', res.locals.UID ?? -1),

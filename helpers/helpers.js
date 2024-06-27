@@ -19,6 +19,19 @@ function toLowerKeys(req, res, next) {
 }
 */
 
+
+/**
+ * @typedef {import('express').Request} Request express request callback típus
+ * @typedef {import('express').Response} Response express response callback típus
+ * @typedef {import('express').NextFunction} Next express next callback típus
+ * @typedef {'read'|'write'} PermType engedély neve, típusa
+ */
+
+/**
+ * Lecsekkolja az adatbázisban egy Bearer token érvényességét.
+ * @param {string} authField Authorization mező értéke
+ * @returns {Promise<{UID: number, roleID: number}> | string} hozzá tartozó adatok vagy hiba kódneve
+ */
 async function verify(authField) {
   let result = { 'UID': undefined, 'roleID': -1 };
   if (authField == undefined)
@@ -43,6 +56,12 @@ async function verify(authField) {
   result.roleID = userEntry.Role;
   return result;
 }
+/**
+ * Middleware. Authentikáció ellenőrzése, kezelése.
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Next} next
+ */
 async function checkToken(req, res, next) {
   const verRes = await verify(req.get('Authorization'));
   if (typeof verRes == 'string') {
@@ -54,12 +73,24 @@ async function checkToken(req, res, next) {
   next();
 }
 
+/**
+ * Middleware. Nem található oldalak, erőforrások kezelése.
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Next} next
+ */
 function handleNotFound(req, res, next) {
   if (!res.headersSent)
     classicErrorSend(res, 'missing_resource');
   next();
 }
 
+/**
+ * Middleware. Bejövő kérések loggolása a konfiguráció szerint.
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Next} next
+ */
 function logRequest(req, res, next = () => { }) {
   if (
     (res.statusCode >= 200 && res.statusCode < 300) ||
@@ -74,34 +105,56 @@ function logRequest(req, res, next = () => { }) {
 }
 
 
+/**
+ * Véletlenszerűen generál access és refresh tokeneket amíg nem egyediek.
+ * @returns {Promise<{access_token: string, refresh_token: string}>}
+ */
 async function generateUniqueToken() {
-  // tokenek véletlenszerű újragenerálása amíg nem egyedi
-  let accessToken, refreshToken;
-  let tokenEntry = undefined;
-  do {
-    accessToken = generateToken(options.authorization.tokenLength);
-    tokenEntry = await knx('auth').first('*').where('access_token', accessToken);
-  } while (tokenEntry);
-  do {
-    refreshToken = generateToken(options.authorization.tokenLength);
-    tokenEntry = await knx('auth').first('*').where('refresh_token', refreshToken);
-  } while (tokenEntry);
-
-  return { 'access_token': accessToken, 'refresh_token': refreshToken };
+  let tokens = [];
+  for (let i = 0; i < 2; i++) {
+    let tokenEntry = undefined;
+    do {
+      tokens[i] = generateToken(options.authorization.tokenLength);
+      tokenEntry = await knx('auth').first('*').where(i ? 'refresh_token' : 'access_token', tokens[i]);
+    } while (tokenEntry);
+  }
+  return { 'access_token': tokens[0], 'refresh_token': tokens[1] };
 }
 
+/**
+ * Egy általános hiba visszaküldése és loggolása.
+ * @param {Response} res
+ * @param {string} keyword hiba kódneve
+ * @param {number} [code] hibakód
+ * @param {string} [description] hiba hosszú leírása
+ */
 function classicErrorSend(res, keyword, code=errors[keyword].code, description=errors[keyword].description) {
-  // console.log(res);
   res.header('Content-Type', 'application/json').status(code).send({ 'error': keyword, 'status_code': code, 'error_description': description }).end();
   logRequest(res.req, res);
 }
 
+/**
+ * Egy adatbázisból lekért adathalmazon az engedhető tulajdonságok átengedése a szűrőn.
+ * @param {Object[]} data forrás adathalmaz
+ * @param {string} table forrás tábla neve
+ * @param {string} role lekérő szerepének(engedélycsoportjának) neve
+ * @param {PermType} permType engedély szempontjából a művelet neve
+ * @returns {Object[]} szűrt adathalmaz
+ */
 function filterByPermission(data, table, role, permType = 'read') { // perftest: adat törlése vs új obj létrehozása
   let permittedData = {};
   for (let key in data)
     if (permMappings[table][key][role][permType]) permittedData[key] = data[key];
   return permittedData;
 }
+/**
+ * Megszerzi a lekérhető mezőneveket engedélyek szerint egy táblán.
+ * @param {string} table A kérdéses tábla.
+ * @param {string} role lekérő szerepének(engedélycsoportjának) neve
+ * @param {boolean} explicit kell-e jelezni a tábla viszonyát a mezőnevekkel (pld. tableName.fieldName)
+ * @param {PermType} permType engedély szempontjából a művelet neve
+ * @returns {string[]} A lekérő szempontjából látható mezőnevek.
+ */
 function getPermittedFields(table, role, explicit = false, permType = 'read') {
   let allowedFields = [];
   for (let field in permMappings[table]) {
@@ -110,6 +163,12 @@ function getPermittedFields(table, role, explicit = false, permType = 'read') {
   return allowedFields;
 }
 
+/**
+ * Middleware. Az elérési útvonalhoz kapcsolódó engedélyek kezelése.
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Next} next
+ */
 function handleRouteAccess(req, res, next) {
   let url = (new URL(req.originalUrl, `http://${req.headers.host}`)).pathname;
   url = url.endsWith('/') ? url.slice(0, -1) : url;
@@ -122,14 +181,22 @@ function handleRouteAccess(req, res, next) {
   else classicErrorSend(res, 'missing_permissions');
 }
 
-
-
-// TODO: revision - wasteful?
+/**
+ * Rárakja egy lekérésre a megadott COALESCE kifejezéseket, a SELECT statementbe.
+ * @param {import('knex').Knex.QueryBuilder} query lekérés
+ * @param {string[]} coalesces COALESCE kifejezések
+ */
 function addCoalesces(query, coalesces) {
   for (let coalesce of coalesces) {
     query.select(knx.raw(coalesce));
   }
 }
+/**
+ * A megadott mezők(és tábláik) alapján a duplikált(azonos típusú, név alapján) mezőket összepárosítja.
+ * @param {{fields: string[], table: string}[]} tableArr táblák és mezőiket tartalmazó array
+ * @returns {{selects: string[], coalesces: string[]}} A kiszűrt COALESCE-be helyezett mezők, és a különállók.
+ * @todo revision - wasteful?
+ */
 function selectCoalesce(tableArr) {
   let fields = {};
   for (let i = 0; i < tableArr.length; i++) {

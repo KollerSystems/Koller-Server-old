@@ -5,35 +5,50 @@ import { isEmptyObject } from '../helpers/misc.js';
 
 const crossings = Router({ mergeParams: false });
 
-
+/**
+ * Átmásolja egy objektumról a megadott értékeket egy másikra.
+ * @param {object} destObj cél objektum
+ * @param {object} srcObj forrás objektum
+ * @param {string[]} key kulcsnevekből álló array
+ */
 function copyObjKeys(destObj, srcObj, key) {
   for (let k of key)
     destObj[k] = srcObj[k];
 }
 
-function filterAndSend(res, data) {
+/**
+ * Ha nincs elérhető adat 204-es státuszt küld vissza, egyébként az adatot.
+ * @param {import('express').Response} res
+ * @param {object[]} data lekért adat
+ * @returns {void}
+ */
+function handleNoContent(res, data) {
   if (isEmptyObject(data))
-    res.status(204).end();
-  else {
-    for (let i in data)
-      data[i].Direction = data[i].Direction[0];
-    res.status(200).send(data).end();
-  }
+    return res.status(204).end();
+  res.status(200).send(data).end();
 }
 
-async function getBatchRequestData(query, rawUrl, table, fields, where) {
-  return setupBatchRequest(knx(table).select(fields).where(where), query, rawUrl);
+/**
+ * Crossings lekérések miatt egy egyszerűsítő wrapper setupBatchRequest-hez.
+ * @param {import('knex').Knex.QueryBuilder} query
+ * @param {string} rawUrl Nem parse-olt querystring, /?-el.
+ * @param {string[]} fields lekérendő mezőnevek
+ * @param {object} where Objektum, speciális szűrésekre. Kulcsnév a szűrendő mezőnév, érték a szűrő elvárt értéke.
+ * @returns {setupBatchRequest} Még nem evaluált, setupBatchRequest által képzett kérés.
+ */
+async function getBatchRequestData(query, rawUrl, fields, where) {
+  return setupBatchRequest(knx('crossings').select(fields).where(where), query, rawUrl);
 }
 
 crossings.get('/me', async (req, res, next) => {
-  const data = await getBatchRequestData(req.query, req.url, 'crossings', [ 'ID', 'Time', 'Direction' ], { 'UID': res.locals.UID });
-  filterAndSend(res, data);
+  const data = await getBatchRequestData(req.query, req.url, [ 'ID', 'Time', 'Direction' ], { 'UID': res.locals.UID });
+  handleNoContent(res, data);
 
   next();
 });
 crossings.get('/:id(\\d+)', async (req, res, next) => { // regexp: /\d+/
-  const data = await getBatchRequestData(req.query, req.url, 'crossings', [ 'ID', 'Time', 'Direction' ], { 'UID': req.params.id });
-  filterAndSend(res, data);
+  const data = await getBatchRequestData(req.query, req.url, [ 'ID', 'Time', 'Direction' ], { 'UID': req.params.id });
+  handleNoContent(res, data);
 
   next();
 });

@@ -14,7 +14,7 @@ import { timetable } from './routes/timetable.js';
 import { institution } from './routes/insitution.js';
 
 import { checkToken, handleNotFound, logRequest, handleRouteAccess, classicErrorSend } from './helpers/helpers.js';
-import { treeifyMaps, extendMissingPermissions, mountTree } from './startup.js';
+import { treeifyMaps, extendMissingPermissions, mountTree, queryTableColumns } from './startup.js';
 import { handleWebsocket } from './reader.js';
 
 import { readFile } from 'fs/promises';
@@ -89,6 +89,7 @@ roleMappings.byRole = Object.fromEntries(Object.entries(roleMappings.byID).map((
 const permMappings = treeifyMaps(await knx('permissions').select('*'), 'perms');
 const routeAccess = treeifyMaps(await knx('route_access').select('*'), 'routes');
 const errors = treeifyMaps(await knx('errors').select('*'), 'errors');
+const tableColumns = await queryTableColumns();
 
 if (options.api.extendPermissions) await extendMissingPermissions();
 
@@ -143,4 +144,4 @@ process.on('SIGINT', async () => {
   }
 });
 
-export { knx, options, roleMappings, permMappings, routeAccess, errors, logFileStream, crossEvent };
+export { knx, options, roleMappings, permMappings, routeAccess, errors, tableColumns, logFileStream, crossEvent };
