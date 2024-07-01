@@ -62,13 +62,16 @@ users.get('/me', async (req, res, next) => {
 });
 
 users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
-  const user = await knx('user').first('*').where('UID', req.params.id);
+  const user = await knx('user').first(getPermittedFields('user', roleMappings.byID[res.locals.roleID])).where('UID', req.params.id);
   if (user == undefined) return classicErrorSend(res, 'missing_resource');
 
   const userdata = await knx(roleMappings.byID[user.Role]).first('*').where('UID', user.UID);
   const filteredData = filterByPermission(userdata, roleMappings.byID[user.Role], roleMappings.byID[res.locals.roleID]);
 
   await mountWhenPossible(res, userdata, filteredData);
+
+  for (let key in user)
+    filteredData[key] = user[key];
 
   if (isEmptyObject(filteredData)) return classicErrorSend(res, 'missing_permissions');
   res.header('Content-Type', 'application/json').status(200).send(filteredData).end();

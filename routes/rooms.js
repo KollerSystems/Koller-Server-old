@@ -22,9 +22,10 @@ rooms.get('/', async (req, res, next) => {
       ]);
       const query = knx('resident').select(...fields.selects).join('student', 'student.UID', 'resident.UID').join('user', 'user.UID', 'resident.UID').where('resident.RID', parent.RID);
       addCoalesces(query, fields.coalesces);
-      return await setupBatchRequest(query, {}, '', { 'ignoreLimit': true, 'ignoreOffset': true }, [
+      let d = await setupBatchRequest(query, {}, '', { 'ignoreLimit': true, 'ignoreOffset': true }, [
         { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } }
       ], { 'ClassID': undefined, 'ID': undefined, 'Old': undefined });
+      return d;
       // return await knx('resident').select(fieldsPermitted).joinRaw('natural join student').join('class', 'class.ID', 'student.ClassID').where('RID', parent.RID);
     } }
   ], { 'GroupID': undefined, 'AID': undefined });

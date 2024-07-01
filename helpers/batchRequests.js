@@ -409,6 +409,7 @@ function traverse(obj, map, tillValue = true) {
  * @param {any | object | any[]} value érték
  */
 function initializeOrAdd(obj, key, value) {
+  if (typeof obj[key] == 'string') obj[key] = undefined;
   if (value?.length >= 0 && typeof value == 'object') {
     if (obj[key] == undefined) obj[key] = [];
     obj[key] = [ ...obj[key], ...value ];
@@ -513,6 +514,7 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
 
   let finalData = await query;
 
+  // Promise.all?
   for (let obj of finalData) {
     for (let mount of mounts) {
       if (mount.flexible) {

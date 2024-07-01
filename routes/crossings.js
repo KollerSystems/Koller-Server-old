@@ -34,9 +34,9 @@ function handleNoContent(res, data) {
  * @param {string} rawUrl Nem parse-olt querystring, /?-el.
  * @param {string[]} fields lekérendő mezőnevek
  * @param {object} where Objektum, speciális szűrésekre. Kulcsnév a szűrendő mezőnév, érték a szűrő elvárt értéke.
- * @returns {setupBatchRequest} Még nem evaluált, setupBatchRequest által képzett kérés.
+ * @returns {Promise<setupBatchRequest>} Még nem evaluált, setupBatchRequest által képzett kérés.
  */
-async function getBatchRequestData(query, rawUrl, fields, where) {
+function getBatchRequestData(query, rawUrl, fields, where) {
   return setupBatchRequest(knx('crossings').select(fields).where(where), query, rawUrl);
 }
 
