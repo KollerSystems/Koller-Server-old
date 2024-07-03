@@ -43,8 +43,8 @@ jobs:
       run: |
         cd Koller-Database
         sudo mysql < schema.sql
-        sudo mysql < config.sql
-        sudo mysql < testdata.sql
+        sudo mysql kollegium < config.sql
+        sudo mysql kollegium < testdata.sql
 
     - name: Install node stuff
       run: npm install
