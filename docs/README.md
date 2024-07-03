@@ -1,3 +1,13 @@
+![Static Badge](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-red?logo=creativecommons&logoColor=white)
+![Maintenance](https://img.shields.io/maintenance/yes/2024)
+![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/KollerSystems/Koller-Server)
+![GitHub package.json dynamic](https://img.shields.io/github/package-json/version/KollerSystems/Koller-Server)
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FKollerSystems%2FKoller-Server%2Fmaster%2Fpackage.json&query=engines.node&logo=Node.js&logoColor=white&label=Node%20Version&color=%235FA04E)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/KollerSystems/Koller-Server)
+
+<!-- ![GitHub Created At](https://img.shields.io/github/created-at/KollerSystems/Koller-Server) -->
+
+
 # Koller-Server
 
 <!--
