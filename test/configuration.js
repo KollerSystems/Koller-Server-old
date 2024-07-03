@@ -22,8 +22,7 @@ try {
 const knx = knex({
   client: 'mysql',
   connection: {
-    user: options?.databaseLoginData?.user,
-    password: options?.databaseLoginData?.password,
+    ...options.databaseLoginData,
     database: 'kollegium'
   }
 });
