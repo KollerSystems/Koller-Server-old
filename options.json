@@ -9,7 +9,7 @@
   },
   "databaseLoginData": {
     "host": "127.0.0.1",
-    "port": "/var/run/mysqld/mysqld.sock",
+    "port": 3306,
     "user": "root",
     "password": ""
   },
