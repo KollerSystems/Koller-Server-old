@@ -19,7 +19,7 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Git checkout 
+    - name: Git checkout
       uses: actions/checkout@v2
 
     - name: Install Node JS ${{ matrix.node-version }}
@@ -42,9 +42,9 @@ jobs:
     - name: Fill stuff up
       run: |
         cd Koller-Database
-        sudo mysql < schema.sql
-        sudo mysql kollegium < config.sql
-        sudo mysql kollegium < testdata.sql
+        sudo mariadb < schema.sql
+        sudo mariadb kollegium < config.sql
+        sudo mariadb kollegium < testdata.sql
 
     - name: Install node stuff
       run: npm install
