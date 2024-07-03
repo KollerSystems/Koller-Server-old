@@ -54,4 +54,4 @@ jobs:
         sudo node index.js &
         sleep 2
         npm test
-        kill -9 `lsof -i:80 -t`
+        sudo kill -9 `sudo lsof -i TCP:80 -t`
