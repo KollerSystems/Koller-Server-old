@@ -1,23 +1,19 @@
-name: CI - Integration Test
+name: API testing
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [18.x]
-        mariadb-version: [latest]
+        mariadb-version: [11.4]
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     - name: Git checkout
       uses: actions/checkout@v2
@@ -29,9 +25,9 @@ jobs:
 
     - uses: ankane/setup-mariadb@v1
       with:
-        mariadb-version: "11.4"
+        mariadb-version: ${{ matrix.mariadb-version }}
 
-    - name: Clone repo
+    - name: Clone Koller-Database
       uses: GuillaumeFalourd/clone-github-repo-action@v2.3
       with:
         depth: 1
@@ -39,17 +35,17 @@ jobs:
         owner: 'KollerSystems'
         repository: 'Koller-Database'
 
-    - name: Fill stuff up
+    - name: Set up the database
       run: |
         cd Koller-Database
         sudo mariadb < schema.sql
         sudo mariadb kollegium < config.sql
         sudo mariadb kollegium < testdata.sql
 
-    - name: Install node stuff
+    - name: Install project dependencies
       run: npm install
 
-    - name: Run the API and Postman's tests
+    - name: Run tests
       run: |
         sudo node index.js &
         sleep 2
