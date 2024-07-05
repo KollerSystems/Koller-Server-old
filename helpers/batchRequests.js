@@ -1,7 +1,6 @@
 import XRegExp from 'xregexp';
 import { knx, options, tableColumns } from '../index.js';
 import { isEmptyObject, tryparse } from './misc.js';
-import { parse } from 'node:url';
 
 /**
  * lekérdezés objektum
@@ -203,8 +202,11 @@ function handleFilterParams(urlparams, allowedFields, translation, renames) {
     'reg': 'REGEXP'
   };
 
-  urlparams = parse(urlparams).query;
-  urlparams = urlparams == null ? [] : urlparams.split('&');
+  const index = urlparams.indexOf('?');
+  urlparams = index == -1 ? undefined : urlparams.slice(index);
+  if (urlparams?.startsWith('?')) urlparams = urlparams.slice(1);
+
+  urlparams = urlparams == undefined ? [] : urlparams.split('&');
 
   for (let urlparam of urlparams) {
     const splitparam = urlparam.split('=');
@@ -514,16 +516,17 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
 
   let finalData = await query;
 
-  // Promise.all?
+  let mountsEvaluated = [];
+  for (let obj of finalData)
+    for (let mount of mounts)
+      mountsEvaluated.push( mount.flexible ? knx(mount.query.table).first(mount.query.fields).where(mount.join[1], obj[mount.join[0]]) : mount.callback(obj) );
+  mountsEvaluated = await Promise.all(mountsEvaluated);
+
+  let mountIndex = 0;
   for (let obj of finalData) {
     for (let mount of mounts) {
-      if (mount.flexible) {
-        const mountedObj = await knx(mount.query.table).first(mount.query.fields).where(mount.join[1], obj[mount.join[0]]);
-        initializeOrAdd(obj, mount.point, mountedObj);
-      } else {
-        const mountedObj = await mount.callback(obj);
-        initializeOrAdd(obj, mount.point, mountedObj);
-      }
+      const mountedObj = mountsEvaluated[mountIndex++];
+      initializeOrAdd(obj, mount.point, mountedObj);
       if (obj[mount.point] != undefined && isEmptyObject(obj[mount.point])) obj[mount.point] = undefined;
     }
     for (let field in renames) {
@@ -531,13 +534,9 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
       let traversed = traverse(obj, traversePath, false);
       if (traversed == undefined) continue;
 
-      if (renames[field] == undefined) {
-        delete traversed[traversePath.at(-1)];
-      } else if (typeof renames[field] == 'string') {
-        let v = traversed[traversePath.at(-1)];
-        delete traversed[traversePath.at(-1)];
-        traversed[renames[field]] = v;
-      }
+      if (typeof renames[field] == 'string')
+        traversed[renames[field]] = traversed[traversePath.at(-1)];
+      delete traversed[traversePath.at(-1)];
     }
   }
 

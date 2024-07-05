@@ -10,13 +10,6 @@
 
 # Koller-Server
 
-<!--
-[![Code Quality](https://img.shields.io/codefactor/grade/github/4E-6F-72-62-65-72-74/Koller-API-DB/master)](https://www.codefactor.io/repository/github/4E-6F-72-62-65-72-74/Koller-API-DB/)
-![Technical Debt](https://img.shields.io/codeclimate/tech-debt/4E-6F-72-62-65-72-74/Koller-API-DB)
-![Last Commit](https://img.shields.io/github/last-commit/4E-6F-72-62-65-72-74/Koller-API-DB)
-[![Google Code Style](https://img.shields.io/badge/Code%20Style-Google-4086f4)](https://google.github.io/styleguide/jsguide.html)
--->
-
 API forráskódja a Koller-hez.
 
 Az API dokumentálását az [API.md](/docs/API.md) fájlban lehet megtalálni.

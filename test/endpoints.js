@@ -29,34 +29,47 @@ let teacherToken = 'Anca577M3u.~un7z~j9pj3/67rsF/~/3';
  * @callback expectationCallback
  * @param {res}
  */
-function Endpoint(method, endpoint, status, parameters, expectationCallback, additionalExpectations = {}, config = {}) {
+function Endpoint(method, endpoint, status, parameters, expectationCallback, config = {}, additionalExpectations = {}) {
   if (endpoint.startsWith('/')) endpoint = endpoint.slice(1);
   if (endpoint.endsWith('/')) endpoint = endpoint.slice(0, -1);
 
-  it(config.testname || ('/' + endpoint + '/'), done => {
-    let rq = request;
+  if (!(parameters instanceof Array)) parameters = [ parameters ];
 
-    if (method == 'GET')
-      rq = rq.get(endpoint + '?' + parameters);
-    else
-      rq = rq.post(endpoint)
-        .set('Content-type', 'application/json')
-        .send(parameters);
+  for (let parameter of parameters) {
+    let testname = config.testname || ('/' + endpoint.replace(/\d+/g, ':id') + '/');
+    if (config.paramtest && method == 'GET') testname = '?' + parameter;
 
-    if (config.token !== null)
-      rq = rq.set('Authorization', 'Bearer ' + (config.token || defaultToken));
+    it(testname, done => {
+      let rq = request;
 
-    rq = rq.expect('Content-Type', /json/)
-      .expect(status)
-      .expect(res => {
-        expectationCallback(res?.body);
-      });
+      if (method == 'GET')
+        rq = rq.get(endpoint + '?' + parameter);
+      else
+        rq = rq.post(endpoint)
+          .set('Content-type', 'application/json')
+          .send(parameter);
 
-    for (let key in additionalExpectations)
-      rq = rq.expect(key, additionalExpectations[key]);
+      if (config.token !== null)
+        rq = rq.set('Authorization', 'Bearer ' + (config.token || defaultToken));
 
-    rq.end(done);
-  });
+      rq = rq.expect('Content-Type', /json/)
+        .expect(status)
+        .expect(res => {
+          expectationCallback(res?.body);
+        });
+
+      for (let key in additionalExpectations)
+        rq = rq.expect(key, additionalExpectations[key]);
+
+      rq.end(done);
+    });
+  }
+}
+
+function cycleFunctionCall(callback, ...valuesArr) {
+  const maxLength = Math.max.apply(Math, valuesArr.map(arr => arr.length));
+  for (let i = 0; i < maxLength; i++)
+    callback(...valuesArr.map(arr => arr?.[i]));
 }
 
 describe('endpoint integrity testing', function () {
@@ -68,14 +81,14 @@ describe('endpoint integrity testing', function () {
     'password': 'almafa1234'
   }, body => {
     expect(body).to.have.all.keys([ 'access_token', 'token_type', 'expires_in', 'refresh_token' ]);
-  }, {}, { token: null });
+  }, { token: null });
 
   Endpoint('POST', '/oauth/token', 200, {
     'grant_type': 'refresh_token',
     'refresh_token': refreshToken
   }, body => {
     expect(body).to.have.all.keys([ 'access_token', 'token_type', 'expires_in', 'refresh_token' ]);
-  }, {}, { token: null });
+  }, { token: null });
 
   // /api/users/ //
 
@@ -101,7 +114,7 @@ describe('endpoint integrity testing', function () {
         expect(user.Group).to.have.all.keys([ 'ID', 'Group', 'Old', 'HeadTUID' ]);
       }
     }
-  }, {}, { token: teacherToken });
+  }, { token: teacherToken });
 
   Endpoint('GET', '/api/users/me', 200, '', body => {
     expect(body).to.have.all.keys([ 'UID', 'School', 'Birthplace', 'Birthdate', 'GuardianName', 'GuardianPhone', 'RID', 'Country', 'City', 'Street', 'PostCode', 'Address', 'Floor', 'Door', 'Name', 'Gender', 'Picture', 'Role', 'Class', 'Group', 'Contacts' ]);
@@ -111,7 +124,7 @@ describe('endpoint integrity testing', function () {
   });
   Endpoint('GET', '/api/users/me', 200, '', body => {
     expect(body).to.have.all.keys([ 'UID', 'PID', 'Name', 'Gender', 'Picture', 'Role' ]);
-  }, {}, { token: teacherToken });
+  }, { token: teacherToken });
 
   Endpoint('GET', '/api/users/3', 200, '', body => {
     expect(body.UID).to.be.eq(3);
@@ -124,7 +137,7 @@ describe('endpoint integrity testing', function () {
     expect(body).to.have.all.keys([ 'UID', 'Name', 'Gender', 'Role', 'School', 'RID', 'Class', 'Group', 'Picture', 'Birthdate', 'City', 'Country', 'GuardianName', 'GuardianPhone' ]);
     expect(body.Class).to.have.all.keys([ 'ID', 'Class', 'Old' ]);
     expect(body.Group).to.have.all.keys([ 'ID', 'Group', 'Old', 'HeadTUID' ]);
-  }, {}, { token: teacherToken });
+  }, { token: teacherToken });
 
   // /api/rooms/ //
 
@@ -296,3 +309,6 @@ describe('endpoint integrity testing', function () {
 
   // Endpoint('GET', '/api/crossings/events', 200, '', body => {}, {}, { token: teacherToken });
 });
+
+
+export { Endpoint, cycleFunctionCall, options };
