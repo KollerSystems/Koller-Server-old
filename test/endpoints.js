@@ -5,6 +5,8 @@ const options = JSON.parse(
   )
 );
 
+process.env.TZ = 'UTC';
+
 import supertest from 'supertest';
 const request = supertest(`localhost:${options.api.port}/`);
 import { expect } from 'chai';
@@ -15,21 +17,30 @@ Date.prototype.addDays = function (days) {
   return this;
 };
 
-
-let defaultToken = 'P8kj-8K7kJM-hT9RQDUH8L-v..01.yy2';
-let refreshToken = 'VZ7R0ChS93Sr46y7lXYQUSnb0A7Np/ZT';
-let teacherToken = 'Anca577M3u.~un7z~j9pj3/67rsF/~/3';
+const tokens = {
+  default: 'P8kj-8K7kJM-hT9RQDUH8L-v..01.yy2',
+  refresh: 'VZ7R0ChS93Sr46y7lXYQUSnb0A7Np/ZT',
+  teacher: 'Anca577M3u.~un7z~j9pj3/67rsF/~/3',
+  expired: '/2.L//Rht/sbad/k5txuP93vdskDdXu2'
+};
 /**
+ * @typedef {object} configObj
+ * @property {string=} testname
+ * @property {boolean} paramtest
+ * @property {stirng | null} token
+ * 
  * @param {'GET'|'POST'} method
  * @param {string} endpoint
  * @param {number} status
  * @param {object} parameters
  * @param {object} additionalExpectations
+ * @param {configObj} config
+ * @param {object} additionalSettings
  * 
  * @callback expectationCallback
- * @param {res}
+ * @param {object}
  */
-function Endpoint(method, endpoint, status, parameters, expectationCallback, config = {}, additionalExpectations = {}) {
+function Endpoint(method, endpoint, status, parameters, expectationCallback, config = {}, additionalSettings = {}) {
   if (endpoint.startsWith('/')) endpoint = endpoint.slice(1);
   if (endpoint.endsWith('/')) endpoint = endpoint.slice(0, -1);
 
@@ -44,22 +55,25 @@ function Endpoint(method, endpoint, status, parameters, expectationCallback, con
 
       if (method == 'GET')
         rq = rq.get(endpoint + '?' + parameter);
-      else
-        rq = rq.post(endpoint)
-          .set('Content-type', 'application/json')
-          .send(parameter);
+      else {
+        rq = rq.post(endpoint);
+        if (parameter != undefined)
+          rq = rq.send(parameter);
+      }
+
+      for (let key in additionalSettings)
+        rq = rq.set(key, additionalSettings[key]);
+      if (!('Content-Type' in additionalSettings))
+        rq = rq.set('Content-Type', 'application/json');
 
       if (config.token !== null)
-        rq = rq.set('Authorization', 'Bearer ' + (config.token || defaultToken));
+        rq = rq.set('Authorization', 'Bearer ' + (config.token || tokens.default));
 
       rq = rq.expect('Content-Type', /json/)
         .expect(status)
         .expect(res => {
           expectationCallback(res?.body);
         });
-
-      for (let key in additionalExpectations)
-        rq = rq.expect(key, additionalExpectations[key]);
 
       rq.end(done);
     });
@@ -74,6 +88,7 @@ function cycleFunctionCall(callback, ...valuesArr) {
 
 describe('endpoint integrity testing', function () {
   // /oauth/token/ //
+  // TODO: username mint OM
 
   Endpoint('POST', '/oauth/token', 200, {
     'grant_type': 'password',
@@ -85,7 +100,7 @@ describe('endpoint integrity testing', function () {
 
   Endpoint('POST', '/oauth/token', 200, {
     'grant_type': 'refresh_token',
-    'refresh_token': refreshToken
+    'refresh_token': tokens.refresh
   }, body => {
     expect(body).to.have.all.keys([ 'access_token', 'token_type', 'expires_in', 'refresh_token' ]);
   }, { token: null });
@@ -114,7 +129,7 @@ describe('endpoint integrity testing', function () {
         expect(user.Group).to.have.all.keys([ 'ID', 'Group', 'Old', 'HeadTUID' ]);
       }
     }
-  }, { token: teacherToken });
+  }, { token: tokens.teacher });
 
   Endpoint('GET', '/api/users/me', 200, '', body => {
     expect(body).to.have.all.keys([ 'UID', 'School', 'Birthplace', 'Birthdate', 'GuardianName', 'GuardianPhone', 'RID', 'Country', 'City', 'Street', 'PostCode', 'Address', 'Floor', 'Door', 'Name', 'Gender', 'Picture', 'Role', 'Class', 'Group', 'Contacts' ]);
@@ -124,7 +139,7 @@ describe('endpoint integrity testing', function () {
   });
   Endpoint('GET', '/api/users/me', 200, '', body => {
     expect(body).to.have.all.keys([ 'UID', 'PID', 'Name', 'Gender', 'Picture', 'Role' ]);
-  }, { token: teacherToken });
+  }, { token: tokens.teacher });
 
   Endpoint('GET', '/api/users/3', 200, '', body => {
     expect(body.UID).to.be.eq(3);
@@ -137,7 +152,7 @@ describe('endpoint integrity testing', function () {
     expect(body).to.have.all.keys([ 'UID', 'Name', 'Gender', 'Role', 'School', 'RID', 'Class', 'Group', 'Picture', 'Birthdate', 'City', 'Country', 'GuardianName', 'GuardianPhone' ]);
     expect(body.Class).to.have.all.keys([ 'ID', 'Class', 'Old' ]);
     expect(body.Group).to.have.all.keys([ 'ID', 'Group', 'Old', 'HeadTUID' ]);
-  }, { token: teacherToken });
+  }, { token: tokens.teacher });
 
   // /api/rooms/ //
 
@@ -176,7 +191,7 @@ describe('endpoint integrity testing', function () {
   Endpoint('GET', '/api/timetable/', 200, '', body => {
     let offset = 0;
     for (let date in body) {
-      let expectedDate = new Date();
+      let expectedDate = new Date((new Date()).toLocaleString('en-US', { timeZone: 'Europe/Budapest' }));
       expectedDate.addDays(offset++);
       expect(date).to.be.eq(expectedDate.toISOString().split('T')[0] + 'T00:00:00.000Z');
       expect(body[date]).to.have.all.keys([ 'DayTypeID', 'Day', 'Data' ]);
@@ -311,4 +326,4 @@ describe('endpoint integrity testing', function () {
 });
 
 
-export { Endpoint, cycleFunctionCall, options };
+export { Endpoint, cycleFunctionCall, options, request, tokens };
