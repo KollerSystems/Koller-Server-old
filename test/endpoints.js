@@ -5,8 +5,6 @@ const options = JSON.parse(
   )
 );
 
-process.env.TZ = 'UTC';
-
 import supertest from 'supertest';
 const request = supertest(`localhost:${options.api.port}/`);
 import { expect } from 'chai';
@@ -193,7 +191,7 @@ describe('endpoint integrity testing', function () {
     for (let date in body) {
       let expectedDate = new Date((new Date()).toLocaleString('en-US', { timeZone: 'Europe/Budapest' }));
       expectedDate.addDays(offset++);
-      expect(date).to.be.eq(expectedDate.toISOString().split('T')[0] + 'T00:00:00.000Z');
+      expect(date.startsWith(expectedDate.toISOString().split('T')[0] + 'T00:00:00.000')).to.be.true;
       expect(body[date]).to.have.all.keys([ 'DayTypeID', 'Day', 'Data' ]);
       expect(body[date].Day).to.be.eq(daysOTW[expectedDate.getDay()]);
       for (let program of body[date].Data) {

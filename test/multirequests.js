@@ -104,7 +104,7 @@ describe('multi-result parameter check', function () {
       expect(obj?.Class?.Class).to.match(/^\d+\.[A-Z]/);
   }, { paramtest: true });
 
-  let orgdate = new Date();
+  let orgdate = new Date((new Date()).toLocaleString('sv', { timeZone: 'Europe/Budapest' }).split(' ')[0] + ` UTC+${Math.floor(new Date().getTimezoneOffset() / -60)}`);
   Endpoint('GET', '/api/timetable/mandatory', 200, `Date=${orgdate.getFullYear()}`, body => {
     for (let obj of body)
       expect(new Date(obj.Date).getFullYear()).to.be.eq(orgdate.getFullYear());

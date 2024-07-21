@@ -512,9 +512,8 @@ async function setupBatchRequest(query, urlparams, rawUrl, params = {}, mounts =
   if (!params.ignoreOffset) query = query.offset(offset);
   attachSorts(query, immediateSort);
 
-  if (mounts.length == 0) return await query;
-
   let finalData = await query;
+  if (mounts.length == 0) return finalData;
 
   let mountsEvaluated = [];
   for (let obj of finalData)

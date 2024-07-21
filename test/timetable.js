@@ -240,7 +240,7 @@ describe('Requesting timetables and lessons with various tokens', function() {
         .expect(codes[parameter])
         .expect(res => {
           expect(res.body).to.be.an('object');
-          expect(Object.keys(res.body).every(v => v.match(/\d+-\d+-\d+T\d+:\d+:\d+.\d+Z/)), 'object keys are in ISO timestamp').to.be.true;
+          expect(Object.keys(res.body).every(v => v.match(/\d+-\d+-\d+T\d+:\d+:\d+.\d+(Z|(\+\d+:\d+))/)), 'object keys are in ISO timestamp').to.be.true;
           for (let body of Object.values(res.body)) {
             expect(body).to.have.a.key([ 'Day', 'Data', 'DayTypeID' ]);
             expect([ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ].includes(body.Day)).to.be.true;

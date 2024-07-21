@@ -32,7 +32,7 @@ timetable.get('/', async (req, res, next) => {
     } }
   ]);
 
-  const result = batchTimetable.reduce((obj, cur) => ({ ...obj, [cur.Date.toISOString()]: deleteProperty(cur, 'Date') }), {});
+  const result = batchTimetable.reduce((obj, cur) => ({ ...obj, [cur.Date.toLocalISOString()]: deleteProperty(cur, 'Date') }), {});
 
   res.header('Content-Type', 'application/json').status(200).send(result).end();
 
@@ -56,6 +56,8 @@ timetable.get('/mandatory', async (req, res, next) => {
     { 'flexible': true, 'point': 'Teacher', 'join': [ 'TUID', 'UID' ], 'query': { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' } },
     { 'flexible': true, 'point': 'Teacher', 'join': [ 'TUID', 'UID' ], 'query': { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' } }
   ], { 'ClassID': undefined, 'TUID': undefined } /* , { 'Date': q => q.whereBetween('Date', weekRange()) } */ );
+
+  mandatoryPrograms.map(obj => obj.Date = obj?.Date.toLocalISOString());
 
   res.header('Content-Type', 'application/json').status(200).send(mandatoryPrograms).end();
 
@@ -90,6 +92,8 @@ timetable.get('/mandatory/:id(-?\\d+)', async (req, res, next) => {
   delete query.Class.ClassID;
   delete query.TUID;
 
+  query.Date = query.Date.toLocalISOString();
+
   res.header('Content-Type', 'application/json').status(200).send(query).end();
 
   next();
@@ -109,6 +113,8 @@ timetable.get('/studygroup', async (req, res, next) => {
     { 'flexible': true, 'point': 'Teacher', 'join': [ 'TUID', 'UID' ], 'query': { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' } },
     { 'flexible': true, 'point': 'Teacher', 'join': [ 'TUID', 'UID' ], 'query': { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' } }
   ], { 'TUID': undefined });
+
+  studyGroups.map(obj => obj.Date = obj?.Date.toLocalISOString());
 
   res.header('Content-Type', 'application/json').status(200).send(studyGroups).end();
 
@@ -137,6 +143,8 @@ timetable.get('/studygroup/:id(-?\\d+)', async (req, res, next) => {
 
   query.Teacher = teacherUser;
   delete query.TUID;
+
+  query.Date = query.Date.toLocalISOString();
 
   res.header('Content-Type', 'application/json').status(200).send(query).end();
 

@@ -26,7 +26,21 @@ const options = JSON.parse(
 
 let logFileStream = (options.logging.logFile != '') ? createWriteStream(options.logging.logFile, { 'flags': options.logging.overwriteLog ? 'w' : 'a' }) : undefined;
 
-process.env.TZ = 'UTC';
+Date.prototype.toLocalISOString = function() {
+  let tzo = -this.getTimezoneOffset(),
+    dif = tzo >= 0 ? '+' : '-';
+  let pad = v => v <= 10 ? '0' + v : v.toString();
+
+  return this.getFullYear() +
+  '-' + pad(this.getMonth() + 1) +
+  '-' + pad(this.getDate()) +
+  'T' + pad(this.getHours()) +
+  ':' + pad(this.getMinutes()) +
+  ':' + pad(this.getSeconds()) +
+  '.' + this.getMilliseconds().toString().padStart(3, '0') +
+  dif + pad(Math.floor(Math.abs(tzo) / 60)) +
+  ':' + pad(Math.abs(tzo) % 60);
+};
 
 const app = express();
 const api = express.Router();
