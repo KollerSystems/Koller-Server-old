@@ -10,11 +10,13 @@
 
 # Koller-Server
 
-API forráskódja a Koller-hez.
+API szerver forráskódja a Koller-hez.
 
 Az API dokumentálását az [API.md](/docs/API.md) fájlban lehet megtalálni.
 
 A közreműködéssel(contributing) kapcsolatos információk a [CONTRIBUTING.md](/docs/CONTRIBUTING.md) fájlban találhatóak.
+
+A szerver architektúrájára vonatkozó információk pedig az [ARCHITECTURE.md](/docs/ARCHITECTURE.md) dokumentumban lelhetők fel.
 
 ### Előkészületek a futtatáshoz
 

@@ -25,7 +25,7 @@ const tokens = {
  * @typedef {object} configObj
  * @property {string=} testname
  * @property {boolean} paramtest
- * @property {stirng | null} token
+ * @property {string | null} token
  * 
  * @param {'GET'|'POST'} method
  * @param {string} endpoint
