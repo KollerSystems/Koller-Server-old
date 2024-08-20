@@ -13,7 +13,7 @@ A kódbázissal való megismerkedés útját érdemes itt kezdeni, utána pedig 
   - [Express.js](#expressjs)
   - [Knex.js](#knexjs)
   - [ws](#ws)
-  - [xregexp](#xregexp)
+  - [re2](#re2)
   - [PM2](#pm2)
   - [Mocha](#mocha)
   - [Chai](#chai)
@@ -41,7 +41,7 @@ Minden függőség a **[package.json](/package.json)** fájlban fellelhető. Né
 
 ### [Express.js](https://expressjs.com)
 
-Az egyik legfontosabb függősége a projektnek. A kérések express-en futnak át először és részletesebben feldolgozza azokat. A válaszok elküldése is express által folyik le.
+Az egyik legfontosabb függősége a projektnek. A kérések express-en futnak át először ami részletesebben feldolgozza azokat. A válaszok elküldése is express által folyik le.
 
 Használatának egyik lényeges szempontja, az egyes endpointok jobb elkülönítése. Erre `Router`-eket hozunk létre külön fájlokban, majd ezeket beimportálva `.use()`-oljuk őket hogy egyfajta fát alakítsunk ki belőlük(konkrétabban látható az [index.js](/index.js)-ben mint `routeTree` konstans).
 
@@ -76,13 +76,11 @@ Jelenleg fejlesztett területeken már nem használt, azonban eddig a prototípu
 
 A kártyaolvasóval [WebSocket](https://datatracker.ietf.org/doc/html/rfc6455) protokollon keresztül kommunikál. Ennek megbízható implementációjaként lett választva.
 
-### [xregexp](https://github.com/slevithan/xregexp)
+### [RE2](https://github.com/google/re2)
 
-Ezt a könyvtárat az API szűrési(és egyben afféle keresési funkciója) érdekében használjuk. modernebb _regex_ flavor-ök támogatása a cél. Egy példa a `(?i)` _modifier_, mellyel ideiglenesen be lehet kapcsolni, hogy ne különböztessen kis- és nagybetűt.
+Ezt a könyvtárat az API szűrési(és egyben afféle keresési funkciója) érdekében használjuk. Leelenőrzi a megadott _regexp_ helyességét, mielőtt átadná azt az adatbázis szervernek.
 
-A szerver és adatbázis két külön _regular expression_ motort használ, ezt figyelembe kell venni.
-
-Az _xregexp_ repository-ban már a [regex](https://github.com/slevithan/regex)-et ajánlják, így célszerű lesz áttérni rá, annak folytatott fejlesztésének érdekében.
+A szerver és adatbázis két külön _regular expression_ motort használ, ezt figyelembe kell venni. A szerver ezt, a Google-ét használja. Biztonságos és gyors. Nem célja minden speciális szintaxis támogatása, azonban garantálja a _regex_ hosszától függő linearitást időben.
 
 ### [PM2](https://github.com/Unitech/pm2)
 
@@ -103,13 +101,13 @@ describe('tesztelési csoport / entitás neve', function () {
 ```
 A Mocha képes paralell módon tesztelni az egyes "tulajdonságokat", azonban előfordul, hogy egy tesztből felhasznál valamit egy másikban, amely pedig problémát jelent ha párhuzamosan futnak le.
 
-A tesztek jelenleg átíráson keresztül mennek végig, az ilyesféle, egymástól függő teszteket már kerüljük. A régebbi tesztek megmaradnak míg az újak nem teljesen naprakészek, ezután ha a régi tesztek témáit is lefedik az újak, a régebbiek törölhetők.
+A tesztek átíráson mennek keresztül, az előbb említett, egymástól függő teszteket már kerüljük. A régebbi tesztek egészen addig megmaradnak, amíg az újak le nem fedik azok témáit, naprakésszé nem válnak.
 
 Megfigyelendő a fenti kódrészletben, hogy `describe()` második paramétere egy név nélküli függvény, és nem egy _arrow function_. Ennek oka, hogy az utóbbi `this`-éhez nem rendelhetőek a Mocha kontextusának paraméterei, így nem is állíthatók.
 
 ### [Chai](https://www.chaijs.com)
 
-[Mocha-val](#Mocha) gyakran párosított és ezáltal nagy mértékben kompatibilis _assertion_ könyvár.
+[Mocha-val](#Mocha) gyakran párosított és ezáltal nagy mértékben kompatibilis _assertion_ könyvtár.
 
 Az olvashatósága és a számos rendelkezésre álló megoldása miatt hasznos:
 
@@ -138,7 +136,7 @@ request
 
 `.end()` meghívja a megadott _callback function_-t, ami a `done`, még előző példából látható, átadott paramétere egy teszt esetnek.
 
-A [chai](#Chai) fő használata a kommentelt rész helyén folyik, ahol a `res.body` megy keresztül próbákon. Ez már objektummá való feldolgozása után.
+A kommentelt rész helyén van a [chai](#Chai) a leginkább használva, ahol a `res.body` megy keresztül próbákon. Ekkor már utóbbi _parse_-olva lett a könyvtár által.
 
 ### [ESLint](https://eslint.org)
 
@@ -308,7 +306,7 @@ _Regular expression_ használatával keresés is lehetséges. A következő pél
 </details>
 
 Előfordulnak olyan kérések, ahol az adott táblán kívül más tábla adatai is érintettek, és célszerű visszaadni azokat. Ezen _mount_-olás a másik fontos feladata. Erre egy példa:
-```json
+```jsonc
 // /api/users/3
 {
   "UID": 3,
