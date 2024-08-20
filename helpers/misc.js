@@ -185,4 +185,14 @@ function weekRange(date = (new Date()), precision = false) {
   return [ new Date(precision ? startDate : losePrecision(startDate)), new Date(precision ? endDate : losePrecision(endDate)) ];
 }
 
-export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, setIfMissingKey, cmp, remove, deleteProperty, tryparse, findIndecies, weekRange };
+/**
+ * Megszűri egy array értékeit, csak a megengedettet visszaadva.
+ * @param {any[]} arr szűrt array
+ * @param {any[]} allowed megengedett értékek
+ * @returns {any[]} megengedett értékek
+ */
+function filter(arr, allowed) {
+  return arr.filter(v => allowed.includes(v));
+}
+
+export { intoTimestamp, generateToken, isEmptyObject, parseJSON, has, setIfMissingKey, cmp, remove, deleteProperty, tryparse, findIndecies, weekRange, filter };

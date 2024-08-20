@@ -94,7 +94,7 @@ describe('multi-result parameter check', function () {
       expect(obj?.Group?.ID).to.be.eq(1);
   }, { paramtest: true });
 
-  Endpoint('GET', '/api/users', 200, [ 'Name=Páter Zsófia Édua', 'filter=Name:Páter Zsófia Édua', 'Name=/Zsófia/', 'filter=Name:/Zsófia/' ], body => {
+  Endpoint('GET', '/api/users', 200, [ 'Name=Páter Zsófia Édua', 'filter=Name:Páter Zsófia Édua', 'Name=/Zsófia/', 'filter=Name:/Zsófia/', 'Name=/zsófia/i' ], body => {
     expect(body).to.have.a.lengthOf(1);
     expect(body[0].Name).to.be.eq('Páter Zsófia Édua');
   }, { paramtest: true });

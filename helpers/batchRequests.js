@@ -1,6 +1,6 @@
-import XRegExp from 'xregexp';
+import RE2 from 're2';
 import { knx, options, tableColumns } from '../index.js';
-import { isEmptyObject, tryparse } from './misc.js';
+import { filter, isEmptyObject, tryparse } from './misc.js';
 
 /**
  * lekérdezés objektum
@@ -166,9 +166,12 @@ function handleFilterParams(urlparams, allowedFields, translation, renames) {
   const filterType = (obj, field) => obj[isCertain(field) ? 'immediate' : 'postquery'];
   const pushTo = (field, value, operator, optionals = {}) => {
     field = renames[field] || field;
+
     if (operator == 'REGEXP') {
+      optionals.flags = filter(optionals.flags.split(''), [ 'i', 's', 'm' ]).join('');
       try {
-        new XRegExp(value, optionals.flags);
+        new RE2(value, optionals.flags);
+        if (optionals.flags.length != 0) value = '(?' + optionals.flags + ')' + value;
       } catch (err) {
         value = '';
       }
