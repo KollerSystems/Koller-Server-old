@@ -55,10 +55,9 @@ function treeifyMaps(arr, mapType = 'perms') {
  */
 async function extendMissingPermissions() {
   const permColumnInfo = await knx('permissions').columnInfo();
-
   const defaults = {};
   for (let perm of perms)
-    defaults[perm] = (permColumnInfo[perm].defaultValue == "b'0'" ? false : true);
+    defaults[perm] = (permColumnInfo[perm].defaultValue == '0' ? false : true);
 
   for (let table in permMappings) {
     let columns = await knx(table).columnInfo();

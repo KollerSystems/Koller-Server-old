@@ -88,8 +88,8 @@ const knx = knex({
     ...options.databaseLoginData,
     database: 'kollegium',
     typeCast: function(field, next) {
-      if (field.type == 'BIT' && field.length == 1) {
-        return (field.string() == '\x00' ? 0 : 1);
+      if (field.type == 'TINY' && field.length == 1) {
+        return (field.string() == '1');
       }
       return next();
     }
