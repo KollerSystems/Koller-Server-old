@@ -74,20 +74,20 @@ oauth.post('/token', async (req, res, next) => {
 
   const { access_token, refresh_token } = await generateUniqueToken();
   if (req.body['grant_type'] == 'refresh_token') {
-    await knx('auth').where('access_token', grantResult.data).update({ 'access_token': access_token, 'refresh_token': refresh_token, 'issued': new Date(), 'expired': 0 });
+    await knx('auth').where('access_token', grantResult.data).update({ access_token, refresh_token, 'issued': new Date(), 'expired': 0 });
     res.header('Content-Type', 'application/json').status(200).send({
-      'access_token': access_token,
+      access_token,
       'token_type': 'Bearer',
       'expires_in': options.authorization.expiry.accessToken,
-      'refresh_token': refresh_token
+      refresh_token
     }).end();
   } else {
-    await knx('auth').insert({ 'UID': grantResult.data, 'access_token': access_token, 'refresh_token': refresh_token, 'expires': options.authorization.expiry.accessToken, 'issued': new Date(), 'expired': 0 });
+    await knx('auth').insert({ 'UID': grantResult.data, access_token, refresh_token, 'expires': options.authorization.expiry.accessToken, 'issued': new Date(), 'expired': 0 });
     res.header('Content-Type', 'application/json').status(200).send({
-      'access_token': access_token,
+      access_token,
       'token_type': 'Bearer',
       'expires_in': options.authorization.expiry.accessToken,
-      'refresh_token': refresh_token
+      refresh_token
     }).end();
   }
   next();

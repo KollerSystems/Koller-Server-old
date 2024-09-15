@@ -137,7 +137,7 @@ function classicErrorSend(res, keyword, code=errors[keyword].code, description=e
  * Egy adatbázisból lekért adathalmazon az engedhető tulajdonságok átengedése a szűrőn.
  * @param {Object[]} data forrás adathalmaz
  * @param {string} table forrás tábla neve
- * @param {string} role lekérő szerepének(engedélycsoportjának) neve
+ * @param {number} role lekérő szerepének(engedélycsoportjának) IDja
  * @param {PermType} permType engedély szempontjából a művelet neve
  * @returns {Object[]} szűrt adathalmaz
  */
@@ -150,7 +150,7 @@ function filterByPermission(data, table, role, permType = 'read') { // perftest:
 /**
  * Megszerzi a lekérhető mezőneveket engedélyek szerint egy táblán.
  * @param {string} table A kérdéses tábla.
- * @param {string} role lekérő szerepének(engedélycsoportjának) neve
+ * @param {number} role lekérő szerepének(engedélycsoportjának) IDja
  * @param {boolean} explicit kell-e jelezni a tábla viszonyát a mezőnevekkel (pld. tableName.fieldName)
  * @param {PermType} permType engedély szempontjából a művelet neve
  * @returns {string[]} A lekérő szempontjából látható mezőnevek.

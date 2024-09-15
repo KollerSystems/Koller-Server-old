@@ -10,7 +10,7 @@ const users = Router({ mergeParams: false });
 users.post('/mifare', async (req, res, next) => {
   if (req.get('Content-Type') != 'application/octet-stream') return classicErrorSend(res, 400, 'Invalid Content-Type used on resource!');
 
-  const permittedFields = getPermittedFields('mifare_tags', roleMappings.byID[res.locals.roleID]);
+  const permittedFields = getPermittedFields('mifare_tags', res.locals.roleID);
   if (permittedFields.length == 0) return classicErrorSend(res, 'missing_permissions');
   if (isEmptyObject(req.body)) return classicErrorSend(res, 'missing_data');
 
@@ -33,10 +33,10 @@ users.post('/mifare', async (req, res, next) => {
  */
 const mountWhenPossible = async (res, srcdata, destdata) => {
   const [ rootdata, classdata, groupdata, contactdata ] = await Promise.all([
-    knx('user').first(getPermittedFields('user', roleMappings.byID[res.locals.roleID])).where('UID', res.locals.UID ?? -1),
-    knx('class').first(getPermittedFields('class', roleMappings.byID[res.locals.roleID])).where('ID', srcdata?.ClassID ?? -1),
-    knx('group').first(getPermittedFields('group', roleMappings.byID[res.locals.roleID])).where('ID', srcdata?.GroupID ?? -1),
-    knx('contacts').first(getPermittedFields('contacts', roleMappings.byID[res.locals.roleID])).where('ID', srcdata?.ContactID ?? -1)
+    knx('user').first(getPermittedFields('user', res.locals.roleID)).where('UID', res.locals.UID ?? -1),
+    knx('class').first(getPermittedFields('class', res.locals.roleID)).where('ID', srcdata?.ClassID ?? -1),
+    knx('group').first(getPermittedFields('group', res.locals.roleID)).where('ID', srcdata?.GroupID ?? -1),
+    knx('contacts').first(getPermittedFields('contacts', res.locals.roleID)).where('ID', srcdata?.ContactID ?? -1)
   ]);
 
   for (let key in rootdata)
@@ -62,11 +62,11 @@ users.get('/me', async (req, res, next) => {
 });
 
 users.get('/:id(-?\\d+)', async (req, res, next) => { // regexp: /-?\d+/
-  const user = await knx('user').first(getPermittedFields('user', roleMappings.byID[res.locals.roleID])).where('UID', req.params.id);
+  const user = await knx('user').first(getPermittedFields('user', res.locals.roleID)).where('UID', req.params.id);
   if (user == undefined) return classicErrorSend(res, 'missing_resource');
 
   const userdata = await knx(roleMappings.byID[user.Role]).first('*').where('UID', user.UID);
-  const filteredData = filterByPermission(userdata, roleMappings.byID[user.Role], roleMappings.byID[res.locals.roleID]);
+  const filteredData = filterByPermission(userdata, roleMappings.byID[user.Role], res.locals.roleID);
 
   await mountWhenPossible(res, userdata, filteredData);
 
@@ -83,9 +83,9 @@ users.get('/', async (req, res, next) => {
   // const allowedUsersRegexp = new RegExp(options.api.batchRequests.allowedRoles.join('|')); // regexp: /student|teacher|.../
 
   const fields = selectCoalesce([
-    { 'fields': getPermittedFields('user', roleMappings.byID[res.locals.roleID], false), 'table': 'user' },
-    { 'fields': getPermittedFields('student', roleMappings.byID[res.locals.roleID], false), 'table': 'student' },
-    { 'fields': getPermittedFields('teacher', roleMappings.byID[res.locals.roleID], false), 'table': 'teacher' }
+    { 'fields': getPermittedFields('user', res.locals.roleID, false), 'table': 'user' },
+    { 'fields': getPermittedFields('student', res.locals.roleID, false), 'table': 'student' },
+    { 'fields': getPermittedFields('teacher', res.locals.roleID, false), 'table': 'teacher' }
   ]);
   let query = knx('user');
   addCoalesces(query, fields.coalesces);
@@ -93,9 +93,9 @@ users.get('/', async (req, res, next) => {
 
 
   let users = await setupBatchRequest(query, req.query, req.url, {}, [
-    { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', roleMappings.byID[res.locals.roleID], false), 'table': 'class' } },
-    { 'flexible': true, 'point': 'Group', 'join': [ 'GroupID', 'ID' ], 'query': { 'fields': getPermittedFields('group', roleMappings.byID[res.locals.roleID], false), 'table': 'group' } },
-    { 'flexible': true, 'point': 'Contacts', 'join': [ 'ContactID', 'ID' ], 'query': { 'fields': getPermittedFields('contacts', roleMappings.byID[res.locals.roleID], false), 'table': 'contacts' } }
+    { 'flexible': true, 'point': 'Class', 'join': [ 'ClassID', 'ID' ], 'query': { 'fields': getPermittedFields('class', res.locals.roleID, false), 'table': 'class' } },
+    { 'flexible': true, 'point': 'Group', 'join': [ 'GroupID', 'ID' ], 'query': { 'fields': getPermittedFields('group', res.locals.roleID, false), 'table': 'group' } },
+    { 'flexible': true, 'point': 'Contacts', 'join': [ 'ContactID', 'ID' ], 'query': { 'fields': getPermittedFields('contacts', res.locals.roleID, false), 'table': 'contacts' } }
   ], { 'ClassID': undefined, 'GroupID': undefined, 'ContactID': undefined });
   for (let i = 0; i < users.length; i++) {
     Object.keys(users[i]).forEach((k) => users[i][k] == null && delete users[i][k]);

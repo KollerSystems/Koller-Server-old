@@ -12,7 +12,6 @@ function treeifyMaps(arr, mapType = 'perms') {
   const tree = {};
   if (mapType == 'perms') {
     for (let row of arr) {
-      row.Role = roleMappings.byID[row.Role];
       setIfMissingKey(tree, row.Table);
       setIfMissingKey(tree[row.Table], row.Field);
       setIfMissingKey(tree[row.Table][row.Field], row.Role);
@@ -62,9 +61,9 @@ async function extendMissingPermissions() {
   for (let table in permMappings) {
     let columns = await knx(table).columnInfo();
     for (let column in columns) {
-      if (column in permMappings[table]) continue;
       setIfMissingKey(permMappings[table], column);
-      for (let role in roleMappings.byRole) {
+      for (let role in roleMappings.byID) {
+        if (role in permMappings[table][column]) continue;
         setIfMissingKey(permMappings[table][column], role);
         for (let perm of perms)
           permMappings[table][column][role][perm.toLowerCase()] = defaults[perm];

@@ -31,7 +31,8 @@ import { filter, isEmptyObject, tryparse } from './misc.js';
  */
 function getSelectFields(query) {
   let selectParams = query.toSQL().sql.match(/(?<=select ).+(?= from)/g);
-  if (selectParams != null)
+  if (selectParams.length == 1 && selectParams[0] == '*') selectParams = [];
+  else if (selectParams != null)
     selectParams = selectParams[0].match(/(\w+\([\w.`, ]+\)( AS \w+)?)|([\w.`]+( AS \w+)?)/g);
   else selectParams = [];
   const fields = { 'all': [], 'coalesce': {} };

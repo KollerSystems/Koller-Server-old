@@ -29,7 +29,7 @@ const handleBasicRequest = async (req, res, next) => {
   const db = routeTranslation[splitroute[1]];
   const single = splitroute.length == 3;
 
-  let data = knx(db)[single ? 'first' : 'select'](getPermittedFields(db, roleMappings.byID[res.locals.roleID]));
+  let data = knx(db)[single ? 'first' : 'select'](getPermittedFields(db, res.locals.roleID));
 
   if (single) data.where('ID', req.params.id);
   if (db != 'annexe') data.where('Old', 0);
@@ -52,14 +52,14 @@ institution.get('/annexes/:id(-?\\d+)', handleBasicRequest);
 
 institution.get('/daytypes', async (req, res, next) => {
   const fields = [].concat(
-    getPermittedFields('day_type', roleMappings.byID[res.locals.roleID], true),
-    remove(getPermittedFields('day_type_names', roleMappings.byID[res.locals.roleID], false), 'ID')
+    getPermittedFields('day_type', res.locals.roleID, true),
+    remove(getPermittedFields('day_type_names', res.locals.roleID, false), 'ID')
   );
   let data = knx('day_type').select(fields).leftJoin('day_type_names', 'day_type_names.ID', 'TypeID');
 
   data = await setupBatchRequest(data, req.query, req.url, {}, [
     { 'flexible': false, 'point': 'Lessons', 'callback': async parent => {
-      return await knx('lessons').select(getPermittedFields('lessons', roleMappings.byID[res.locals.roleID])).where('VersionID', parent.LessonsVersion);
+      return await knx('lessons').select(getPermittedFields('lessons', res.locals.roleID)).where('VersionID', parent.LessonsVersion);
     } }
   ], { 'LessonsVersion': undefined, 'TypeID': undefined });
 
@@ -70,12 +70,12 @@ institution.get('/daytypes', async (req, res, next) => {
 
 institution.get('/daytypes/:id(-?\\d+)', async (req, res, next) => {
   const fields = [].concat(
-    getPermittedFields('day_type', roleMappings.byID[res.locals.roleID], true),
-    remove(getPermittedFields('day_type_names', roleMappings.byID[res.locals.roleID], false), 'ID')
+    getPermittedFields('day_type', res.locals.roleID, true),
+    remove(getPermittedFields('day_type_names', res.locals.roleID, false), 'ID')
   );
   let data = await knx('day_type').first(fields).leftJoin('day_type_names', 'day_type_names.ID', 'TypeID').where('day_type.ID', req.params.id);
   if (data == undefined) return classicErrorSend(res, 'missing_resource');
-  data.Lessons = await knx('lessons').select(getPermittedFields('lessons', roleMappings.byID[res.locals.roleID])).where('VersionID', data.LessonsVersion);
+  data.Lessons = await knx('lessons').select(getPermittedFields('lessons', res.locals.roleID)).where('VersionID', data.LessonsVersion);
   delete data.LessonsVersion;
   delete data.TypeID;
 
